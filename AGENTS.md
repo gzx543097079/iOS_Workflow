@@ -1,21 +1,22 @@
 # iOS AI Workflow Instructions
 
-本文件保留在 `Workspace/iOS_Workflow/AGENTS.md`。Workspace 根目录的轻量 `AGENTS.md` 指向本文件；以下相对路径均以 `iOS_Workflow/` 为基准：
+本文件通常位于 `Workspace/iOS_Workflow/AGENTS.md`，以下相对路径均以 `iOS_Workflow/` 为基准。先判断任务类型，只读取对应规则；组合任务读取各类型规则的并集，不要预先加载无关文档。
 
-1. 先阅读 `standards/code-style.md`、`standards/ui-style.md` 和 `config/defaults.jsonc`。
-2. 新建或修改 iOS 项目时，以默认配置和规范文件为基线；用户明确指定的选项优先。
-3. 生成新的手写代码时，必须按 `comment_level` 直接生成对应等级的中文注释，具体规则见 `standards/code-style.md`；不要求在生成后扫描或批量补写已有代码。
-4. 新建项目或引入三方库时，必须按 `dependency_manager` 使用对应方式并生成需要的项目配置，不得静默忽略或改用另一种依赖管理方式。
-5. 所有直接三方库必须使用完整、精确的版本号，不得使用范围、比较符、通配符、分支、commit、`latest` 或省略版本；具体语法和安装、更新、编译前同步规则见 `standards/code-style.md`。
-6. 新建项目、明确更新三方库版本和执行编译时，必须运行当前依赖管理方式对应的安装、更新或解析操作；操作失败时停止编译并向用户报告，不得静默跳过。
-7. 保持用户选定的语言、UI 框架和架构，不得无理由混用另一套技术。
-8. 新增 UI 时优先复用 `DesignTokens`，不要在业务页面散落颜色、间距、字号与圆角常量。
-9. 新增业务模块时遵守生成项目中 `Features/<Feature>` 的边界。
-10. 修改完成后运行项目中最小相关的构建、测试和静态检查。
-11. 用户触发 Git 提交、推送到远端或代码 review 时，必须自动读取并逐项执行 `checklists/pre-commit-review.md`，不等待用户再次要求检查。
-12. Checklist 结果统一使用 `✅` 表示通过、`❌` 表示不通过、`➖` 表示本次代码未影响或不适用，并为每个 `➖` 说明原因。
-13. 出现任何 `❌` 时必须停止提交或推送，向用户输出完整检查结果，并单独提示所有失败项及建议处理方式。
-14. 所有适用项通过后才能继续操作。执行提交时，将 Checklist 结果写入提交备注；仅执行推送时，将 Checklist 结果写入给用户的推送结果说明。整组均为 `➖` 时可以按模块合并，但必须说明未受影响的原因。
-15. 若需求与规范冲突，明确指出冲突并以用户当前明确要求为准，同时建议是否更新规范。
+## 通用要求
 
-规范是可演进的团队约定，不是不可变规则。修改规范时应同步更新文件底部 changelog。
+1. 用户当前明确要求优先于默认配置；发现冲突时说明冲突。
+2. 保持项目已有语言、UI 框架、架构和模块边界，不无理由切换技术方案。
+3. 修改后运行最小相关测试；修改生成器时运行 `python3 -m unittest discover -s tests -v`。
+4. 修改工作流规则时同步更新 `CHANGELOG.md`。
+
+## 按任务读取
+
+- 新建 iOS 项目：读取 `config/defaults.jsonc`、`standards/code-core.md`、`standards/code-generation.md`、`standards/ui-style.md`、`config/design-tokens.jsonc`、`standards/dependencies.md`；若仓库提供生成器，优先使用生成器。
+- 新增手写代码：读取 `standards/code-core.md` 和 `standards/code-generation.md`。
+- 修改业务逻辑、重构或修复缺陷：读取 `standards/code-core.md`；若新增代码，再读取 `standards/code-generation.md`。
+- 新增或修改 UI：读取 `standards/code-core.md`、`standards/ui-style.md` 和 `config/design-tokens.jsonc`；若新增代码，再读取 `standards/code-generation.md`。
+- 引入、安装、更新三方库或执行编译：读取 `standards/dependencies.md`；仅在同时修改源码时读取对应代码规范。
+- 提交、推送或 review：读取 `checklists/pre-commit-review.md`，再按其路由读取检查模块。出现任一 `❌` 时停止提交或推送并提示用户。
+- 仅修改文档或工作流：只读取与目标直接相关的文件，不自动加载代码、UI、依赖或 checklist 规则。
+
+README 和 `docs/` 用于团队使用说明，不属于每次任务的必读上下文。

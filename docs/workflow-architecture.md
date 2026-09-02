@@ -2,7 +2,7 @@
 
 ## 目标
 
-工作流以文本文件约束 Codex 的项目生成、编码和 review 行为，不依赖专用 CLI，也不在业务项目中创建独立 Git 仓库。
+工作流以文本文件约束 Codex 的项目生成、编码和 review 行为，不依赖专用 CLI，也不在业务项目中创建独立 Git 仓库。运行时入口保持精简，仅按当前任务载入必要规则。
 
 ## 部署结构
 
@@ -11,29 +11,35 @@ Workspace/
 ├── AGENTS.md                         指向外部工作流的轻量入口
 ├── MyProject/                        业务项目及其 Git 仓库
 └── iOS_Workflow/                     工作流 Git 仓库
-    ├── AGENTS.md                     工作流原始入口文件
-    ├── README.md                     接入与使用说明
-    ├── LICENSE                       开源协议
+    ├── AGENTS.md                     按任务分流的工作流入口
+    ├── CHANGELOG.md                  集中的规则变更历史
     ├── config/
-    │   ├── defaults.jsonc            默认技术选型与工程设置
+    │   ├── defaults.jsonc            仅新项目读取的默认选项
     │   └── design-tokens.jsonc       UI 参数来源
     ├── standards/
-    │   ├── code-style.md             代码规范
+    │   ├── code-core.md              核心代码规则
+    │   ├── code-generation.md        生成代码与注释规则
+    │   ├── dependencies.md           三方库与编译规则
     │   └── ui-style.md               UI 规范
-    ├── checklists/                   提交与 review 检查
-    └── docs/                         工作流架构说明
+    ├── checklists/
+    │   ├── pre-commit-review.md      门禁与条件路由
+    │   ├── core.md                   通用检查
+    │   ├── subscription.md           订阅专项检查
+    │   └── analytics.md              打点专项检查
+    └── docs/                         非运行时说明
 ```
 
 ## 加载流程
 
-1. Workspace 根目录保留一个轻量 `AGENTS.md`，指向 `iOS_Workflow/AGENTS.md`。
-2. Codex 桌面端打开整个 Workspace，自动读取根目录的 `AGENTS.md`。
-3. Workspace 入口要求 Codex 读取工作流原始入口，并以 `iOS_Workflow/` 为基准加载默认配置和规范文件。
-4. 用户明确指定的技术选型覆盖默认配置，业务项目自身约定优先于通用工作流。
-5. Codex 按项目现有技术、模块边界和 DesignTokens 完成修改。
-6. 用户触发提交、推送或 review 时，Codex 自动执行 `checklists/pre-commit-review.md`。
-7. 存在 `❌` 时阻止提交或推送；通过时将 Checklist 写入提交备注或推送结果说明。
+1. Codex 打开 Workspace 后读取根目录轻量 `AGENTS.md`，再进入 `iOS_Workflow/AGENTS.md`。
+2. 工作流入口判断任务类型，只加载对应规则；组合任务取规则并集。
+3. 用户明确选项覆盖默认配置，业务项目自身约定优先于通用工作流。
+4. 普通代码、生成代码、UI、依赖和新项目分别走独立路由，避免预读无关上下文。
+5. 提交、推送或 review 时加载门禁和通用检查；检查 diff 后，只有影响订阅或打点时才加载专项模块。
+6. 存在 `❌` 时阻止提交或推送；通过时把结果写入提交备注或推送结果。
+
+README、`docs/` 和 `CHANGELOG.md` 供接入、维护与追溯使用，不自动进入日常编码上下文。成功的安装、解析和编译只输出摘要；失败时保留定位所需的相关日志。
 
 ## Git 边界
 
-`iOS_Workflow/` 和业务项目是两个同级目录，可以分别使用独立 Git 仓库。轻量入口位于二者共同的 Workspace 根目录；团队切换工作流版本 tag 后，入口继续读取该版本的规则。
+`iOS_Workflow/` 和业务项目是两个同级目录，可以分别使用独立 Git 仓库。轻量入口位于共同的 Workspace 根目录；团队切换工作流版本 tag 后，入口路径保持不变。
