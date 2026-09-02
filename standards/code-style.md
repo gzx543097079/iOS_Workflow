@@ -1,4 +1,4 @@
-# iOS 代码规范 v1.1
+# iOS 代码规范 v1.2
 
 ## 基线
 
@@ -66,10 +66,11 @@
 ## 工具建议
 
 - SwiftFormat 负责机械格式化，SwiftLint 负责可配置的静态规则。
-- CI 至少执行生成器校验、lint、build 和 unit tests。
+- CI 至少执行 lint、build 和 unit tests。
 - 工具配置是本规范的机器可执行补充；冲突时以本文件明确条款为准。
 
 ## Changelog
 
+- 1.2：移除对工作流 CLI 和生成器校验的依赖，保留项目自身的构建与测试要求。
 - 1.1：统一官方名称、技术缩写、普通英文名词和代码标识符的大小写规则。
 - 1.0：建立 Swift/Objective-C、MVVM/MVC、并发、测试与隐私基线。
