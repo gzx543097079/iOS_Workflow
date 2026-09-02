@@ -65,6 +65,14 @@ Codex 会自动读取 Workspace 根目录的 `AGENTS.md`。该入口要求 Codex
 
 用户在当前任务中明确指定的语言、UI、架构、本地化或注释设置优先于默认配置。
 
+生成新的手写代码时，Codex 会直接按照 `comment_level` 添加中文注释。默认第 3 级会说明页面用途、业务自定义方法、Model 用途和复杂实现思路；系统方法、继承方法、生命周期及代理/数据源回调不生成注释，也不生成文件元数据或“类型职责”“方法职责”等标签。该规则不要求生成完成后再扫描或批量补写已有代码。
+
+`dependency_manager` 会在生成阶段落实为对应的项目配置：`pod` 使用 `Podfile`，`spm` 使用 Xcode/`project.yml` 的 Swift Package 引用，`carthage` 使用 `Cartfile`，`none` 不预设依赖管理文件。工作流不会为了展示依赖管理方式而虚构项目不需要的三方库。
+
+所有直接三方库必须指定完整的精确版本号，例如 `1.2.3`。禁止使用大于、小于、兼容范围、通配符、分支、commit、`latest` 或省略版本。CocoaPods 使用固定版本字符串，Swift Package Manager 使用 Exact Version，Carthage 使用 `==`。
+
+依赖操作会在以下阶段执行：新项目创建后安装依赖；明确修改库版本后更新指定依赖；每次编译前按当前依赖管理方式执行安装、解析或 bootstrap。依赖操作失败时停止编译并提示用户，不会跳过错误继续构建。详细规则见 [`code-style.md`](standards/code-style.md)。
+
 ## 规范与检查
 
 - [`code-style.md`](standards/code-style.md)：Swift、Objective-C、架构、日志、隐私和测试规范。
