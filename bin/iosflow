@@ -1038,6 +1038,7 @@ def validate_repository():
     if missing:
         raise WorkflowError("design tokens 缺少字段: " + ", ".join(missing))
     for path in (
+        ROOT / "ios",
         ROOT / "standards" / "code-style.md",
         ROOT / "standards" / "ui-style.md",
         ROOT / "checklists" / "pre-commit-review.md",
@@ -1045,6 +1046,8 @@ def validate_repository():
     ):
         if not path.exists() or not path.read_text(encoding="utf-8").strip():
             raise WorkflowError(f"缺少或为空: {path}")
+    if not os.access(ROOT / "ios", os.X_OK):
+        raise WorkflowError("短命令入口 ios 没有可执行权限")
     print("工作流配置与规范校验通过")
 
 
@@ -1140,9 +1143,112 @@ def doctor():
         print(f"{name}: {value}")
 
 
+def prompt_choice(label, choices, default):
+    choices = tuple(choices)
+    while True:
+        print(f"\n{label}")
+        for index, choice in enumerate(choices, start=1):
+            default_mark = " (默认)" if choice == default else ""
+            print(f"  {index}. {choice}{default_mark}")
+        answer = input(f"请选择 [默认 {default}]: ").strip()
+        if not answer:
+            return default
+        if answer.isdigit() and 1 <= int(answer) <= len(choices):
+            return choices[int(answer) - 1]
+        if answer in choices:
+            return answer
+        print("输入无效，请输入序号或选项名。")
+
+
+def prompt_text(label, default=None, required=False):
+    while True:
+        hint = f" [默认 {default}]" if default else ""
+        answer = input(f"{label}{hint}: ").strip()
+        if answer:
+            return answer
+        if default is not None:
+            return default
+        if not required:
+            return ""
+        print("此项不能为空。")
+
+
+def interactive_new(defaults):
+    print("\n创建 iOS 项目（直接回车使用默认值）")
+    name = prompt_text("项目名", required=True)
+    language = prompt_choice("开发语言", VALID["language"], defaults["language"])
+    ui_choices = ("uikit",) if language == "objc" else VALID["ui"]
+    ui_default = defaults["ui"] if defaults["ui"] in ui_choices else ui_choices[0]
+    ui = prompt_choice("UI 框架", ui_choices, ui_default)
+    architecture = prompt_choice("项目架构", VALID["architecture"], defaults["architecture"])
+    navigation = prompt_choice("启用系统导航容器", ("yes", "no"), "yes" if defaults["navigation_enabled"] else "no")
+    dependency_manager = prompt_choice(
+        "依赖管理", VALID["dependency_manager"], defaults["dependency_manager"]
+    )
+    language_mode = prompt_choice(
+        "首次启动语言", VALID["default_language_mode"], defaults["default_language_mode"]
+    )
+    default_localization = None
+    if language_mode == "fixed":
+        default_localization = prompt_choice(
+            "默认语言", defaults["supported_localizations"], defaults["default_localization"]
+        )
+    comment_level = int(prompt_choice("中文注释等级", ("1", "2", "3", "4"), str(defaults["comment_level"])))
+    output = prompt_text("输出父目录", os.getcwd())
+    generate_xcodeproj = prompt_choice("尝试生成 Xcode 工程", ("yes", "no"), "yes")
+
+    args = argparse.Namespace(
+        name=name,
+        language=language,
+        ui=ui,
+        architecture=architecture,
+        navigation_enabled=navigation == "yes",
+        dependency_manager=dependency_manager,
+        bundle_id_prefix=None,
+        bundle_id=None,
+        deployment_target=None,
+        objc_prefix=None,
+        default_language_mode=language_mode,
+        default_localization=default_localization,
+        comment_level=comment_level,
+        output=output,
+        no_xcodegen=generate_xcodeproj == "no",
+        force=False,
+    )
+    generate_project(args)
+
+
+def interactive_menu(defaults):
+    print("iOS Workflow 交互式菜单")
+    try:
+        action = prompt_choice(
+            "要执行的操作",
+            ("new", "checklist", "validate", "doctor", "list-options", "exit"),
+            "new",
+        )
+        if action == "new":
+            interactive_new(defaults)
+        elif action == "checklist":
+            path = prompt_text("项目目录", os.getcwd())
+            purpose = prompt_choice("检查用途", ("commit", "review"), "commit")
+            run_checklist(path, purpose)
+        elif action == "validate":
+            validate_repository()
+        elif action == "doctor":
+            doctor()
+        elif action == "list-options":
+            print(json.dumps({"options": VALID, "defaults": defaults}, ensure_ascii=False, indent=2))
+        else:
+            print("已退出。")
+    except (EOFError, KeyboardInterrupt):
+        print("\n已取消。")
+        return 130
+    return 0
+
+
 def parser():
     defaults = load_defaults()
-    root = argparse.ArgumentParser(prog="iosflow", description="iOS AI 工作流")
+    root = argparse.ArgumentParser(prog="ios", description="iOS AI 工作流")
     commands = root.add_subparsers(dest="command", required=True)
     new = commands.add_parser("new", help="生成空项目")
     new.add_argument("name")
@@ -1174,6 +1280,8 @@ def parser():
 
 def main():
     try:
+        if len(sys.argv) == 1:
+            return interactive_menu(load_defaults())
         command_parser, defaults = parser()
         args = command_parser.parse_args()
         if args.command == "new":

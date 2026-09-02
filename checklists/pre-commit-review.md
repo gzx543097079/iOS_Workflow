@@ -13,7 +13,7 @@
 - [ ] UI 改动复用了 `DesignTokens`，并检查深色模式、动态字体、本地化和可访问性。
 - [ ] 配置、资源、文档和生成产物已与代码行为同步。
 - [ ] 已暂存和未暂存 diff 只包含本次需求相关内容，未包含密钥、个人数据、构建产物或调试代码。
-- [ ] 已执行 `./bin/iosflow checklist <项目目录> --purpose commit|review`，并确认自动检查通过。
+- [ ] 已执行 `./ios checklist <项目目录> --purpose commit|review`，并确认自动检查通过。
 
 ## 订阅检查
 

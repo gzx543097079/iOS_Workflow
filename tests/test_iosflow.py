@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "bin" / "iosflow"
@@ -104,6 +105,36 @@ class GeneratorTests(unittest.TestCase):
                 encoding="utf-8",
             )
             iosflow.run_checklist(project, "review")
+
+    def test_interactive_new_uses_numbered_defaults(self):
+        defaults = iosflow.load_defaults()
+        answers = iter((
+            "WizardApp",
+            "",  # swift
+            "",  # uikit
+            "",  # mvvm
+            "",  # navigation enabled
+            "",  # pod
+            "",  # system language
+            "",  # comment level 3
+            "/tmp",
+            "2",  # do not run XcodeGen
+        ))
+        with patch("builtins.input", side_effect=lambda _prompt: next(answers)), patch.object(
+            iosflow, "generate_project"
+        ) as generate_project:
+            iosflow.interactive_new(defaults)
+
+        args = generate_project.call_args.args[0]
+        self.assertEqual(args.name, "WizardApp")
+        self.assertEqual(args.language, "swift")
+        self.assertEqual(args.ui, "uikit")
+        self.assertEqual(args.architecture, "mvvm")
+        self.assertTrue(args.navigation_enabled)
+        self.assertEqual(args.dependency_manager, "pod")
+        self.assertEqual(args.default_language_mode, "system")
+        self.assertEqual(args.comment_level, 3)
+        self.assertTrue(args.no_xcodegen)
 
     def test_rejects_objc_swiftui(self):
         options = iosflow.load_defaults()

@@ -14,19 +14,29 @@
 
 ## 快速开始
 
+最简单的方式是运行交互式菜单，再用序号选择操作和项目配置：
+
+```bash
+./ios
+```
+
+如果已经知道要执行的操作，可以使用简短命令：
+
 ```bash
 # 检查本机依赖
-./bin/iosflow doctor
+./ios doctor
 
 # Swift + SwiftUI + MVVM
-./bin/iosflow new DemoApp --language swift --ui swiftui --architecture mvvm
+./ios new DemoApp --language swift --ui swiftui --architecture mvvm
 
 # Swift + UIKit + MVC
-./bin/iosflow new LegacyStyle --language swift --ui uikit --architecture mvc
+./ios new LegacyStyle --language swift --ui uikit --architecture mvc
 
 # Objective-C + UIKit + MVC
-./bin/iosflow new ObjCApp --language objc --ui uikit --architecture mvc
+./ios new ObjCApp --language objc --ui uikit --architecture mvc
 ```
+
+`./ios` 是 `./bin/iosflow` 的短入口；两种写法功能完全一致。不带参数时会进入交互模式，带参数时保持原有非交互行为，适合脚本和 CI。
 
 生成器先创建源码与 `project.yml`。如果本机已安装 XcodeGen，会继续生成 `.xcodeproj`；否则会显示安装及后续命令。也可以使用 `--no-xcodegen` 只输出模板。
 
@@ -47,7 +57,30 @@
 ```bash
 git clone git@github.com:gzx543097079/iOS_Workflow.git
 cd iOS_Workflow
-./bin/iosflow --help
+./ios
+```
+
+### `./ios`：交互式菜单
+
+不带参数运行 `./ios` 后，可以从菜单选择 `new`、`checklist`、`validate`、`doctor` 或 `list-options`。选择 `new` 后，CLI 会逐项显示开发语言、UI 框架、架构、依赖管理、语言策略和注释等级等现有选项。输入序号即可选择，直接回车使用默认值。
+
+```text
+要执行的操作
+  1. new (默认)
+  2. checklist
+  3. validate
+  4. doctor
+  5. list-options
+  6. exit
+请选择 [默认 new]:
+```
+
+如果需要查看帮助或用于 CI，继续使用非交互命令：
+
+```bash
+./ios --help
+./ios validate
+./ios checklist . --purpose commit
 ```
 
 ### `doctor`：检查本机环境
@@ -55,7 +88,7 @@ cd iOS_Workflow
 显示 Python 3、XcodeGen、`xcodebuild`、SwiftLint 和 SwiftFormat 的安装状态。XcodeGen 不存在时仍可生成源码，但不会自动生成 `.xcodeproj`。
 
 ```bash
-./bin/iosflow doctor
+./ios doctor
 ```
 
 ### `validate`：校验工作流
@@ -63,7 +96,7 @@ cd iOS_Workflow
 校验 `config/defaults.jsonc`、Design Tokens、代码/UI 规范、Checklist 模板和 `AGENTS.md`。修改工作流配置后应先执行此命令。
 
 ```bash
-./bin/iosflow validate
+./ios validate
 # 也可以使用 Makefile
 make validate
 ```
@@ -75,7 +108,7 @@ make validate
 以 JSON 形式输出可选值和当前默认配置，适合在生成项目前确认团队基线。
 
 ```bash
-./bin/iosflow list-options
+./ios list-options
 ```
 
 ### `new`：生成 iOS 项目
@@ -83,13 +116,13 @@ make validate
 基本格式：
 
 ```bash
-./bin/iosflow new <项目名> [选项]
+./ios new <项目名> [选项]
 ```
 
 不传选项时使用 `config/defaults.jsonc` 中的团队默认值。例如，在仓库同级的 `Apps` 目录生成 Swift + UIKit + MVVM 项目：
 
 ```bash
-./bin/iosflow new TeamApp \
+./ios new TeamApp \
   --output ../Apps \
   --language swift \
   --ui uikit \
@@ -124,7 +157,7 @@ make validate
 查看 CLI 内置帮助：
 
 ```bash
-./bin/iosflow new --help
+./ios new --help
 ```
 
 ### `checklist`：执行提交或 review 前检查
@@ -132,14 +165,14 @@ make validate
 提交前使用 `commit`，review 前使用 `review`：
 
 ```bash
-./bin/iosflow checklist ../Apps/TeamApp --purpose commit
-./bin/iosflow checklist ../Apps/TeamApp --purpose review
+./ios checklist ../Apps/TeamApp --purpose commit
+./ios checklist ../Apps/TeamApp --purpose review
 ```
 
 省略项目目录时检查当前目录，`--purpose` 默认为 `commit`：
 
 ```bash
-./bin/iosflow checklist
+./ios checklist
 # 工作流仓库也可执行
 make checklist
 ```
@@ -167,7 +200,7 @@ make checklist
 4. 提交或 review 前完成项目的 `Checklist.md`，并运行 `iosflow checklist`；自动检查不通过时不继续。
 5. 每次修改规范均走代码评审，并在规范文件的 changelog 记录原因。
 6. 项目内保留生成时复制的 `Standards/`，需要跟随中央规范升级时再显式同步，避免规则静默变化。
-7. CI 中执行 `./bin/iosflow validate`、`./bin/iosflow checklist .`、SwiftLint/SwiftFormat 和项目测试。
+7. CI 中执行 `./ios validate`、`./ios checklist .`、SwiftLint/SwiftFormat 和项目测试。
 
 ## 依赖策略
 
