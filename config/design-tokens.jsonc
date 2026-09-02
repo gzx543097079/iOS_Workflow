@@ -1,0 +1,23 @@
+{
+  "version": 2, // Design Token 配置版本
+  "spacing": { "xs": 4, "sm": 8, "md": 12, "lg": 16, "xl": 24, "xxl": 32 }, // 间距阶梯，单位 pt
+  "radius": { "sm": 8, "md": 12, "lg": 16 }, // 圆角阶梯，单位 pt
+  "content_margin": 16, // 页面标准水平边距，单位 pt
+  "content_max_width": 680, // 大屏内容最大宽度，单位 pt
+  "minimum_tap_target": 44, // 最小点击区域，单位 pt
+  "control_height": { "sm": 32, "md": 44, "lg": 52 }, // 控件高度，单位 pt
+  "icon_size": { "sm": 16, "md": 24, "lg": 32 }, // 图标尺寸，单位 pt
+  "border_width": { "hairline": 0.5, "regular": 1 }, // 边框宽度，单位 pt
+  "opacity": { "disabled": 0.38, "secondary": 0.68, "overlay": 0.45 }, // 常用透明度
+  "animation_duration": { "quick": 0.2, "normal": 0.3 }, // 动效时长，单位秒
+  "typography": { "title": "title2", "headline": "headline", "body": "body", "caption": "caption" }, // Apple Dynamic Type text styles
+  "colors": {
+    "accent": "systemBlue", // 品牌强调色
+    "background": "systemBackground", // 页面背景色
+    "secondary_background": "secondarySystemBackground", // 次级容器背景色
+    "primary_text": "label", // 主要文字色
+    "secondary_text": "secondaryLabel", // 次要文字色
+    "separator": "separator", // 分隔线颜色
+    "destructive": "systemRed" // 破坏性操作颜色
+  }
+}

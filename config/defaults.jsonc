@@ -1,0 +1,27 @@
+{
+  "language": "swift", // 默认开发语言：swift 或 objc
+  "ui": "uikit", // 默认 UI 技术：swiftui 或 uikit
+  "architecture": "mvvm", // 默认架构：mvvm 或 mvc
+  "navigation_enabled": true, // 是否为首页启用系统导航容器
+  "dependency_manager": "pod", // 三方库引入方式：pod（CocoaPods）、spm（Swift Package Manager）、carthage（Carthage）或 none（不预设）
+  "bundle_id_prefix": "com.yourcompany", // Bundle ID 前缀
+  "bundle_id": "", // 完整 Bundle ID；留空时由前缀和项目名自动生成
+  "deployment_target": "14.0", // 最低 iOS 部署版本
+  "swift_version": "5.10", // Swift 语言版本；Objective-C 项目会忽略
+  "marketing_version": "1.0", // 对用户展示的版本号
+  "build_number": "1", // 内部构建版本号
+  "organization_name": "Test Team", // Xcode 工程中的组织名称
+  "objc_class_prefix": "APP", // Objective-C 类前缀，必须为 2–3 个大写字母
+  "development_team": "", // Apple Developer Team ID；留空时由本机或 CI 决定
+  "code_sign_style": "automatic", // 签名方式：automatic 或 manual
+  "target_devices": ["iphone", "ipad"], // 支持设备：iphone、ipad
+  "default_localization": "en", // 默认本地化语言：en（英语）；必须包含在 supported_localizations 中
+  "supported_localizations": ["zh-Hans", "zh-Hant", "en", "es", "fr", "de", "ja", "ko", "pt-BR", "it", "ar", "ru"], // 预创建语言：简中、繁中、英语、西语、法语、德语、日语、韩语、巴西葡语、意语、阿语、俄语；可按市场增删
+  "include_unit_tests": true, // 是否生成单元测试 target
+  "include_ui_tests": false, // 是否生成 UI 测试 target
+  "test_framework": "xctest", // 测试框架；当前支持 xctest
+  "strict_concurrency": "complete", // Swift 并发检查：minimal、targeted、complete
+  "warnings_as_errors": false, // 是否把编译警告视为错误
+  "generate_privacy_manifest": true, // 是否生成 PrivacyInfo.xcprivacy
+  "generate_xcodeproj": true // 检测到 XcodeGen 时是否生成 .xcodeproj
+}

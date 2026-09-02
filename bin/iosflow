@@ -1,0 +1,866 @@
+#!/usr/bin/env python3
+"""Portable iOS project workflow generator (stdlib only)."""
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+DEFAULTS_PATH = ROOT / "config" / "defaults.jsonc"
+DESIGN_TOKENS_PATH = ROOT / "config" / "design-tokens.jsonc"
+VALID = {
+    "language": ("swift", "objc"),
+    "ui": ("swiftui", "uikit"),
+    "architecture": ("mvvm", "mvc"),
+    "dependency_manager": ("pod", "spm", "carthage", "none"),
+}
+
+
+class WorkflowError(Exception):
+    pass
+
+
+def strip_jsonc_comments(content):
+    """Remove // comments while preserving comment-like text inside strings."""
+    result = []
+    in_string = False
+    escaped = False
+    index = 0
+    while index < len(content):
+        character = content[index]
+        if in_string:
+            result.append(character)
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+            index += 1
+            continue
+        if character == '"':
+            in_string = True
+            result.append(character)
+            index += 1
+            continue
+        if character == "/" and index + 1 < len(content) and content[index + 1] == "/":
+            while index < len(content) and content[index] not in "\r\n":
+                index += 1
+            continue
+        result.append(character)
+        index += 1
+    return "".join(result)
+
+
+def load_jsonc(path, label):
+    try:
+        return json.loads(strip_jsonc_comments(path.read_text(encoding="utf-8")))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise WorkflowError(f"无法读取{label} {path}: {exc}") from exc
+
+
+def load_defaults():
+    return load_jsonc(DEFAULTS_PATH, "默认配置")
+
+
+def load_design_tokens():
+    return load_jsonc(DESIGN_TOKENS_PATH, "UI Token 配置")
+
+
+def swift_identifier(name):
+    parts = re.findall(r"[A-Za-z0-9]+", name)
+    value = "".join(part[:1].upper() + part[1:] for part in parts)
+    if not value or value[0].isdigit():
+        raise WorkflowError("项目名必须包含字母，且转换后不能以数字开头")
+    return value
+
+
+def validate_options(options):
+    required = (
+        "language", "ui", "architecture", "bundle_id_prefix", "bundle_id", "deployment_target",
+        "navigation_enabled", "dependency_manager",
+        "swift_version", "marketing_version", "build_number", "organization_name",
+        "objc_class_prefix", "development_team", "code_sign_style", "target_devices",
+        "default_localization", "supported_localizations", "include_unit_tests", "include_ui_tests",
+        "test_framework", "strict_concurrency", "warnings_as_errors", "generate_privacy_manifest",
+        "generate_xcodeproj",
+    )
+    missing = [key for key in required if key not in options]
+    if missing:
+        raise WorkflowError("默认配置缺少字段: " + ", ".join(missing))
+    for key, allowed in VALID.items():
+        if options[key] not in allowed:
+            raise WorkflowError(f"{key} 必须是: {', '.join(allowed)}")
+    if options["language"] == "objc" and options["ui"] == "swiftui":
+        raise WorkflowError("Objective-C 不能直接使用 SwiftUI；请选择 --ui uikit 或 --language swift")
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9]*(\.[A-Za-z][A-Za-z0-9-]*)+", options["bundle_id_prefix"]):
+        raise WorkflowError("bundle id prefix 格式无效，例如 com.example")
+    if not re.fullmatch(r"\d+(\.\d+)?", str(options["deployment_target"])):
+        raise WorkflowError("deployment target 格式无效，例如 17.0")
+    if options["language"] == "objc" and not re.fullmatch(r"[A-Z]{2,3}", options["objc_class_prefix"]):
+        raise WorkflowError("Objective-C 类前缀必须是 2–3 个大写字母，例如 APP")
+    bundle_id = options.get("bundle_id", "")
+    if bundle_id and not re.fullmatch(r"[A-Za-z][A-Za-z0-9-]*(\.[A-Za-z][A-Za-z0-9-]*)+", bundle_id):
+        raise WorkflowError("完整 bundle id 格式无效，例如 com.example.myapp")
+    if not re.fullmatch(r"\d+(\.\d+)*", str(options["swift_version"])):
+        raise WorkflowError("Swift 版本格式无效，例如 5.10")
+    if not re.fullmatch(r"\d+(\.\d+){1,2}", str(options["marketing_version"])):
+        raise WorkflowError("marketing version 格式无效，例如 1.0")
+    if not str(options["build_number"]).strip():
+        raise WorkflowError("build number 不能为空")
+    if options["code_sign_style"] not in ("automatic", "manual"):
+        raise WorkflowError("code sign style 必须是 automatic 或 manual")
+    devices = options["target_devices"]
+    if not devices or any(device not in ("iphone", "ipad") for device in devices):
+        raise WorkflowError("target devices 至少包含 iphone 或 ipad")
+    if not options["supported_localizations"] or options["default_localization"] not in options["supported_localizations"]:
+        raise WorkflowError("默认本地化语言必须包含在 supported localizations 中")
+    if options["test_framework"] != "xctest":
+        raise WorkflowError("当前 test framework 仅支持 xctest")
+    if options["strict_concurrency"] not in ("minimal", "targeted", "complete"):
+        raise WorkflowError("strict concurrency 必须是 minimal、targeted 或 complete")
+    boolean_keys = (
+        "navigation_enabled", "include_unit_tests", "include_ui_tests", "warnings_as_errors",
+        "generate_privacy_manifest", "generate_xcodeproj",
+    )
+    if any(not isinstance(options[key], bool) for key in boolean_keys):
+        raise WorkflowError("开关配置必须使用 true 或 false，不能使用字符串")
+
+
+def write(path, content):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content.strip() + "\n", encoding="utf-8")
+
+
+def lower_camel(value):
+    parts = value.split("_")
+    return parts[0] + "".join(part[:1].upper() + part[1:] for part in parts[1:])
+
+
+def upper_camel(value):
+    return "".join(part[:1].upper() + part[1:] for part in value.split("_"))
+
+
+def swift_tokens(tokens, framework="SwiftUI"):
+    lines = [f"import {framework}", "", "enum DesignTokens {"]
+    groups = (
+        ("Spacing", tokens["spacing"]),
+        ("Radius", tokens["radius"]),
+        ("ControlHeight", tokens["control_height"]),
+        ("IconSize", tokens["icon_size"]),
+        ("BorderWidth", tokens["border_width"]),
+        ("Opacity", tokens["opacity"]),
+        ("AnimationDuration", tokens["animation_duration"]),
+    )
+    for group_name, values in groups:
+        lines.append(f"    enum {group_name} {{")
+        for name, value in values.items():
+            lines.append(f"        static let {lower_camel(name)}: CGFloat = {value}")
+        lines.extend(("    }", ""))
+    lines.extend((
+        "    enum Layout {",
+        f'        static let contentMargin: CGFloat = {tokens["content_margin"]}',
+        f'        static let contentMaxWidth: CGFloat = {tokens["content_max_width"]}',
+        f'        static let minimumTapTarget: CGFloat = {tokens["minimum_tap_target"]}',
+        "    }",
+        "",
+        "    enum Typography {",
+    ))
+    for name, style in tokens["typography"].items():
+        ui_kit_style = "caption1" if style == "caption" else style
+        expression = f"Font.{style}" if framework == "SwiftUI" else f"UIFont.preferredFont(forTextStyle: .{ui_kit_style})"
+        lines.append(f"        static let {lower_camel(name)} = {expression}")
+    lines.extend(("    }", "", "    enum Colors {"))
+    for name, color in tokens["colors"].items():
+        expression = f"Color(UIColor.{color})" if framework == "SwiftUI" else f"UIColor.{color}"
+        lines.append(f"        static let {lower_camel(name)} = {expression}")
+    lines.extend(("    }", "}"))
+    return "\n".join(lines)
+
+
+def objc_tokens(prefix, tokens):
+    constants = []
+    for group_name, values in (
+        ("Spacing", tokens["spacing"]),
+        ("Radius", tokens["radius"]),
+        ("ControlHeight", tokens["control_height"]),
+        ("IconSize", tokens["icon_size"]),
+        ("BorderWidth", tokens["border_width"]),
+        ("Opacity", tokens["opacity"]),
+        ("AnimationDuration", tokens["animation_duration"]),
+    ):
+        for name, value in values.items():
+            constants.append((f"{prefix}{group_name}{upper_camel(name)}", value))
+    constants.extend((
+        (f"{prefix}ContentMargin", tokens["content_margin"]),
+        (f"{prefix}ContentMaxWidth", tokens["content_max_width"]),
+        (f"{prefix}MinimumTapTarget", tokens["minimum_tap_target"]),
+    ))
+    header = ["#import <UIKit/UIKit.h>", "", "NS_ASSUME_NONNULL_BEGIN"]
+    implementation = [f'#import "{prefix}DesignTokens.h"', ""]
+    for name, value in constants:
+        header.append(f"FOUNDATION_EXPORT const CGFloat {name};")
+        implementation.append(f"const CGFloat {name} = {value};")
+    header.append("")
+    for name, color in tokens["colors"].items():
+        function = f"{prefix}Color{upper_camel(name)}"
+        header.append(f"FOUNDATION_EXPORT UIColor *{function}(void);")
+        implementation.append(f"UIColor *{function}(void) {{ return UIColor.{color}Color; }}")
+    header.append("")
+    for name, style in tokens["typography"].items():
+        function = f"{prefix}Font{upper_camel(name)}"
+        ui_kit_style = "caption1" if style == "caption" else style
+        header.append(f"FOUNDATION_EXPORT UIFont *{function}(void);")
+        implementation.append(
+            f"UIFont *{function}(void) {{ return [UIFont preferredFontForTextStyle:UIFontTextStyle{upper_camel(ui_kit_style)}]; }}"
+        )
+    header.append("NS_ASSUME_NONNULL_END")
+    return "\n".join(header), "\n".join(implementation)
+
+
+def generate_swiftui(base, app_name, architecture, navigation_enabled, tokens):
+    source = base / "Sources"
+    write(source / "App" / f"{app_name}App.swift", f'''import SwiftUI
+
+@main
+struct {app_name}App: App {{
+    var body: some Scene {{
+        WindowGroup {{
+            HomeView()
+        }}
+    }}
+}}''')
+    if architecture == "mvvm":
+        write(source / "Features" / "Home" / "HomeViewModel.swift", '''import Combine
+
+@MainActor
+final class HomeViewModel: ObservableObject {
+    @Published private(set) var title = "Hello, iOS!"
+}''')
+        if navigation_enabled:
+            content = '''        NavigationView {
+            Text(viewModel.title)
+                .padding(DesignTokens.Spacing.lg)
+                .navigationTitle("Home")
+        }'''
+        else:
+            content = '''        Text(viewModel.title)
+            .padding(DesignTokens.Spacing.lg)'''
+        write(source / "Features" / "Home" / "HomeView.swift", f'''import SwiftUI
+
+struct HomeView: View {{
+    @StateObject private var viewModel = HomeViewModel()
+
+    var body: some View {{
+{content}
+    }}
+}}
+
+struct HomeView_Previews: PreviewProvider {{
+    static var previews: some View {{ HomeView() }}
+}}''')
+    else:
+        write(source / "Features" / "Home" / "HomeController.swift", '''import Combine
+
+@MainActor
+final class HomeController: ObservableObject {
+    @Published private(set) var title = "Hello, iOS!"
+}''')
+        if navigation_enabled:
+            content = '''        NavigationView {
+            Text(controller.title)
+                .padding(DesignTokens.Spacing.lg)
+                .navigationTitle("Home")
+        }'''
+        else:
+            content = '''        Text(controller.title)
+            .padding(DesignTokens.Spacing.lg)'''
+        write(source / "Features" / "Home" / "HomeView.swift", f'''import SwiftUI
+
+struct HomeView: View {{
+    @StateObject private var controller = HomeController()
+
+    var body: some View {{
+{content}
+    }}
+}}
+
+struct HomeView_Previews: PreviewProvider {{
+    static var previews: some View {{ HomeView() }}
+}}''')
+    write(source / "DesignSystem" / "DesignTokens.swift", swift_tokens(tokens))
+
+
+def generate_swift_uikit(base, app_name, architecture, navigation_enabled, tokens):
+    source = base / "Sources"
+    write(source / "App" / "AppDelegate.swift", '''import UIKit
+
+@main
+final class AppDelegate: UIResponder, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        configurationForConnecting connectingSceneSession: UISceneSession,
+        options: UIScene.ConnectionOptions
+    ) -> UISceneConfiguration {
+        UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+    }
+}''')
+    root_view_controller = (
+        "UINavigationController(rootViewController: HomeViewController())"
+        if navigation_enabled else "HomeViewController()"
+    )
+    write(source / "App" / "SceneDelegate.swift", f'''import UIKit
+
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {{
+    var window: UIWindow?
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {{
+        guard let windowScene = scene as? UIWindowScene else {{ return }}
+        let window = UIWindow(windowScene: windowScene)
+        window.rootViewController = {root_view_controller}
+        window.makeKeyAndVisible()
+        self.window = window
+    }}
+}}''')
+    if architecture == "mvvm":
+        write(source / "Features" / "Home" / "HomeViewModel.swift", '''import Foundation
+
+final class HomeViewModel {
+    let title = "Hello, iOS!"
+}''')
+        extra = "    private let viewModel = HomeViewModel()\n"
+        title = "viewModel.title"
+    else:
+        extra = ""
+        title = '"Hello, iOS!"'
+    write(source / "Features" / "Home" / "HomeViewController.swift", f'''import UIKit
+
+final class HomeViewController: UIViewController {{
+{extra}
+    override func viewDidLoad() {{
+        super.viewDidLoad()
+        title = "Home"
+        view.backgroundColor = .systemBackground
+
+        let label = UILabel()
+        label.text = {title}
+        label.font = .preferredFont(forTextStyle: .title2)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }}
+}}''')
+    write(source / "DesignSystem" / "DesignTokens.swift", swift_tokens(tokens, framework="UIKit"))
+
+
+def generate_objc_uikit(base, app_name, architecture, navigation_enabled, prefix, tokens):
+    source = base / "Sources"
+    app_delegate = f"{prefix}AppDelegate"
+    scene_delegate = f"{prefix}SceneDelegate"
+    home_controller = f"{prefix}HomeViewController"
+    home_view_model = f"{prefix}HomeViewModel"
+    write(source / "App" / "main.m", f'''#import <UIKit/UIKit.h>
+#import "{app_delegate}.h"
+
+int main(int argc, char * argv[]) {{
+    @autoreleasepool {{
+        return UIApplicationMain(argc, argv, nil, NSStringFromClass({app_delegate}.class));
+    }}
+}}''')
+    write(source / "App" / f"{app_delegate}.h", f'''#import <UIKit/UIKit.h>
+
+NS_ASSUME_NONNULL_BEGIN
+@interface {app_delegate} : UIResponder <UIApplicationDelegate>
+@end
+NS_ASSUME_NONNULL_END''')
+    write(source / "App" / f"{app_delegate}.m", f'''#import "{app_delegate}.h"
+
+@implementation {app_delegate}
+- (UISceneConfiguration *)application:(UIApplication *)application
+    configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession
+    options:(UISceneConnectionOptions *)options {{
+    return [[UISceneConfiguration alloc] initWithName:@"Default Configuration"
+                                          sessionRole:connectingSceneSession.role];
+}}
+@end''')
+    write(source / "App" / f"{scene_delegate}.h", f'''#import <UIKit/UIKit.h>
+
+NS_ASSUME_NONNULL_BEGIN
+@interface {scene_delegate} : UIResponder <UIWindowSceneDelegate>
+@property (strong, nonatomic) UIWindow *window;
+@end
+NS_ASSUME_NONNULL_END''')
+    if navigation_enabled:
+        root_setup = f'''    self.window.rootViewController = [[UINavigationController alloc]
+        initWithRootViewController:[[{home_controller} alloc] init]];'''
+    else:
+        root_setup = f"    self.window.rootViewController = [[{home_controller} alloc] init];"
+    write(source / "App" / f"{scene_delegate}.m", f'''#import "{scene_delegate}.h"
+#import "{home_controller}.h"
+
+@implementation {scene_delegate}
+- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session
+    options:(UISceneConnectionOptions *)connectionOptions {{
+    if (![scene isKindOfClass:UIWindowScene.class]) {{ return; }}
+    self.window = [[UIWindow alloc] initWithWindowScene:(UIWindowScene *)scene];
+{root_setup}
+    [self.window makeKeyAndVisible];
+}}
+@end''')
+    if architecture == "mvvm":
+        write(source / "Features" / "Home" / f"{home_view_model}.h", f'''#import <Foundation/Foundation.h>
+
+NS_ASSUME_NONNULL_BEGIN
+@interface {home_view_model} : NSObject
+@property (nonatomic, copy, readonly) NSString *title;
+@end
+NS_ASSUME_NONNULL_END''')
+        write(source / "Features" / "Home" / f"{home_view_model}.m", f'''#import "{home_view_model}.h"
+
+@implementation {home_view_model}
+- (NSString *)title {{ return @"Hello, iOS!"; }}
+@end''')
+        import_line = f'#import "{home_view_model}.h"\n'
+        setup = f"    {home_view_model} *viewModel = [[{home_view_model} alloc] init];\n    label.text = viewModel.title;"
+    else:
+        import_line = ""
+        setup = '    label.text = @"Hello, iOS!";'
+    write(source / "Features" / "Home" / f"{home_controller}.h", f'''#import <UIKit/UIKit.h>
+
+NS_ASSUME_NONNULL_BEGIN
+@interface {home_controller} : UIViewController
+@end
+NS_ASSUME_NONNULL_END''')
+    write(source / "Features" / "Home" / f"{home_controller}.m", f'''#import "{home_controller}.h"
+{import_line}
+@implementation {home_controller}
+- (void)viewDidLoad {{
+    [super viewDidLoad];
+    self.title = @"Home";
+    self.view.backgroundColor = UIColor.systemBackgroundColor;
+    UILabel *label = [[UILabel alloc] init];
+{setup}
+    label.font = [UIFont preferredFontForTextStyle:UIFontTextStyleTitle2];
+    label.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:label];
+    [NSLayoutConstraint activateConstraints:@[
+        [label.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [label.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor]
+    ]];
+}}
+@end''')
+    token_header, token_implementation = objc_tokens(prefix, tokens)
+    write(source / "DesignSystem" / f"{prefix}DesignTokens.h", token_header)
+    write(source / "DesignSystem" / f"{prefix}DesignTokens.m", token_implementation)
+
+
+def project_yml(app_name, options):
+    device_codes = {"iphone": "1", "ipad": "2"}
+    target_devices = ",".join(device_codes[device] for device in options["target_devices"])
+    sign_style = options["code_sign_style"].capitalize()
+    warnings = "YES" if options["warnings_as_errors"] else "NO"
+    lines = [
+        f"name: {app_name}",
+        "options:",
+        f'  bundleIdPrefix: {options["bundle_id_prefix"]}',
+        f'  developmentLanguage: {options["default_localization"]}',
+        "  deploymentTarget:",
+        f'    iOS: "{options["deployment_target"]}"',
+        "attributes:",
+        f'  ORGANIZATIONNAME: "{options["organization_name"]}"',
+        "settings:",
+        "  base:",
+        f'    MARKETING_VERSION: "{options["marketing_version"]}"',
+        f'    CURRENT_PROJECT_VERSION: "{options["build_number"]}"',
+        f"    CODE_SIGN_STYLE: {sign_style}",
+        f"    GCC_TREAT_WARNINGS_AS_ERRORS: {warnings}",
+    ]
+    if options["development_team"]:
+        lines.append(f'    DEVELOPMENT_TEAM: "{options["development_team"]}"')
+    if options["language"] == "swift":
+        lines.extend((
+            f'    SWIFT_VERSION: "{options["swift_version"]}"',
+            f'    SWIFT_STRICT_CONCURRENCY: {options["strict_concurrency"]}',
+            f"    SWIFT_TREAT_WARNINGS_AS_ERRORS: {warnings}",
+        ))
+    else:
+        lines.append("    CLANG_ENABLE_OBJC_ARC: YES")
+    lines.extend((
+        "targets:",
+        f"  {app_name}:",
+        "    type: application",
+        "    platform: iOS",
+        "    sources:",
+        "      - Sources",
+        "      - path: Resources",
+        "        excludes:",
+        "          - Info.plist",
+        "    settings:",
+        "      base:",
+        f"        PRODUCT_NAME: {app_name}",
+        f'        PRODUCT_BUNDLE_IDENTIFIER: {options["bundle_id"]}',
+        "        INFOPLIST_FILE: Resources/Info.plist",
+        f'        TARGETED_DEVICE_FAMILY: "{target_devices}"',
+    ))
+    if options["include_unit_tests"]:
+        lines.extend((
+            f"  {app_name}Tests:",
+            "    type: bundle.unit-test",
+            "    platform: iOS",
+            "    sources:",
+            "      - Tests",
+            "    dependencies:",
+            f"      - target: {app_name}",
+        ))
+    if options["include_ui_tests"]:
+        lines.extend((
+            f"  {app_name}UITests:",
+            "    type: bundle.ui-testing",
+            "    platform: iOS",
+            "    sources:",
+            "      - UITests",
+            "    dependencies:",
+            f"      - target: {app_name}",
+        ))
+    return "\n".join(lines)
+
+
+def info_plist(app_name, options):
+    if options["ui"] == "swiftui":
+        scene_manifest = ""
+    else:
+        scene_class = ("$(PRODUCT_MODULE_NAME).SceneDelegate" if options["language"] == "swift"
+                       else options["objc_class_prefix"] + "SceneDelegate")
+        scene_manifest = f'''<key>UIApplicationSceneManifest</key><dict>
+  <key>UIApplicationSupportsMultipleScenes</key><false/>
+  <key>UISceneConfigurations</key><dict>
+    <key>UIWindowSceneSessionRoleApplication</key><array><dict>
+      <key>UISceneConfigurationName</key><string>Default Configuration</string>
+      <key>UISceneDelegateClassName</key><string>{scene_class}</string>
+    </dict></array>
+  </dict>
+</dict>'''
+    return f'''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleDevelopmentRegion</key><string>{options["default_localization"]}</string>
+<key>CFBundleDisplayName</key><string>{app_name}</string>
+<key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
+<key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+<key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+<key>CFBundleName</key><string>$(PRODUCT_NAME)</string>
+<key>CFBundlePackageType</key><string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+<key>CFBundleShortVersionString</key><string>$(MARKETING_VERSION)</string>
+<key>CFBundleVersion</key><string>$(CURRENT_PROJECT_VERSION)</string>
+<key>LSRequiresIPhoneOS</key><true/>
+<key>UILaunchScreen</key><dict/>
+{scene_manifest}
+</dict></plist>'''
+
+
+def privacy_manifest():
+    return '''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>NSPrivacyTracking</key><false/>
+<key>NSPrivacyTrackingDomains</key><array/>
+<key>NSPrivacyCollectedDataTypes</key><array/>
+<key>NSPrivacyAccessedAPITypes</key><array/>
+</dict></plist>'''
+
+
+def app_icon_contents():
+    return json.dumps({
+        "images": [
+            {"idiom": "iphone", "scale": "2x", "size": "20x20"},
+            {"idiom": "iphone", "scale": "3x", "size": "20x20"},
+            {"idiom": "iphone", "scale": "2x", "size": "29x29"},
+            {"idiom": "iphone", "scale": "3x", "size": "29x29"},
+            {"idiom": "iphone", "scale": "2x", "size": "40x40"},
+            {"idiom": "iphone", "scale": "3x", "size": "40x40"},
+            {"idiom": "iphone", "scale": "2x", "size": "60x60"},
+            {"idiom": "iphone", "scale": "3x", "size": "60x60"},
+            {"idiom": "ipad", "scale": "1x", "size": "20x20"},
+            {"idiom": "ipad", "scale": "2x", "size": "20x20"},
+            {"idiom": "ipad", "scale": "1x", "size": "29x29"},
+            {"idiom": "ipad", "scale": "2x", "size": "29x29"},
+            {"idiom": "ipad", "scale": "1x", "size": "40x40"},
+            {"idiom": "ipad", "scale": "2x", "size": "40x40"},
+            {"idiom": "ipad", "scale": "1x", "size": "76x76"},
+            {"idiom": "ipad", "scale": "2x", "size": "76x76"},
+            {"idiom": "ipad", "scale": "2x", "size": "83.5x83.5"},
+            {"idiom": "ios-marketing", "scale": "1x", "size": "1024x1024"},
+        ],
+        "info": {"author": "xcode", "version": 1},
+    }, separators=(",", ":"))
+
+
+def localized_home_title(localization):
+    titles = {
+        "zh-Hans": "首页",
+        "zh-Hant": "首頁",
+        "en": "Home",
+        "es": "Inicio",
+        "fr": "Accueil",
+        "de": "Startseite",
+        "ja": "ホーム",
+        "ko": "홈",
+        "pt-BR": "Início",
+        "it": "Home",
+        "ar": "الرئيسية",
+        "ru": "Главная",
+    }
+    return titles.get(localization, "Home")
+
+
+def generate_tests(base, app_name, options):
+    if options["include_unit_tests"]:
+        if options["language"] == "swift":
+            write(base / "Tests" / f"{app_name}Tests.swift", f'''import XCTest
+@testable import {app_name}
+
+final class {app_name}Tests: XCTestCase {{
+    func testExample() {{
+        XCTAssertTrue(true)
+    }}
+}}''')
+        else:
+            write(base / "Tests" / f"{app_name}Tests.m", f'''#import <XCTest/XCTest.h>
+
+@interface {app_name}Tests : XCTestCase
+@end
+
+@implementation {app_name}Tests
+- (void)testExample {{
+    XCTAssertTrue(YES);
+}}
+@end''')
+    if options["include_ui_tests"]:
+        if options["language"] == "swift":
+            write(base / "UITests" / f"{app_name}UITests.swift", f'''import XCTest
+
+final class {app_name}UITests: XCTestCase {{
+    func testLaunch() {{
+        let app = XCUIApplication()
+        app.launch()
+        XCTAssertTrue(app.exists)
+    }}
+}}''')
+        else:
+            write(base / "UITests" / f"{app_name}UITests.m", f'''#import <XCTest/XCTest.h>
+
+@interface {app_name}UITests : XCTestCase
+@end
+
+@implementation {app_name}UITests
+- (void)testLaunch {{
+    XCUIApplication *app = [[XCUIApplication alloc] init];
+    [app launch];
+    XCTAssertTrue(app.exists);
+}}
+@end''')
+
+
+def generate_dependency_manager_files(base, app_name, options):
+    manager = options["dependency_manager"]
+    if manager == "pod":
+        write(base / "Podfile", f'''platform :ios, '{options["deployment_target"]}'
+
+project '{app_name}.xcodeproj'
+
+target '{app_name}' do
+    # 在此添加 pod，例如：pod 'Alamofire'
+end''')
+    elif manager == "carthage":
+        write(base / "Cartfile", '''# 在此添加依赖，例如：
+# github "Alamofire/Alamofire"''')
+
+
+def generate_project(args):
+    defaults = load_defaults()
+    tokens = load_design_tokens()
+    options = dict(defaults)
+    overrides = {
+        "language": getattr(args, "language", None),
+        "ui": getattr(args, "ui", None),
+        "architecture": getattr(args, "architecture", None),
+        "navigation_enabled": getattr(args, "navigation_enabled", None),
+        "dependency_manager": getattr(args, "dependency_manager", None),
+        "bundle_id_prefix": getattr(args, "bundle_id_prefix", None),
+        "bundle_id": getattr(args, "bundle_id", None),
+        "deployment_target": getattr(args, "deployment_target", None),
+        "objc_class_prefix": getattr(args, "objc_prefix", None),
+    }
+    options.update({key: value for key, value in overrides.items() if value is not None})
+    app_name = swift_identifier(args.name)
+    if not options["bundle_id"]:
+        options["bundle_id"] = f'{options["bundle_id_prefix"]}.{app_name.lower()}'
+    validate_options(options)
+    output_parent = Path(args.output).expanduser().resolve()
+    destination = output_parent / app_name
+    if destination.exists():
+        if not args.force or any(destination.iterdir()):
+            raise WorkflowError(f"目标目录已存在且非空: {destination}")
+    destination.mkdir(parents=True, exist_ok=True)
+
+    if options["language"] == "swift" and options["ui"] == "swiftui":
+        generate_swiftui(
+            destination, app_name, options["architecture"], options["navigation_enabled"], tokens
+        )
+    elif options["language"] == "swift":
+        generate_swift_uikit(
+            destination, app_name, options["architecture"], options["navigation_enabled"], tokens
+        )
+    else:
+        generate_objc_uikit(
+            destination,
+            app_name,
+            options["architecture"],
+            options["navigation_enabled"],
+            options["objc_class_prefix"],
+            tokens,
+        )
+
+    write(destination / "project.yml", project_yml(app_name, options))
+    write(destination / "Resources" / "Info.plist", info_plist(app_name, options))
+    write(destination / "Resources" / "Assets.xcassets" / "Contents.json", '{"info":{"author":"xcode","version":1}}')
+    write(destination / "Resources" / "Assets.xcassets" / "AppIcon.appiconset" / "Contents.json", app_icon_contents())
+    for localization in options["supported_localizations"]:
+        title = localized_home_title(localization)
+        write(
+            destination / "Resources" / f"{localization}.lproj" / "Localizable.strings",
+            f'"home.title" = "{title}";',
+        )
+    if options["generate_privacy_manifest"]:
+        write(destination / "Resources" / "PrivacyInfo.xcprivacy", privacy_manifest())
+    generate_tests(destination, app_name, options)
+    generate_dependency_manager_files(destination, app_name, options)
+    write(destination / ".gitignore", '''DerivedData/
+.build/
+Pods/
+Carthage/Build/
+*.xcuserstate
+xcuserdata/
+.DS_Store''')
+    write(destination / ".editorconfig", '''root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true''')
+    write(destination / ".swiftlint.yml", '''disabled_rules:
+  - trailing_whitespace
+opt_in_rules:
+  - empty_count
+  - force_unwrapping
+line_length:
+  warning: 120
+  error: 160
+excluded:
+  - DerivedData''')
+    write(destination / "workflow.json", json.dumps({"project_name": app_name, **options}, ensure_ascii=False, indent=2))
+    shutil.copytree(ROOT / "standards", destination / "Standards", dirs_exist_ok=True)
+
+    generated = False
+    should_generate_xcodeproj = options["generate_xcodeproj"] and not args.no_xcodegen
+    xcodegen = shutil.which("xcodegen")
+    if should_generate_xcodeproj and xcodegen:
+        result = subprocess.run([xcodegen, "generate"], cwd=destination, check=False)
+        if result.returncode != 0:
+            raise WorkflowError("源码已生成，但 XcodeGen 执行失败")
+        generated = True
+    print(f"已创建: {destination}")
+    print(f"组合: {options['language']} + {options['ui']} + {options['architecture']}")
+    if generated:
+        print(f"工程: {destination / (app_name + '.xcodeproj')}")
+    elif should_generate_xcodeproj:
+        print("未检测到 XcodeGen。安装后在项目目录执行 xcodegen generate")
+
+
+def validate_repository():
+    defaults = load_defaults()
+    validate_options(defaults)
+    tokens = load_design_tokens()
+    required = [
+        "spacing", "radius", "content_margin", "content_max_width", "minimum_tap_target",
+        "control_height", "icon_size", "border_width", "opacity", "animation_duration",
+        "typography", "colors",
+    ]
+    missing = [key for key in required if key not in tokens]
+    if missing:
+        raise WorkflowError("design tokens 缺少字段: " + ", ".join(missing))
+    for path in (ROOT / "standards" / "code-style.md", ROOT / "standards" / "ui-style.md", ROOT / "AGENTS.md"):
+        if not path.exists() or not path.read_text(encoding="utf-8").strip():
+            raise WorkflowError(f"缺少或为空: {path}")
+    print("工作流配置与规范校验通过")
+
+
+def doctor():
+    checks = {
+        "Python 3": sys.version.split()[0],
+        "XcodeGen": shutil.which("xcodegen") or "未安装（源码生成可用，.xcodeproj 生成不可用）",
+        "xcodebuild": shutil.which("xcodebuild") or "未安装",
+        "SwiftLint": shutil.which("swiftlint") or "未安装（可选）",
+        "SwiftFormat": shutil.which("swiftformat") or "未安装（可选）",
+    }
+    for name, value in checks.items():
+        print(f"{name}: {value}")
+
+
+def parser():
+    defaults = load_defaults()
+    root = argparse.ArgumentParser(prog="iosflow", description="iOS AI 工作流")
+    commands = root.add_subparsers(dest="command", required=True)
+    new = commands.add_parser("new", help="生成空项目")
+    new.add_argument("name")
+    new.add_argument("--language", choices=VALID["language"])
+    new.add_argument("--ui", choices=VALID["ui"])
+    new.add_argument("--architecture", choices=VALID["architecture"])
+    navigation = new.add_mutually_exclusive_group()
+    navigation.add_argument("--navigation", dest="navigation_enabled", action="store_true", default=None)
+    navigation.add_argument("--no-navigation", dest="navigation_enabled", action="store_false")
+    new.add_argument("--dependency-manager", choices=VALID["dependency_manager"])
+    new.add_argument("--bundle-id-prefix")
+    new.add_argument("--bundle-id")
+    new.add_argument("--deployment-target")
+    new.add_argument("--objc-prefix")
+    new.add_argument("--output", default=os.getcwd())
+    new.add_argument("--no-xcodegen", action="store_true")
+    new.add_argument("--force", action="store_true")
+    commands.add_parser("validate", help="校验配置和规范")
+    commands.add_parser("doctor", help="检查本机工具")
+    commands.add_parser("list-options", help="显示可选项和默认值")
+    return root, defaults
+
+
+def main():
+    try:
+        command_parser, defaults = parser()
+        args = command_parser.parse_args()
+        if args.command == "new":
+            generate_project(args)
+        elif args.command == "validate":
+            validate_repository()
+        elif args.command == "doctor":
+            doctor()
+        else:
+            print(json.dumps({"options": VALID, "defaults": defaults}, ensure_ascii=False, indent=2))
+    except WorkflowError as exc:
+        print(f"错误: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
