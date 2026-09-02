@@ -47,6 +47,12 @@ class GeneratorTests(unittest.TestCase):
                 iosflow.generate_project(args)
                 project = Path(temp) / f"SampleApp{chr(65 + index)}"
                 self.assertTrue((project / "project.yml").exists())
+                self.assertTrue((project / "Checklist.md").exists())
+                checklist = (project / "Checklist.md").read_text(encoding="utf-8")
+                self.assertIn("## 订阅检查", checklist)
+                self.assertIn("## 数据打点检查", checklist)
+                self.assertIn("订阅文案与实际价格", checklist)
+                self.assertIn("打点位置与事件含义匹配", checklist)
                 self.assertTrue((project / "Standards" / "code-style.md").exists())
                 self.assertTrue((project / "Resources" / "PrivacyInfo.xcprivacy").exists())
                 self.assertTrue((project / "Resources" / "Assets.xcassets" / "AppIcon.appiconset" / "Contents.json").exists())
@@ -77,6 +83,27 @@ class GeneratorTests(unittest.TestCase):
                 self.assertNotIn(f"  base:\n    PRODUCT_NAME: {project.name}", project_spec)
                 self.assertIn(f"      base:\n        PRODUCT_NAME: {project.name}", project_spec)
                 self.assertIn("      - path: Resources\n        excludes:\n          - Info.plist", project_spec)
+
+    def test_generated_placeholder_tests_include_todo_and_block_checklist(self):
+        with tempfile.TemporaryDirectory() as temp:
+            args = self.args(temp, "swift", "uikit", "mvvm")
+            args.name = "ChecklistApp"
+            iosflow.generate_project(args)
+            project = Path(temp) / args.name
+            test_path = project / "Tests" / "ChecklistAppTests.swift"
+            todo_marker = "TO" + "DO:"
+            self.assertIn(todo_marker, test_path.read_text(encoding="utf-8"))
+            with self.assertRaises(iosflow.WorkflowError):
+                iosflow.run_checklist(project, "commit")
+
+            test_path.write_text(
+                test_path.read_text(encoding="utf-8").replace(
+                    "// " + todo_marker + " 用真实业务场景替换占位测试，并补充成功、失败和边界条件。\n",
+                    "",
+                ),
+                encoding="utf-8",
+            )
+            iosflow.run_checklist(project, "review")
 
     def test_rejects_objc_swiftui(self):
         options = iosflow.load_defaults()

@@ -1,4 +1,4 @@
-.PHONY: validate test doctor
+.PHONY: validate test doctor checklist
 
 validate:
 	./bin/iosflow validate
@@ -9,3 +9,5 @@ test:
 doctor:
 	./bin/iosflow doctor
 
+checklist:
+	./bin/iosflow checklist . --purpose commit

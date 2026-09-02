@@ -9,6 +9,7 @@
 - 支持 UIKit / SwiftUI（SwiftUI 仅支持 Swift）
 - 输出 `project.yml`，通过 XcodeGen 生成 `.xcodeproj`
 - 内置可版本控制、可修改的代码规范和 UI 规范
+- 生成测试 TODO 和提交/review 前 Checklist
 - 为 AI 编码助手提供统一的 `AGENTS.md` 上下文
 
 ## 快速开始
@@ -44,6 +45,8 @@
 ```bash
 ./bin/iosflow new <项目名> [选项]
 ./bin/iosflow validate
+./bin/iosflow checklist <项目目录> --purpose commit
+./bin/iosflow checklist <项目目录> --purpose review
 ./bin/iosflow doctor
 ./bin/iosflow list-options
 ```
@@ -70,9 +73,11 @@
 
 1. 团队在此仓库维护 `config/`、`standards/` 与 `AGENTS.md`。
 2. 新项目统一通过 `iosflow new` 创建。
-3. 每次修改规范均走代码评审，并在规范文件的 changelog 记录原因。
-4. 项目内保留生成时复制的 `Standards/`，需要跟随中央规范升级时再显式同步，避免规则静默变化。
-5. CI 中执行 `./bin/iosflow validate`、SwiftLint/SwiftFormat 和项目测试。
+3. 将生成测试里的 `TODO` 替换为真实业务场景。
+4. 提交或 review 前完成项目的 `Checklist.md`，并运行 `iosflow checklist`；自动检查不通过时不继续。
+5. 每次修改规范均走代码评审，并在规范文件的 changelog 记录原因。
+6. 项目内保留生成时复制的 `Standards/`，需要跟随中央规范升级时再显式同步，避免规则静默变化。
+7. CI 中执行 `./bin/iosflow validate`、`./bin/iosflow checklist .`、SwiftLint/SwiftFormat 和项目测试。
 
 ## 依赖策略
 

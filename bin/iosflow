@@ -856,6 +856,7 @@ def generate_tests(base, app_name, options):
 @testable import {app_name}
 
 final class {app_name}Tests: XCTestCase {{
+    // TODO: 用真实业务场景替换占位测试，并补充成功、失败和边界条件。
     func testExample() {{
         XCTAssertTrue(true)
     }}
@@ -867,6 +868,7 @@ final class {app_name}Tests: XCTestCase {{
 @end
 
 @implementation {app_name}Tests
+// TODO: 用真实业务场景替换占位测试，并补充成功、失败和边界条件。
 - (void)testExample {{
     XCTAssertTrue(YES);
 }}
@@ -876,6 +878,7 @@ final class {app_name}Tests: XCTestCase {{
             write(base / "UITests" / f"{app_name}UITests.swift", f'''import XCTest
 
 final class {app_name}UITests: XCTestCase {{
+    // TODO: 用关键用户流程替换占位启动测试，并验证可观察的界面结果。
     func testLaunch() {{
         let app = XCUIApplication()
         app.launch()
@@ -889,6 +892,7 @@ final class {app_name}UITests: XCTestCase {{
 @end
 
 @implementation {app_name}UITests
+// TODO: 用关键用户流程替换占位启动测试，并验证可观察的界面结果。
 - (void)testLaunch {{
     XCUIApplication *app = [[XCUIApplication alloc] init];
     [app launch];
@@ -1003,6 +1007,7 @@ excluded:
   - DerivedData''')
     write(destination / "workflow.json", json.dumps({"project_name": app_name, **options}, ensure_ascii=False, indent=2))
     shutil.copytree(ROOT / "standards", destination / "Standards", dirs_exist_ok=True)
+    shutil.copy2(ROOT / "checklists" / "pre-commit-review.md", destination / "Checklist.md")
 
     generated = False
     should_generate_xcodeproj = options["generate_xcodeproj"] and not args.no_xcodegen
@@ -1032,10 +1037,95 @@ def validate_repository():
     missing = [key for key in required if key not in tokens]
     if missing:
         raise WorkflowError("design tokens 缺少字段: " + ", ".join(missing))
-    for path in (ROOT / "standards" / "code-style.md", ROOT / "standards" / "ui-style.md", ROOT / "AGENTS.md"):
+    for path in (
+        ROOT / "standards" / "code-style.md",
+        ROOT / "standards" / "ui-style.md",
+        ROOT / "checklists" / "pre-commit-review.md",
+        ROOT / "AGENTS.md",
+    ):
         if not path.exists() or not path.read_text(encoding="utf-8").strip():
             raise WorkflowError(f"缺少或为空: {path}")
     print("工作流配置与规范校验通过")
+
+
+def run_checklist(project_path, purpose):
+    project = Path(project_path).expanduser().resolve()
+    if not project.is_dir():
+        raise WorkflowError(f"checklist 目录不存在: {project}")
+
+    failures = []
+    checklist_file = project / "Checklist.md"
+    if project == ROOT:
+        checklist_file = ROOT / "checklists" / "pre-commit-review.md"
+    if checklist_file.is_file():
+        print(f"[通过] Checklist 文档: {checklist_file}")
+        checklist_content = checklist_file.read_text(encoding="utf-8")
+        required_sections = ("## 订阅检查", "## 数据打点检查")
+        missing_sections = [section for section in required_sections if section not in checklist_content]
+        if missing_sections:
+            failures.append("Checklist 缺少模块: " + ", ".join(missing_sections))
+        else:
+            print("[通过] Checklist 包含订阅与数据打点检查模块")
+    else:
+        failures.append(f"缺少 Checklist 文档: {checklist_file}")
+
+    workflow_path = project / "workflow.json"
+    if workflow_path.exists():
+        try:
+            project_options = json.loads(workflow_path.read_text(encoding="utf-8"))
+            validate_options(project_options)
+            print("[通过] workflow.json 配置有效")
+        except (OSError, json.JSONDecodeError, WorkflowError) as exc:
+            failures.append(f"workflow.json 配置无效: {exc}")
+    elif project == ROOT:
+        try:
+            validate_options(load_defaults())
+            print("[通过] 工作流默认配置有效")
+        except WorkflowError as exc:
+            failures.append(str(exc))
+    else:
+        failures.append(f"缺少项目配置: {workflow_path}")
+
+    test_directories = [path for name in ("Tests", "UITests", "tests") if (path := project / name).is_dir()]
+    if not test_directories:
+        failures.append("未找到 Tests、UITests 或 tests 目录")
+    unresolved_todos = []
+    test_extensions = {".swift", ".m", ".mm", ".py"}
+    for directory in test_directories:
+        for path in sorted(item for item in directory.rglob("*") if item.suffix in test_extensions):
+            for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                if re.search(r"\bTODO\b", line):
+                    unresolved_todos.append(f"{path.relative_to(project)}:{line_number}")
+    if unresolved_todos:
+        failures.append("测试中存在未处理 TODO: " + ", ".join(unresolved_todos))
+    else:
+        print("[通过] 测试中没有未处理 TODO")
+
+    for label, arguments in (
+        ("未暂存", ["git", "diff", "--check", "--", "."]),
+        ("已暂存", ["git", "diff", "--cached", "--check", "--", "."]),
+    ):
+        git_check = subprocess.run(
+            arguments,
+            cwd=project,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if git_check.returncode == 0:
+            print(f"[通过] Git {label} diff 格式检查")
+        elif "not a git repository" in git_check.stderr.lower():
+            print("[跳过] 当前目录不在 Git 仓库中")
+            break
+        else:
+            failures.append(
+                f"Git {label} diff 格式检查失败:\n" + (git_check.stdout or git_check.stderr).strip()
+            )
+
+    if failures:
+        details = "\n- ".join(failures)
+        raise WorkflowError(f"{purpose} checklist 未通过:\n- {details}")
+    print(f"{purpose} checklist 自动检查通过；请继续完成 {checklist_file.name} 中的人工检查项")
 
 
 def doctor():
@@ -1074,6 +1164,9 @@ def parser():
     new.add_argument("--no-xcodegen", action="store_true")
     new.add_argument("--force", action="store_true")
     commands.add_parser("validate", help="校验配置和规范")
+    checklist = commands.add_parser("checklist", help="执行提交或 review 前检查")
+    checklist.add_argument("path", nargs="?", default=os.getcwd())
+    checklist.add_argument("--purpose", choices=("commit", "review"), default="commit")
     commands.add_parser("doctor", help="检查本机工具")
     commands.add_parser("list-options", help="显示可选项和默认值")
     return root, defaults
@@ -1089,6 +1182,8 @@ def main():
             validate_repository()
         elif args.command == "doctor":
             doctor()
+        elif args.command == "checklist":
+            run_checklist(args.path, args.purpose)
         else:
             print(json.dumps({"options": VALID, "defaults": defaults}, ensure_ascii=False, indent=2))
     except WorkflowError as exc:

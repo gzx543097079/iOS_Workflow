@@ -13,6 +13,7 @@ iOS AI Workflow
 ├── config/design-tokens.jsonc  UI 参数的单一事实来源
 ├── standards/code-style.md     人可读代码规范
 ├── standards/ui-style.md       人可读 UI 规范
+├── checklists/                 提交与 review 前检查模块
 ├── AGENTS.md                   AI 协作入口
 └── tests/                      生成器回归测试
 ```
@@ -25,8 +26,13 @@ iOS AI Workflow
 4. 按 1–4 级中文注释配置为源码、单元测试及 UI 测试增加对应深度的自然语句说明，不生成文件元数据头或分类标签。
 5. 从中央 `design-tokens.jsonc` 生成对应 Swift 或 Objective-C token 代码。
 6. 将语言策略与默认本地化写入 `Info.plist` 和 `workflow.json`，供 App 运行时读取。
-7. 将当前规范快照复制进新项目的 `Standards/`。
-8. 输出 XcodeGen 的 `project.yml`；本机可用时自动生成 `.xcodeproj`。
+7. 为占位测试生成 `TODO`，并将提交/review 前检查模块复制为 `Checklist.md`。
+8. 将当前规范快照复制进新项目的 `Standards/`。
+9. 输出 XcodeGen 的 `project.yml`；本机可用时自动生成 `.xcodeproj`。
+
+## Checklist 流程
+
+`iosflow checklist` 在提交或 review 前检查 Checklist 文档及其订阅/数据打点模块、项目配置、测试目录、未处理的测试 `TODO` 和 Git diff 格式。编译、项目测试、订阅商品/价格/文案映射、打点含义/位置以及 UI/可访问性验证等需要业务上下文的内容，继续由 `Checklist.md` 约束。
 
 ## 可迁移性
 
