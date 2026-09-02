@@ -31,7 +31,8 @@ Workspace/
 3. Workspace 入口要求 Codex 读取工作流原始入口，并以 `iOS_Workflow/` 为基准加载默认配置和规范文件。
 4. 用户明确指定的技术选型覆盖默认配置，业务项目自身约定优先于通用工作流。
 5. Codex 按项目现有技术、模块边界和 DesignTokens 完成修改。
-6. 提交或 review 前，Codex 读取并逐项完成工作流中的 `checklists/pre-commit-review.md`。
+6. 用户触发提交、推送或 review 时，Codex 自动执行 `checklists/pre-commit-review.md`。
+7. 存在 `❌` 时阻止提交或推送；通过时将 Checklist 写入提交备注或推送结果说明。
 
 ## Git 边界
 
