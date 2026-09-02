@@ -15,11 +15,13 @@
   "development_team": "", // Apple Developer Team ID；留空时由本机或 CI 决定
   "code_sign_style": "automatic", // 签名方式：automatic 或 manual
   "target_devices": ["iphone", "ipad"], // 支持设备：iphone、ipad
+  "default_language_mode": "system", // 首次启动语言策略：system（跟随系统）或 fixed（强制使用 default_localization）
   "default_localization": "en", // 默认本地化语言：en（英语）；必须包含在 supported_localizations 中
   "supported_localizations": ["zh-Hans", "zh-Hant", "en", "es", "fr", "de", "ja", "ko", "pt-BR", "it", "ar", "ru"], // 预创建语言：简中、繁中、英语、西语、法语、德语、日语、韩语、巴西葡语、意语、阿语、俄语；可按市场增删
   "include_unit_tests": true, // 是否生成单元测试 target
   "include_ui_tests": false, // 是否生成 UI 测试 target
   "test_framework": "xctest", // 测试框架；当前支持 xctest
+  "comment_level": 3, // 中文注释等级：1 无注释、2 页面/文件说明、3 业务方法/Model/复杂思路、4 最完整注释；不生成文件元数据、分类标签或系统/继承方法注释
   "strict_concurrency": "complete", // Swift 并发检查：minimal、targeted、complete
   "warnings_as_errors": false, // 是否把编译警告视为错误
   "generate_privacy_manifest": true, // 是否生成 PrivacyInfo.xcprivacy

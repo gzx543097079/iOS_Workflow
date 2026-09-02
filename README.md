@@ -35,6 +35,10 @@
 
 新项目默认预创建简体中文、繁体中文、英语、西班牙语、法语、德语、日语、韩语、巴西葡萄牙语、意大利语、阿拉伯语和俄语资源。可在 `supported_localizations` 中按目标市场增删，`default_localization` 必须包含在该列表中。
 
+`default_language_mode` 控制 App 首次启动的语言策略：`system` 跟随设备语言，`fixed` 强制使用 `default_localization`。生成器会将两项设置写入项目的 `Info.plist` 与 `workflow.json`，供运行时语言服务读取；当前默认为 `system`，仅在显式选择 `fixed` 时使用 `default_localization`。
+
+`comment_level` 使用 1–4 级控制生成代码的中文注释，默认值为 3。1 级不生成注释，2 级用自然语句说明页面或文件，3 级进一步说明业务方法、Model 和复杂实现思路，4 级补充属性与关键控制流。生成的注释不使用“类型职责”、“方法职责”等分类标签，不生成文件名、项目名、创建时间或 Git 信息头，也不为系统方法、代理/数据源回调或继承重写方法生成注释。
+
 ## 命令
 
 ```bash
@@ -55,6 +59,9 @@
 - `--bundle-id com.example.myapp`
 - `--deployment-target 17.0`
 - `--objc-prefix APP`（Objective-C 类前缀，2–3 个大写字母）
+- `--default-language-mode system|fixed`
+- `--default-localization en`（必须包含在 `supported_localizations` 中）
+- `--comment-level 1|2|3|4`
 - `--output <目录>`
 - `--no-xcodegen`
 - `--force`（仅允许覆盖空目录；不会删除已有内容）

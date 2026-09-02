@@ -19,12 +19,14 @@ iOS AI Workflow
 
 ## 生成流程
 
-1. CLI 读取默认配置，命令行参数可逐项覆盖。
+1. CLI 读取默认配置，命令行参数可逐项覆盖，包括跟随系统或固定语言的首次启动策略。
 2. 校验技术组合；SwiftUI 仅接受 Swift。
 3. 根据语言、UI 与架构写入最小可运行源码。
-4. 从中央 `design-tokens.jsonc` 生成对应 Swift 或 Objective-C token 代码。
-5. 将当前规范快照复制进新项目的 `Standards/`。
-6. 输出 XcodeGen 的 `project.yml`；本机可用时自动生成 `.xcodeproj`。
+4. 按 1–4 级中文注释配置为源码、单元测试及 UI 测试增加对应深度的自然语句说明，不生成文件元数据头或分类标签。
+5. 从中央 `design-tokens.jsonc` 生成对应 Swift 或 Objective-C token 代码。
+6. 将语言策略与默认本地化写入 `Info.plist` 和 `workflow.json`，供 App 运行时读取。
+7. 将当前规范快照复制进新项目的 `Standards/`。
+8. 输出 XcodeGen 的 `project.yml`；本机可用时自动生成 `.xcodeproj`。
 
 ## 可迁移性
 

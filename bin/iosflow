@@ -18,6 +18,8 @@ VALID = {
     "ui": ("swiftui", "uikit"),
     "architecture": ("mvvm", "mvc"),
     "dependency_manager": ("pod", "spm", "carthage", "none"),
+    "default_language_mode": ("system", "fixed"),
+    "comment_level": (1, 2, 3, 4),
 }
 
 
@@ -86,8 +88,9 @@ def validate_options(options):
         "navigation_enabled", "dependency_manager",
         "swift_version", "marketing_version", "build_number", "organization_name",
         "objc_class_prefix", "development_team", "code_sign_style", "target_devices",
-        "default_localization", "supported_localizations", "include_unit_tests", "include_ui_tests",
-        "test_framework", "strict_concurrency", "warnings_as_errors", "generate_privacy_manifest",
+        "default_language_mode", "default_localization", "supported_localizations",
+        "include_unit_tests", "include_ui_tests", "test_framework", "comment_level",
+        "strict_concurrency", "warnings_as_errors", "generate_privacy_manifest",
         "generate_xcodeproj",
     )
     missing = [key for key in required if key not in options]
@@ -95,7 +98,7 @@ def validate_options(options):
         raise WorkflowError("默认配置缺少字段: " + ", ".join(missing))
     for key, allowed in VALID.items():
         if options[key] not in allowed:
-            raise WorkflowError(f"{key} 必须是: {', '.join(allowed)}")
+            raise WorkflowError(f"{key} 必须是: {', '.join(map(str, allowed))}")
     if options["language"] == "objc" and options["ui"] == "swiftui":
         raise WorkflowError("Objective-C 不能直接使用 SwiftUI；请选择 --ui uikit 或 --language swift")
     if not re.fullmatch(r"[A-Za-z][A-Za-z0-9]*(\.[A-Za-z][A-Za-z0-9-]*)+", options["bundle_id_prefix"]):
@@ -144,6 +147,229 @@ def lower_camel(value):
 
 def upper_camel(value):
     return "".join(part[:1].upper() + part[1:] for part in value.split("_"))
+
+
+def generated_code_role(path):
+    name = path.name
+    if name == "main.m" or name.endswith("App.swift"):
+        return "声明应用程序入口。"
+    if "AppDelegate" in name:
+        return "管理应用生命周期与 scene 配置。"
+    if "SceneDelegate" in name:
+        return "创建窗口并装配根页面。"
+    if "DesignTokens" in name:
+        return "集中提供颜色、间距、字体和尺寸等设计 token。"
+    if "LocalizationService" in name:
+        return "加载本地化资源、持久化语言选择并广播语言变化。"
+    if "AppLanguage" in name:
+        return "定义应用支持的语言与首次启动语言策略。"
+    if "ViewModel" in name:
+        return "管理页面展示状态与用户意图。"
+    if "ViewController" in name:
+        return "渲染 UIKit 页面并转发用户操作。"
+    if "Controller" in name and path.suffix == ".swift":
+        return "协调 SwiftUI 页面状态与交互。"
+    if name.endswith("View.swift"):
+        return "渲染 SwiftUI 页面并转发用户操作。"
+    if "UITests" in name:
+        return "验证应用的关键界面流程。"
+    if "Tests" in name:
+        return "验证应用的核心业务行为。"
+    return "承载当前模块的生成代码。"
+
+
+def generated_code_approach(path):
+    name = path.name
+    if "SceneDelegate" in name:
+        return "使用 scene 生命周期创建 UIWindow，并在单一入口装配根导航结构。"
+    if "DesignTokens" in name:
+        return "把设计参数集中为语义化常量，避免业务页面散落样式数值。"
+    if "ViewModel" in name:
+        return "由 ViewModel 暴露只读展示状态，使页面只负责渲染和事件转发。"
+    if "ViewController" in name or name.endswith("View.swift"):
+        return "通过系统组件和约束构建页面，并把业务状态委托给对应 Model。"
+    if "Tests" in name:
+        return "采用 Arrange、Act、Assert 结构隔离条件并验证可观察结果。"
+    return "保持入口和模块边界清晰，复杂行为应下沉到可测试的独立类型。"
+
+
+def generated_method_name(line):
+    swift_match = re.search(r"\bfunc\s+([A-Za-z_][A-Za-z0-9_]*)", line)
+    if swift_match:
+        return swift_match.group(1)
+    if re.match(
+        r"\s*(?:(?:public|private|internal|fileprivate|required|convenience|override)\s+)*init[?!]?\s*\(",
+        line,
+    ):
+        return "init"
+    objc_match = re.match(r"\s*[+-]\s*\([^)]*\)\s*([A-Za-z_][A-Za-z0-9_]*)", line)
+    return objc_match.group(1) if objc_match else None
+
+
+def generated_method_role(name):
+    known_roles = {
+        "init": "初始化当前类型及其必要依赖。",
+        "application": "响应应用创建新 scene 的请求并返回 scene 配置。",
+        "scene": "在 scene 连接时创建窗口、装配根页面并显示界面。",
+        "viewDidLoad": "在页面加载后完成基础样式、视图层级和约束配置。",
+        "configureView": "创建页面控件、应用设计 token 并建立布局约束。",
+        "configureNavigation": "配置导航栏操作及其事件入口。",
+        "updateLocalizedContent": "根据当前语言刷新页面标题、正文和无障碍文案。",
+        "showSettings": "创建设置页面并压入当前导航栈。",
+        "languageDidChange": "响应语言变化通知并刷新当前页面。",
+        "setLanguage": "更新当前语言、持久化选择并发送变化通知。",
+        "string": "从当前语言资源包读取指定 key 的本地化文案。",
+        "defaultLanguageMode": "从应用配置中解析首次启动语言策略。",
+        "initialLanguage": "结合语言策略和默认地区计算首次使用的语言。",
+        "displayName": "返回语言选项在设置页展示的名称。",
+        "selectLanguage": "校验列表索引并应用对应的语言选择。",
+        "numberOfSections": "返回语言设置列表的分区数量。",
+        "tableView": "处理语言列表的数据展示或用户选择事件。",
+        "testExample": "执行模板单元测试，确认测试 target 可以正常运行。",
+        "testLaunch": "启动应用并确认 UI 测试 target 可以访问应用进程。",
+    }
+    if name.startswith("test"):
+        return f"验证 {name} 对应场景的预期结果。"
+    return known_roles.get(name, f"执行 {name} 对应的业务或界面操作。")
+
+
+SYSTEM_METHOD_NAMES = {
+    "application",
+    "scene",
+    "viewDidLoad",
+    "viewWillAppear",
+    "viewDidAppear",
+    "viewWillDisappear",
+    "viewDidDisappear",
+    "didReceiveMemoryWarning",
+    "traitCollectionDidChange",
+    "numberOfSections",
+    "tableView",
+    "collectionView",
+}
+
+
+def should_annotate_method(line, method_name):
+    """Return false for methods supplied by or inherited from an Apple framework."""
+    if method_name in SYSTEM_METHOD_NAMES:
+        return False
+    if re.search(r"\boverride\b", line):
+        return False
+    if method_name == "init" and re.search(r"\b(required|override)\b", line):
+        return False
+    return True
+
+
+def annotate_declarations(content, path, level):
+    annotated = []
+    excluded_method_depth = None
+    excluded_method_opened = False
+    for line in content.splitlines():
+        stripped = line.strip()
+        if stripped.startswith((
+            "/// 类型职责：",
+            "/// 方法职责：",
+            "/// 属性说明：",
+            "// 关键逻辑：",
+            "/// 保存或提供 ",
+            "/// 保存 ",
+            "// 处理当前条件、分支或数据遍历。",
+        )):
+            continue
+        natural_comment = stripped.removeprefix("/// ")
+        if natural_comment in (generated_code_role(path), generated_code_approach(path)):
+            continue
+        if natural_comment in {generated_method_role(name) for name in (
+            "init", "configureView", "configureNavigation", "updateLocalizedContent",
+            "showSettings", "languageDidChange", "setLanguage", "string",
+            "defaultLanguageMode", "initialLanguage", "displayName", "selectLanguage",
+            "testExample", "testLaunch",
+        )}:
+            continue
+        if re.fullmatch(r"(?:执行 .+ 对应的业务或界面操作。|验证 .+ 对应场景的预期结果。)", natural_comment):
+            continue
+        if excluded_method_depth is not None:
+            annotated.append(line)
+            if "{" in line:
+                excluded_method_opened = True
+            excluded_method_depth += line.count("{") - line.count("}")
+            if excluded_method_opened and excluded_method_depth <= 0:
+                excluded_method_depth = None
+                excluded_method_opened = False
+            continue
+        indent = line[:len(line) - len(line.lstrip())]
+        type_match = re.search(r"\b(class|struct|enum)\s+([A-Za-z_][A-Za-z0-9_]*)", stripped)
+        objc_type_match = re.match(r"@interface\s+([A-Za-z_][A-Za-z0-9_]*)", stripped)
+        method_name = generated_method_name(line)
+        if method_name and not should_annotate_method(line, method_name):
+            annotated.append(line)
+            if not stripped.endswith(";"):
+                excluded_method_depth = line.count("{") - line.count("}")
+                excluded_method_opened = "{" in line
+                if excluded_method_opened and excluded_method_depth <= 0:
+                    excluded_method_depth = None
+                    excluded_method_opened = False
+            continue
+        if type_match or objc_type_match:
+            if level >= 2:
+                annotated.append(f"{indent}/// {generated_code_role(path)}")
+                if level >= 3:
+                    annotated.append(f"{indent}/// {generated_code_approach(path)}")
+        elif method_name and level >= 3:
+            annotated.append(f"{indent}/// {generated_method_role(method_name)}")
+        elif level == 4:
+            property_match = re.search(r"\b(?:let|var)\s+([A-Za-z_][A-Za-z0-9_]*)", stripped)
+            objc_property_match = re.match(r"@property.*\s([A-Za-z_][A-Za-z0-9_]*)\s*;", stripped)
+            if property_match:
+                annotated.append(f"{indent}/// 保存或提供 {property_match.group(1)} 对应的状态与依赖。")
+            elif objc_property_match:
+                annotated.append(f"{indent}/// 保存 {objc_property_match.group(1)} 对应的状态或依赖。")
+            elif re.match(r"(if|guard|switch|for)\b", stripped):
+                annotated.append(f"{indent}// 处理当前条件、分支或数据遍历。")
+        annotated.append(line)
+    return "\n".join(annotated) + "\n"
+
+
+def strip_generated_file_header(content):
+    """Remove legacy file metadata headers generated by earlier workflow versions."""
+    lines = content.splitlines()
+    if lines and lines[0].strip() == "//":
+        index = 1
+        while index < len(lines) and lines[index].lstrip().startswith("//"):
+            index += 1
+        header = "\n".join(lines[:index])
+        metadata_markers = ("文件名：", "项目：", "创建时间：", "Git：", "Created by")
+        if index >= 3 and any(marker in header for marker in metadata_markers):
+            return "\n".join(lines[index:]).lstrip("\n") + "\n"
+    if lines and lines[0] == "// 由 iosflow 工作流生成并维护。":
+        remove_count = 3 if len(lines) > 2 and not lines[2].strip() else 2
+        return "\n".join(lines[remove_count:]).lstrip("\n") + "\n"
+    return content
+
+
+def strip_generated_file_explanations(content):
+    prefixes = (
+        "// 文件职责：",
+        "// 实现思路：",
+        "// 技术选型：",
+        "// 维护提示：",
+    )
+    lines = [line for line in content.splitlines() if not line.strip().startswith(prefixes)]
+    return "\n".join(lines).lstrip("\n") + "\n"
+
+
+def add_chinese_comments(base, app_name, options):
+    level = options["comment_level"]
+    extensions = {".swift", ".h", ".m"}
+    for directory_name in ("Sources", "Tests", "UITests"):
+        directory = base / directory_name
+        if not directory.exists():
+            continue
+        for path in sorted(item for item in directory.rglob("*") if item.suffix in extensions):
+            content = strip_generated_file_header(path.read_text(encoding="utf-8"))
+            content = strip_generated_file_explanations(content)
+            annotated = annotate_declarations(content, path, level)
+            path.write_text(annotated, encoding="utf-8")
 
 
 def swift_tokens(tokens, framework="SwiftUI"):
@@ -552,6 +778,8 @@ def info_plist(app_name, options):
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>CFBundleDevelopmentRegion</key><string>{options["default_localization"]}</string>
+<key>AppDefaultLanguageMode</key><string>{options["default_language_mode"]}</string>
+<key>AppDefaultLocalization</key><string>{options["default_localization"]}</string>
 <key>CFBundleDisplayName</key><string>{app_name}</string>
 <key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
 <key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
@@ -698,6 +926,9 @@ def generate_project(args):
         "bundle_id": getattr(args, "bundle_id", None),
         "deployment_target": getattr(args, "deployment_target", None),
         "objc_class_prefix": getattr(args, "objc_prefix", None),
+        "default_language_mode": getattr(args, "default_language_mode", None),
+        "default_localization": getattr(args, "default_localization", None),
+        "comment_level": getattr(args, "comment_level", None),
     }
     options.update({key: value for key, value in overrides.items() if value is not None})
     app_name = swift_identifier(args.name)
@@ -742,6 +973,7 @@ def generate_project(args):
     if options["generate_privacy_manifest"]:
         write(destination / "Resources" / "PrivacyInfo.xcprivacy", privacy_manifest())
     generate_tests(destination, app_name, options)
+    add_chinese_comments(destination, app_name, options)
     generate_dependency_manager_files(destination, app_name, options)
     write(destination / ".gitignore", '''DerivedData/
 .build/
@@ -835,6 +1067,9 @@ def parser():
     new.add_argument("--bundle-id")
     new.add_argument("--deployment-target")
     new.add_argument("--objc-prefix")
+    new.add_argument("--default-language-mode", choices=VALID["default_language_mode"])
+    new.add_argument("--default-localization")
+    new.add_argument("--comment-level", type=int, choices=VALID["comment_level"])
     new.add_argument("--output", default=os.getcwd())
     new.add_argument("--no-xcodegen", action="store_true")
     new.add_argument("--force", action="store_true")
