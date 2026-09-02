@@ -42,32 +42,122 @@
 
 ## 命令
 
+所有命令默认在工作流仓库根目录执行。首次使用时先拉取仓库并确认 CLI 可用：
+
 ```bash
-./bin/iosflow new <项目名> [选项]
-./bin/iosflow validate
-./bin/iosflow checklist <项目目录> --purpose commit
-./bin/iosflow checklist <项目目录> --purpose review
+git clone git@github.com:gzx543097079/iOS_Workflow.git
+cd iOS_Workflow
+./bin/iosflow --help
+```
+
+### `doctor`：检查本机环境
+
+显示 Python 3、XcodeGen、`xcodebuild`、SwiftLint 和 SwiftFormat 的安装状态。XcodeGen 不存在时仍可生成源码，但不会自动生成 `.xcodeproj`。
+
+```bash
 ./bin/iosflow doctor
+```
+
+### `validate`：校验工作流
+
+校验 `config/defaults.jsonc`、Design Tokens、代码/UI 规范、Checklist 模板和 `AGENTS.md`。修改工作流配置后应先执行此命令。
+
+```bash
+./bin/iosflow validate
+# 也可以使用 Makefile
+make validate
+```
+
+校验失败时命令返回非 0 状态码，可直接用于 CI。
+
+### `list-options`：查看可用选项
+
+以 JSON 形式输出可选值和当前默认配置，适合在生成项目前确认团队基线。
+
+```bash
 ./bin/iosflow list-options
 ```
 
-`new` 支持：
+### `new`：生成 iOS 项目
 
-- `--language swift|objc`
-- `--ui swiftui|uikit`
-- `--architecture mvvm|mvc`
+基本格式：
+
+```bash
+./bin/iosflow new <项目名> [选项]
+```
+
+不传选项时使用 `config/defaults.jsonc` 中的团队默认值。例如，在仓库同级的 `Apps` 目录生成 Swift + UIKit + MVVM 项目：
+
+```bash
+./bin/iosflow new TeamApp \
+  --output ../Apps \
+  --language swift \
+  --ui uikit \
+  --architecture mvvm \
+  --dependency-manager spm \
+  --bundle-id-prefix com.example \
+  --deployment-target 17.0 \
+  --default-language-mode system \
+  --comment-level 3
+```
+
+成功后会在 `../Apps/TeamApp` 中生成源码、资源、测试、`workflow.json`、`Checklist.md`、规范快照和 `project.yml`。如果本机已安装 XcodeGen，还会生成 `TeamApp.xcodeproj`。
+
+`new` 参数：
+
+- `--language swift|objc`：选择开发语言。
+- `--ui swiftui|uikit`：选择 UI 框架；Objective-C 只支持 UIKit。
+- `--architecture mvvm|mvc`：选择项目架构。
 - `--navigation` / `--no-navigation`（是否生成系统导航容器，默认开启）
 - `--dependency-manager pod|spm|carthage|none`（三方库引入方式，默认 `pod`）
-- `--bundle-id-prefix com.example`
-- `--bundle-id com.example.myapp`
-- `--deployment-target 17.0`
+- `--bundle-id-prefix com.example`：设置 bundle ID 前缀。
+- `--bundle-id com.example.myapp`：直接指定完整 bundle ID；传入后优先于前缀。
+- `--deployment-target 17.0`：设置最低 iOS 版本。
 - `--objc-prefix APP`（Objective-C 类前缀，2–3 个大写字母）
-- `--default-language-mode system|fixed`
-- `--default-localization en`（必须包含在 `supported_localizations` 中）
-- `--comment-level 1|2|3|4`
-- `--output <目录>`
-- `--no-xcodegen`
+- `--default-language-mode system|fixed`：跟随系统，或强制使用指定的默认语言。
+- `--default-localization en`：`fixed` 模式使用的语言，必须包含在 `supported_localizations` 中。
+- `--comment-level 1|2|3|4`：设置中文注释详细程度。
+- `--output <目录>`：设置项目父目录，项目名会作为子目录。
+- `--no-xcodegen`：只生成源码和 `project.yml`，不运行 XcodeGen。
 - `--force`（仅允许覆盖空目录；不会删除已有内容）
+
+查看 CLI 内置帮助：
+
+```bash
+./bin/iosflow new --help
+```
+
+### `checklist`：执行提交或 review 前检查
+
+提交前使用 `commit`，review 前使用 `review`：
+
+```bash
+./bin/iosflow checklist ../Apps/TeamApp --purpose commit
+./bin/iosflow checklist ../Apps/TeamApp --purpose review
+```
+
+省略项目目录时检查当前目录，`--purpose` 默认为 `commit`：
+
+```bash
+./bin/iosflow checklist
+# 工作流仓库也可执行
+make checklist
+```
+
+自动检查内容包括：
+
+- `Checklist.md` 及订阅/数据打点模块是否存在。
+- `workflow.json` 和工作流配置是否有效。
+- 测试目录是否存在，测试中是否还有未处理的 `TODO`。
+- 已暂存和未暂存 Git diff 是否包含空白错误。
+
+如果命令返回“Checklist 未通过”，需要先处理列出的 TODO、配置或 diff 问题。自动检查通过后，仍需逐项完成 `Checklist.md` 中无法自动判定的编译、测试、订阅和打点检查。
+
+### 退出状态
+
+- `0`：命令成功或检查通过。
+- `2`：配置、生成或 Checklist 检查失败。
+- 命令行参数错误由 `argparse` 输出帮助信息并返回非 0 状态码。
 
 ## 推荐团队流程
 
