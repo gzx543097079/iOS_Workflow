@@ -1,6 +1,6 @@
 ---
 name: ios-workflow
-description: "Plan, implement, test, generate, review, and deliver iOS projects using the repository's Swift, Objective-C, UIKit, SwiftUI, Xcode, requirement-tracking, and Git workflow. Use for iOS product work; do not use for unrelated repositories or generic non-iOS tasks."
+description: "使用仓库中的 Swift、Objective-C、UIKit、SwiftUI、Xcode、需求追踪和 Git 工作流规划、实现、测试、生成、审查并交付 iOS 项目。适用于 iOS 产品开发任务；不要用于无关仓库或通用的非 iOS 任务。"
 ---
 
 # iOS Workflow

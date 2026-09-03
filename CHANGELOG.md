@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.1 - 2026-09-03
+
+- 将 `ios-workflow` 的触发描述、界面短描述和默认提示改为中文。
+
 ## 4.0.0 - 2026-09-03
 
 - 将完整工作流迁移为仓库级 `.agents/skills/ios-workflow` Skill，并增加官方要求的 `SKILL.md` 元数据。

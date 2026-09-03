@@ -1,4 +1,4 @@
 interface:
   display_name: "iOS Workflow"
-  short_description: "Plan, build, test, review, and deliver iOS projects"
-  default_prompt: "Use $ios-workflow to implement and verify this iOS task."
+  short_description: "规划、构建、测试、审查并交付完整的 iOS 项目工作流"
+  default_prompt: "使用 $ios-workflow 实现并验证这个 iOS 任务。"
