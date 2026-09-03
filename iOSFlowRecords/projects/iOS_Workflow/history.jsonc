@@ -1,7 +1,7 @@
 {
-  "version": 2,
+  "version": 3,
   "project": "iOS_Workflow",
-  "next_sequence": 7,
+  "next_sequence": 8,
   "execution_order": [
     {
       "sequence": 1,
@@ -48,6 +48,14 @@
       "started_at": "2026-09-03 14:32 +0800",
       "completed_at": "2026-09-03 14:36 +0800",
       "latest_commit": "c42e2987c46cbedebdd01be7eac8cb7fcd95af3c"
+    },
+    {
+      "sequence": 7,
+      "id": "REQ-20260903-008",
+      "title": "进一步优化工作流 Token 使用",
+      "status": "done",
+      "started_at": "2026-09-03 14:41 +0800",
+      "completed_at": "2026-09-03 14:46 +0800"
     }
   ]
 }

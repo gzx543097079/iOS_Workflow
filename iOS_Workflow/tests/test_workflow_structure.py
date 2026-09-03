@@ -37,10 +37,16 @@ class WorkflowStructureTests(unittest.TestCase):
 
     def test_compact_index_template_only_tracks_active_requirement(self):
         index = json.loads((ROOT / "templates/tracking/index.jsonc").read_text(encoding="utf-8"))
-        self.assertEqual(2, index["version"])
+        self.assertEqual(3, index["version"])
         self.assertIn("last_requirement_id", index)
         self.assertIn("active_requirement", index)
         self.assertNotIn("requirements", index)
+        self.assertEqual(
+            {"current_step", "next_action", "blockers", "evidence_key", "scope_version"},
+            {key for key in index["active_requirement"] if key in {
+                "current_step", "next_action", "blockers", "evidence_key", "scope_version"
+            }},
+        )
 
     def test_resume_prefers_compact_summary(self):
         lifecycle = (ROOT / "standards/requirement-lifecycle.md").read_text(encoding="utf-8")
@@ -59,6 +65,32 @@ class WorkflowStructureTests(unittest.TestCase):
         standard = (ROOT / "standards/technical-design.md").read_text(encoding="utf-8")
         self.assertIn("简单新增页面或内部模块也可使用 `brief`", standard)
         self.assertIn("“新增模块”本身不自动触发完整设计", standard)
+
+    def test_low_risk_routes_avoid_full_requirement_and_design_loading(self):
+        agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("低风险单轮任务直接在上下文形成精简需求卡", agents)
+        self.assertIn("可在上下文形成 inline brief", agents)
+        self.assertIn("设计边界不明确或触发完整设计时才读取", agents)
+
+    def test_generator_consumes_configuration_without_model_context(self):
+        agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        generation = (ROOT / "standards/project-generation.md").read_text(encoding="utf-8")
+        self.assertIn("配置和 DesignTokens 由生成器直接读取校验", agents)
+        self.assertIn("不把完整配置输出到模型上下文", generation)
+
+    def test_documentation_changes_do_not_invalidate_test_evidence(self):
+        agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        testing = (ROOT / "standards/testing.md").read_text(encoding="utf-8")
+        self.assertIn("纯文档、运行记录、版本号", agents)
+        self.assertIn("纯文档、运行记录、版本号", testing)
+
+    def test_git_delivery_does_not_create_writeback_commits(self):
+        lifecycle = (ROOT / "standards/requirement-lifecycle.md").read_text(encoding="utf-8")
+        gate = (ROOT / "checklists/pre-commit-review.md").read_text(encoding="utf-8")
+        template = (ROOT / "templates/tracking/requirement.md").read_text(encoding="utf-8")
+        self.assertIn("不得仅为写回当前提交 hash", lifecycle)
+        self.assertIn("不得为了回写本次提交 hash", gate)
+        self.assertNotIn("delivery_status:", template)
 
 
 if __name__ == "__main__":

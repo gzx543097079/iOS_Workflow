@@ -1,7 +1,7 @@
 # 测试报告
 
 - Requirement：
-- 证据键：Git/diff、配置、依赖锁、Xcode、scheme、destination、测试选择
+- 证据键：受测源码与配置、依赖锁、Xcode、scheme、destination、测试选择
 - 执行时间：
 
 ## 结果摘要

@@ -4,7 +4,6 @@ project: 项目相对路径
 type: feature
 sequence: null
 status: draft
-delivery_status: uncommitted
 design_level: null
 design_status: pending
 branch: ""
@@ -14,6 +13,14 @@ workflow_version: 当前版本
 ---
 
 # 需求标题
+
+## 恢复摘要
+
+- 当前步骤：STEP-001
+- 下一动作：
+- 阻塞项：无
+- 证据键：无
+- 范围版本：1
 
 ## 原始需求
 
@@ -35,14 +42,6 @@ workflow_version: 当前版本
   - 完成条件：
   - 验证方式：
 
-## 恢复摘要
-
-- 当前步骤：STEP-001
-- 下一动作：
-- 阻塞项：无
-- 证据键：无
-- 范围版本：1
-
 ## 需求变更
 
 仅追加范围变化、原因和步骤影响，不覆盖原始需求。
@@ -53,8 +52,8 @@ workflow_version: 当前版本
 
 ## Commit 记录
 
-记录 hash、提交摘要、对应步骤、Checklist 结果和交付状态；没有 Git 交付时保留 `uncommitted`。
+可记录已有历史提交；当前交付通过提交正文和 Git 引用实时查询，不为回写自身 hash 单独提交。
 
 ## 完成摘要
 
-记录交付状态、实现内容、验证结果、遗留事项和下一建议；最终提交可为空。
+记录实现内容、验证结果、遗留事项和下一建议；交付状态需要时从 Git 实时查询。

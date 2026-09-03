@@ -5,18 +5,18 @@
 ## 通用要求
 
 1. 用户明确要求优先；冲突时说明。保持项目已有语言、UI、架构和模块边界。
-2. 修改后运行最小相关验证。证据以 diff、配置、依赖锁、环境和测试选择为键；键未变化则复用，变化才重跑。生成器、工具、路由或测试规则变更在 `iOS_Workflow/` 内运行 `python3 -m unittest discover -s tests -v`。
+2. 修改后运行最小相关验证。证据键只包含受验证影响的源码、配置、依赖锁、环境和测试选择；纯文档、运行记录、版本号或其他不影响受测行为的 diff 不使证据失效。生成器、工具、路由或测试规则变更在 `iOS_Workflow/` 内运行 `python3 -m unittest discover -s tests -v`。
 3. 成功命令只报告目标、状态和必要摘要；失败只保留相关日志。Git 验证不回显完整提交、tag 或 Checklist 正文。
 4. 工作流规则变更同步更新 `CHANGELOG.md`。
 
 ## 路由
 
-- 新需求：先读取 `standards/requirements.md`；需要正式需求卡时读取对应需求模板。仅当用户明确要求留档，或任务跨会话、跨模块、多阶段、高风险、需要共享追踪时，才读取 `standards/requirement-lifecycle.md` 并持久化；执行本身不是建档条件。
-- 技术方案：需求可执行后读取 `standards/technical-design.md`；仅按设计等级加载 Feature、Bug Fix 或 ADR 模板，设计通过后才能生成最终步骤并编码。
-- 继续、变更、阻塞或完成已留档需求：读取 `standards/requirement-lifecycle.md`，先读 `<工作目录>/iOSFlowRecords/index.jsonc`，再优先读取当前需求档案的 frontmatter、`恢复摘要` 和首个未完成步骤；只有范围、设计或历史细节不足时才读取全文。
+- 新需求：目标、范围和验收明确的低风险单轮任务直接在上下文形成精简需求卡，不加载需求规范。范围不清，或任务需要留档、跨会话、跨模块、多阶段、高风险、共享追踪时才读取 `standards/requirements.md`；需要正式需求卡时再读取对应模板，需要持久化时再读取 `standards/requirement-lifecycle.md`。执行本身不是建档条件。
+- 技术方案：无技术决策的维护任务直接标记 `not_required`；单模块、无公共契约/依赖/迁移/安全影响的低风险任务可在上下文形成 inline brief。设计边界不明确或触发完整设计时才读取 `standards/technical-design.md`，并仅加载对应 Feature、Bug Fix 或 ADR 模板；设计通过后再编码。
+- 继续、变更、阻塞或完成已留档需求：读取 `standards/requirement-lifecycle.md`，先读 `<工作目录>/iOSFlowRecords/index.jsonc` 的活动摘要；摘要足够时直接继续，只有范围、步骤、设计或历史细节不足时才按章节读取当前需求档案，不默认读取全文。
 - 查看项目执行过的需求或执行顺序：读取生命周期规范和该项目的 `iOSFlowRecords/projects/<项目>/history.jsonc`，不加载全部需求正文。
 - 执行已留档需求：确认需求档案和当前步骤后，合并下面的实现路由；仅在阶段边界、范围变化、阻塞、关键验证和 Git 交付时按生命周期规则更新记录。
-- 新项目：`standards/project-generation.md`、`config/defaults.jsonc`、`standards/code-core.md`、所选语言规范、`standards/code-generation.md`、`standards/ui-style.md`、`config/design-tokens.jsonc`、`standards/dependencies.md`、`standards/testing.md`；优先调用内部生成器。
+- 新项目：先只读取 `standards/project-generation.md` 并调用内部生成器；配置和 DesignTokens 由生成器直接读取校验，不输出到模型上下文。仅在用户自定义生成结果、生成器失败需诊断或骨架生成后继续手工实现时，按实际影响加载代码、语言、生成、UI、依赖和测试规范。
 - 新增手写代码：核心规范、所用语言规范、`standards/code-generation.md`。
 - 业务修改、重构、修复：核心规范和所用语言规范；新增代码再加载生成规范。
 - UI：核心规范、所用语言规范、`standards/ui-style.md`、`config/design-tokens.jsonc`；新增代码再加载生成规范。
