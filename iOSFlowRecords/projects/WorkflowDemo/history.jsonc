@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "project": "WorkflowDemo",
   "next_sequence": 2,
   "execution_order": [
@@ -8,6 +8,7 @@
       "requirement": "REQ-20260903-006",
       "title": "创建真实 Demo 验证 iOS 工作流",
       "status": "done",
+      "delivery_status": "pushed",
       "branch": "main",
       "started_at": "2026-09-03 11:29 +0800",
       "updated_at": "2026-09-03 14:19 +0800",

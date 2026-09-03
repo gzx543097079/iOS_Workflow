@@ -1,5 +1,14 @@
 {
-  "version": 1,
-  "active_requirement": "",
-  "requirements": []
+  "version": 2,
+  "last_requirement_id": "REQ-YYYYMMDD-NNN",
+  "active_requirement": {
+    "id": "REQ-YYYYMMDD-NNN",
+    "project": "项目相对路径",
+    "file": "requirements/项目/REQ-YYYYMMDD-NNN.md",
+    "title": "需求标题",
+    "status": "in_progress",
+    "current_step": "STEP-001",
+    "branch": "",
+    "updated_at": "YYYY-MM-DD HH:mm +0800"
+  }
 }

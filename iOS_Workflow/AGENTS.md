@@ -11,11 +11,11 @@
 
 ## 路由
 
-- 新需求：先读取 `standards/requirements.md`；需要正式需求卡时读取对应需求模板，需要保存或执行时再读取 `standards/requirement-lifecycle.md`。
+- 新需求：先读取 `standards/requirements.md`；需要正式需求卡时读取对应需求模板。仅当用户明确要求留档，或任务跨会话、跨模块、多阶段、高风险、需要共享追踪时，才读取 `standards/requirement-lifecycle.md` 并持久化；执行本身不是建档条件。
 - 技术方案：需求可执行后读取 `standards/technical-design.md`；仅按设计等级加载 Feature、Bug Fix 或 ADR 模板，设计通过后才能生成最终步骤并编码。
-- 继续、变更、阻塞或完成需求：读取 `standards/requirement-lifecycle.md`，先读 `<工作目录>/iOSFlowRecords/index.jsonc`，再只读当前需求档案。
+- 继续、变更、阻塞或完成已留档需求：读取 `standards/requirement-lifecycle.md`，先读 `<工作目录>/iOSFlowRecords/index.jsonc`，再优先读取当前需求档案的 frontmatter、`恢复摘要` 和首个未完成步骤；只有范围、设计或历史细节不足时才读取全文。
 - 查看项目执行过的需求或执行顺序：读取生命周期规范和该项目的 `iOSFlowRecords/projects/<项目>/history.jsonc`，不加载全部需求正文。
-- 执行需求：确认需求档案和当前步骤后，合并下面的实现路由；每次状态变化按生命周期规则更新记录。
+- 执行已留档需求：确认需求档案和当前步骤后，合并下面的实现路由；仅在阶段边界、范围变化、阻塞、关键验证和 Git 交付时按生命周期规则更新记录。
 - 新项目：`standards/project-generation.md`、`config/defaults.jsonc`、`standards/code-core.md`、所选语言规范、`standards/code-generation.md`、`standards/ui-style.md`、`config/design-tokens.jsonc`、`standards/dependencies.md`、`standards/testing.md`；优先调用内部生成器。
 - 新增手写代码：核心规范、所用语言规范、`standards/code-generation.md`。
 - 业务修改、重构、修复：核心规范和所用语言规范；新增代码再加载生成规范。
