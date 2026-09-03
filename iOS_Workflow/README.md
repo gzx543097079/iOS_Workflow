@@ -59,6 +59,7 @@
 完整入口只负责路由，不再要求每次任务读取所有配置和规范：
 
 - 新功能和缺陷修复先加载精简需求规范；只有需要正式需求卡或补齐信息时才加载对应模板。
+- 需求可执行后按风险加载技术设计规范；小改动写精简方案，高风险或跨模块改动才加载完整模板。
 - 继续任务时先读取 `iOSFlowRecords/index.jsonc`，再只读取当前需求档案，不扫描全部历史。
 - 普通业务修改只加载核心规范和当前使用的 Swift 或 Objective-C 规范。
 - 新生成代码额外加载生成与注释规范。
@@ -83,7 +84,9 @@
 
 - [`requirements.md`](standards/requirements.md)：编码前的目标、范围、验收标准、影响和完成定义。
 - [`requirement-lifecycle.md`](standards/requirement-lifecycle.md)：需求状态、步骤、恢复、Git 关联和完成规则。
+- [`technical-design.md`](standards/technical-design.md)：编码前的设计分级、方案内容、ADR 和变更规则。
 - [`feature.md`](templates/requirements/feature.md) 与 [`bug.md`](templates/requirements/bug.md)：按任务类型加载的需求卡模板。
+- [`design/feature-design.md`](templates/design/feature-design.md)、[`design/bug-fix-design.md`](templates/design/bug-fix-design.md) 与 [`design/adr.md`](templates/design/adr.md)：完整技术设计和关键决策模板。
 - [`tracking/index.jsonc`](templates/tracking/index.jsonc)、[`tracking/requirement.md`](templates/tracking/requirement.md) 与 [`tracking/project-history.jsonc`](templates/tracking/project-history.jsonc)：索引、需求档案和项目执行台账模板。
 - [`code-core.md`](standards/code-core.md)：通用命名、架构、日志、隐私和测试基线。
 - [`code-swift.md`](standards/code-swift.md)：仅 Swift 项目加载的语言规则。
@@ -96,6 +99,7 @@
 - [`subscription.md`](checklists/subscription.md)：仅订阅相关 diff 执行。
 - [`analytics.md`](checklists/analytics.md)：仅打点相关 diff 执行。
 - [`requirement-traceability.md`](checklists/requirement-traceability.md)：活动需求与 diff、步骤、验收和 commit 的关联检查。
+- [`technical-design.md`](checklists/technical-design.md)：设计等级、完整性、风险和实现一致性检查。
 - [`CHANGELOG.md`](CHANGELOG.md)：工作流规则的集中变更历史。
 
 修改规则时同步更新 `CHANGELOG.md`，通过 review 后再发布新版本。
@@ -127,5 +131,11 @@
 用户说“继续上次需求”时，Codex 从索引找到活动需求，核对项目、分支、HEAD 和工作区，再从第一个未完成步骤继续。提交正文使用 `Requirement` 和 `Steps` 关联需求；提交成功后记录 hash、完成步骤、验证结果和下一步。只有验收、测试、文档和提交记录全部满足时才标记完成。
 
 用户询问“这个项目执行过哪些需求”时，Codex 只读取对应项目台账，按 `sequence` 输出需求顺序、状态和最终提交，不加载全部需求正文。
+
+## 技术方案与架构设计
+
+需求分析完成后，Codex 在编码前选择设计等级：纯维护可标记 `not_required`；单模块低风险改动使用 `brief` 并写入需求档案；跨模块、公共接口、数据结构、依赖、并发、迁移、隐私安全或订阅支付变化使用 `full` 模板。
+
+设计状态只有 `pending`、`approved`、`not_required`。只有设计通过或明确不需要设计时才能进入实现。影响长期维护的关键选择使用 ADR，普通实现细节不建 ADR；实现偏离已确认设计时，先更新方案和执行步骤。
 
 `iOSFlowRecords/` 是工作目录中可直接查看的运行状态，不属于可更新的 `iOS_Workflow/` 规则目录。是否纳入业务项目版本控制由团队自行决定；工作流源码仓库默认忽略它。

@@ -12,6 +12,7 @@
 ## 路由
 
 - 新需求：先读取 `standards/requirements.md`；需要正式需求卡时读取对应需求模板，需要保存或执行时再读取 `standards/requirement-lifecycle.md`。
+- 技术方案：需求可执行后读取 `standards/technical-design.md`；仅按设计等级加载 Feature、Bug Fix 或 ADR 模板，设计通过后才能生成最终步骤并编码。
 - 继续、变更、阻塞或完成需求：读取 `standards/requirement-lifecycle.md`，先读 `<工作目录>/iOSFlowRecords/index.jsonc`，再只读当前需求档案。
 - 查看项目执行过的需求或执行顺序：读取生命周期规范和该项目的 `iOSFlowRecords/projects/<项目>/history.jsonc`，不加载全部需求正文。
 - 执行需求：确认需求档案和当前步骤后，合并下面的实现路由；每次状态变化按生命周期规则更新记录。
@@ -20,7 +21,7 @@
 - 业务修改、重构、修复：核心规范和所用语言规范；新增代码再加载生成规范。
 - UI：核心规范、所用语言规范、`standards/ui-style.md`、`config/design-tokens.jsonc`；新增代码再加载生成规范。
 - 依赖或编译：`standards/dependencies.md`；修改源码时再加载对应代码规范。
-- 提交、推送、review：`checklists/pre-commit-review.md`，并按其条件加载检查模块和需求追溯检查。
+- 提交、推送、review：`checklists/pre-commit-review.md`，并按其条件加载检查模块、技术设计和需求追溯检查。
 - 文档或工作流：只读取直接相关文件。
 
 核心规范为 `standards/code-core.md`；语言规范按实际代码选择 `standards/code-swift.md`、`standards/code-objc.md` 或两者。README、`docs/` 和历史记录不是日常必读上下文。

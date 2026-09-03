@@ -9,6 +9,7 @@
 3. 状态只使用 `draft`、`ready`、`in_progress`、`blocked`、`done`、`cancelled`。
 4. 分析完成且无阻塞信息时进入 `ready`；开始实施时进入 `in_progress`；验收完成后进入 `done`。
 5. 需求首次进入 `in_progress` 时，项目台账不存在则按 `templates/tracking/project-history.jsonc` 创建；从 `next_sequence` 取得顺序号并追加记录，再递增该值。需求只登记一次，顺序号不得重排、复用或删除。
+6. 编码前按 `standards/technical-design.md` 确定设计等级；设计状态不是 `approved` 或 `not_required` 时不得进入 `in_progress`。
 
 ## 执行与恢复
 

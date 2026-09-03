@@ -14,7 +14,8 @@
 2. diff 涉及 StoreKit、商品、价格、购买、收据、订阅或权益时读取 `checklists/subscription.md`，否则整组 `➖`。
 3. diff 涉及事件、曝光、点击、分析 SDK、参数、埋点或遥测时读取 `checklists/analytics.md`，否则整组 `➖`。
 4. 当前项目存在活动需求或本次提交声明 Requirement ID 时读取 `checklists/requirement-traceability.md`；无关联需求的维护操作整组 `➖` 并说明原因。
-5. UI、依赖等规范按 `AGENTS.md` 路由，不加载无关规则。
+5. 活动需求需要技术设计，或 diff 涉及架构、公共接口、数据结构、依赖、并发、迁移、隐私安全时读取 `checklists/technical-design.md`；否则整组 `➖`。
+6. UI、依赖等规范按 `AGENTS.md` 路由，不加载无关规则。
 
 ## 门禁输出
 

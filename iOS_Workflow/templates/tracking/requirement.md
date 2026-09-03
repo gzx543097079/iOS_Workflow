@@ -4,6 +4,8 @@ project: 项目相对路径
 type: feature
 sequence: null
 status: draft
+design_level: null
+design_status: pending
 branch: ""
 created_at: YYYY-MM-DD HH:mm +0800
 updated_at: YYYY-MM-DD HH:mm +0800
@@ -19,6 +21,10 @@ workflow_version: 当前版本
 ## 需求分析
 
 记录目标、范围、验收标准、非目标、状态、影响和风险。
+
+## 技术方案
+
+记录设计等级、方案选择、模块边界、数据流、风险、验证和 ADR；无需设计时说明原因。
 
 ## 执行步骤
 
