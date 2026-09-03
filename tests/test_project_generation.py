@@ -1,19 +1,21 @@
 import json
 import shutil
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tools.project_generation import ConfigurationError, generate_project, generate_xcodeproj, install_dependencies, load_jsonc, strip_jsonc, validate_defaults
-
-
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / ".agents/skills/ios-workflow"
+sys.path.insert(0, str(SKILL_ROOT / "scripts"))
+
+from project_generation import ConfigurationError, generate_project, generate_xcodeproj, install_dependencies, load_jsonc, strip_jsonc, validate_defaults
 
 
 class ProjectGenerationTests(unittest.TestCase):
     def defaults(self):
-        return load_jsonc(ROOT / "config/defaults.jsonc")
+        return load_jsonc(SKILL_ROOT / "assets/config/defaults.jsonc")
 
     def write_defaults(self, directory: Path, changes):
         value = self.defaults()
@@ -26,7 +28,7 @@ class ProjectGenerationTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory()
         root = Path(temporary.name)
         defaults = self.write_defaults(root, changes)
-        files = generate_project(defaults, ROOT / "config/design-tokens.jsonc", root / "Output", "Demo App")
+        files = generate_project(defaults, SKILL_ROOT / "assets/config/design-tokens.jsonc", root / "Output", "Demo App")
         return temporary, root / "Output", files
 
     def test_jsonc_preserves_comment_tokens_inside_strings(self):
@@ -117,7 +119,7 @@ class ProjectGenerationTests(unittest.TestCase):
                 self.assertTrue(generate_xcodeproj(output).is_dir())
 
     def test_dependency_preparation_uses_expected_command(self):
-        with tempfile.TemporaryDirectory() as value, patch("tools.project_generation.shutil.which", return_value="/usr/bin/tool"), patch("tools.project_generation.subprocess.run") as run:
+        with tempfile.TemporaryDirectory() as value, patch("project_generation.shutil.which", return_value="/usr/bin/tool"), patch("project_generation.subprocess.run") as run:
             project = Path(value) / "Demo.xcodeproj"
             install_dependencies(Path(value), "spm", project)
             run.assert_called_once_with(
@@ -133,7 +135,7 @@ class ProjectGenerationTests(unittest.TestCase):
             output.mkdir()
             (output / "keep.txt").write_text("user data")
             with self.assertRaises(FileExistsError):
-                generate_project(defaults, ROOT / "config/design-tokens.jsonc", output, "Demo")
+                generate_project(defaults, SKILL_ROOT / "assets/config/design-tokens.jsonc", output, "Demo")
 
 
 if __name__ == "__main__":

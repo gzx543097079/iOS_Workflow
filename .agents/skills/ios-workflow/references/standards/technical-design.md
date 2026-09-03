@@ -18,8 +18,8 @@
 
 ## 执行规则
 
-1. Feature 完整设计使用 `templates/design/feature-design.md`；Bug 使用 `templates/design/bug-fix-design.md`。
-2. 影响长期维护的关键选择使用 `templates/design/adr.md`；普通实现细节不创建 ADR。
+1. Feature 完整设计使用 `assets/templates/design/feature-design.md`；Bug 使用 `assets/templates/design/bug-fix-design.md`。
+2. 影响长期维护的关键选择使用 `assets/templates/design/adr.md`；普通实现细节不创建 ADR。
 3. 设计状态只使用 `pending`、`approved`、`not_required`。只有 `approved` 或 `not_required` 才能开始实现。
 4. 最终执行步骤从已确认设计生成；每步包含范围、前置条件、完成条件和验证方式。
 5. 实现偏离设计或范围扩大时，先记录变化、影响和新决策，再继续编码。

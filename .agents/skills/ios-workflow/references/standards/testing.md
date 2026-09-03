@@ -5,7 +5,7 @@
 ## 测试计划
 
 1. 从 Requirement 的验收标准和本次 diff 建立“验收项 → 测试层级 → 证据”映射，先覆盖变化、边界和高风险路径。
-2. 单模块低风险任务可把精简计划写入需求档案；跨模块、高风险或需要跨会话执行时，使用 `templates/testing/test-plan.md` 保存到 `iOSFlowRecords/tests/<项目>/<Requirement-ID>-plan.md`。
+2. 单模块低风险任务可把精简计划写入需求档案；跨模块、高风险或需要跨会话执行时，使用 `assets/templates/testing/test-plan.md` 保存到 `iOSFlowRecords/tests/<项目>/<Requirement-ID>-plan.md`。
 3. 测试层级按需选择：
    - 静态检查与编译：验证格式、配置、资源、警告和所有受影响 target。
    - 单元测试：业务规则、状态转换、格式化、错误和边界条件。
@@ -17,7 +17,7 @@
 
 ## 环境与矩阵
 
-- 编译或测试前按 `standards/dependencies.md` 确认依赖一致。记录 Xcode、scheme、configuration、destination 和测试范围。
+- 编译或测试前按 `references/standards/dependencies.md` 确认依赖一致。记录 Xcode、scheme、configuration、destination 和测试范围。
 - 默认使用一个能复现变化的最小设备与系统版本。涉及系统兼容、布局或多设备能力时，扩展到最新稳定版与可用的最低支持版本，以及实际受影响的 iPhone/iPad。
 - destination 必须明确到可用模拟器或已授权设备；记录实际解析出的系统版本，不用含糊的“最新版”充当证据。
 - 使用非生产账号、脱敏夹具和可清理状态；不把令牌、支付资料、个人数据或敏感完整日志写入报告。
@@ -40,6 +40,6 @@
 
 ## 结果与完成
 
-- 使用 `templates/testing/test-report.md` 或需求档案记录：范围、环境、命令类别、通过/失败/跳过数量、失败分类、证据位置、未覆盖项和风险。不保存冗长控制台日志。
+- 使用 `assets/templates/testing/test-report.md` 或需求档案记录：范围、环境、命令类别、通过/失败/跳过数量、失败分类、证据位置、未覆盖项和风险。不保存冗长控制台日志。
 - `✅` 只表示已取得与当前证据键匹配的成功结果；`❌` 表示失败或必需证据缺失；`➖` 表示需求未影响且说明原因。
 - 所有验收标准都有证据、必需测试稳定通过、阻塞和未覆盖风险已处理，才可进入提交门禁。

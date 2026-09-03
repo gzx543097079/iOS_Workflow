@@ -1,17 +1,17 @@
 # 需求生命周期与执行记录
 
-运行状态保存在可见目录 `<工作目录>/iOSFlowRecords/`，不写入 `iOS_Workflow/`。一个工作目录包含多个项目时，以项目相对路径分组；每个项目在 `projects/<项目>/history.jsonc` 保存需求执行顺序。
+运行状态保存在可见目录 `<工作目录>/iOSFlowRecords/`，不写入 Skill 目录。一个工作目录包含多个项目时，以项目相对路径分组；每个项目在 `projects/<项目>/history.jsonc` 保存需求执行顺序。
 
-高风险、跨模块或跨会话测试按 `standards/testing.md` 保存到 `tests/<项目>/`；需求档案只记录计划/报告路径和结论。恢复普通实现任务时不扫描测试目录，进入测试步骤后才读取当前 Requirement 对应文件。
+高风险、跨模块或跨会话测试按 `references/standards/testing.md` 保存到 `tests/<项目>/`；需求档案只记录计划/报告路径和结论。恢复普通实现任务时不扫描测试目录，进入测试步骤后才读取当前 Requirement 对应文件。
 
 ## 创建与状态
 
-1. 仅对用户明确要求留档，或跨会话、跨模块、多阶段、高风险、需要共享追踪的任务创建档案；执行本身不是建档条件。首次记录时按 `templates/tracking/index.jsonc` 创建索引，并按 `templates/tracking/requirement.md` 创建需求档案。
+1. 仅对用户明确要求留档，或跨会话、跨模块、多阶段、高风险、需要共享追踪的任务创建档案；执行本身不是建档条件。首次记录时按 `assets/templates/tracking/index.jsonc` 创建索引，并按 `assets/templates/tracking/requirement.md` 创建需求档案。
 2. ID 使用 `REQ-YYYYMMDD-NNN`，当天从 `001` 递增；从索引的 `last_requirement_id` 取得当日末号，不扫描历史需求正文，不得复用已删除或取消的 ID。
 3. 状态只使用 `draft`、`ready`、`in_progress`、`blocked`、`done`、`cancelled`。
 4. 分析完成且无阻塞信息时进入 `ready`；开始实施时进入 `in_progress`；完成定义、验收和必要验证通过后进入 `done`。
-5. 需求首次进入 `in_progress` 时，项目台账不存在则按 `templates/tracking/project-history.jsonc` 创建；从 `next_sequence` 取得顺序号并追加记录，再递增该值。需求只登记一次，顺序号不得重排、复用或删除。
-6. 编码前按 `standards/technical-design.md` 确定设计等级；设计状态不是 `approved` 或 `not_required` 时不得进入 `in_progress`。
+5. 需求首次进入 `in_progress` 时，项目台账不存在则按 `assets/templates/tracking/project-history.jsonc` 创建；从 `next_sequence` 取得顺序号并追加记录，再递增该值。需求只登记一次，顺序号不得重排、复用或删除。
+6. 编码前按 `references/standards/technical-design.md` 确定设计等级；设计状态不是 `approved` 或 `not_required` 时不得进入 `in_progress`。
 
 ## 执行与恢复
 

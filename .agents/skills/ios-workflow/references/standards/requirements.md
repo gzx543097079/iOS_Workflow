@@ -15,9 +15,9 @@
 
 ## 执行规则
 
-1. 区分新增功能、缺陷修复和纯维护任务；新增功能按 `templates/requirements/feature.md`，缺陷按 `templates/requirements/bug.md`。
+1. 区分新增功能、缺陷修复和纯维护任务；新增功能按 `assets/templates/requirements/feature.md`，缺陷按 `assets/templates/requirements/bug.md`。
 2. 低风险、单模块、可在单轮完成的小改动只在任务上下文中保留精简需求卡，不创建运行档案；执行本身不是建档条件。
 3. 验收标准必须可验证，避免“体验良好”“正常工作”等模糊表述。
 4. 发现范围扩大时先说明新增成本和影响，不静默扩展任务。
-5. 需求卡确认后再进入技术方案、实现和测试。仅当用户明确要求留档，或任务跨会话、跨模块、多阶段、高风险、需要共享追踪时，才按 `standards/requirement-lifecycle.md` 管理状态。
+5. 需求卡确认后再进入技术方案、实现和测试。仅当用户明确要求留档，或任务跨会话、跨模块、多阶段、高风险、需要共享追踪时，才按 `references/standards/requirement-lifecycle.md` 管理状态。
 6. 用户后续变更需求时同步更新范围与验收标准，不覆盖原始需求。

@@ -1,62 +1,60 @@
 # iOS AI Workflow
 
-一套面向 Codex 桌面端的文件化 iOS 团队工作流，不依赖专用 CLI。
+一套面向 Codex 的仓库级 iOS Skill，采用官方 `.agents/skills` 结构，不依赖专用 CLI。
 
 ## 推荐目录结构
 
 ```text
 <工作目录>/
 ├── AGENTS.md
+├── .agents/
+│   └── skills/
+│       └── ios-workflow/
+│           ├── SKILL.md
+│           ├── agents/
+│           ├── references/
+│           │   ├── standards/
+│           │   └── checklists/
+│           ├── assets/
+│           │   ├── config/
+│           │   └── templates/
+│           └── scripts/
 ├── MyProject/
 ├── iOSFlowRecords/
 │   ├── index.jsonc            活动需求索引
 │   ├── requirements/          单个需求档案
 │   ├── projects/              各项目的需求执行顺序
 │   └── tests/                 跨会话测试计划与报告
-└── iOS_Workflow/
-    ├── AGENTS.md
-    ├── README.md
-    ├── CHANGELOG.md
-    ├── LICENSE
-    ├── config/
-    ├── standards/
-    ├── templates/
-    │   └── testing/
-    ├── checklists/
-    ├── tools/
-    ├── tests/
-    └── docs/
+├── tests/                      Skill 与生成器测试
+├── docs/
+├── README.md
+├── CHANGELOG.md
+└── LICENSE
 ```
 
-- `<工作目录>/AGENTS.md`：Codex 自动读取的轻量入口。
+- `<工作目录>/AGENTS.md`：Codex 自动读取的精简、永久项目规则。
+- `<工作目录>/.agents/skills/ios-workflow/`：Codex 自动发现并按需加载的 iOS 工作流 Skill。
 - `<工作目录>/MyProject/`：团队成员自己的业务项目和 Git 仓库。
 - `<工作目录>/iOSFlowRecords/`：可见的需求台账目录，按项目保存索引、执行顺序、状态和提交记录，由工作流按需创建。
-- `<工作目录>/iOS_Workflow/`：独立维护、按 tag 发布的工作流仓库。
 
 `<工作目录>` 只是路径占位符，可以是团队成员已有的任意目录，不要求命名为 `Workspace`。
 
 ## 接入方法
 
-1. 选择一个需要在 Codex 中打开的现有工作目录，名称不限。
-2. 将工作流放在 `<工作目录>/iOS_Workflow/`，将业务项目放在同级目录，例如 `<工作目录>/MyProject/`。
-3. 在该工作目录根部创建 `AGENTS.md`：
+1. 克隆本仓库，或把 `.agents/skills/ios-workflow/` 复制到目标仓库的同一路径。
+2. 在 Codex 中打开包含 `.agents/` 的仓库根目录；Codex 会读取 Skill 的 `name` 和 `description` 并按任务自动选择。
+3. 目标仓库的 `AGENTS.md` 只保留始终生效的项目规则，也可以明确提示使用 Skill：
 
    ```md
-   # 项目工作流入口
+   # 项目约定
 
-   开始任何编码、提交、推送或 review 工作前，如果当前上下文尚未加载以下文件，则读取并遵循一次：
-
-   - `iOS_Workflow/AGENTS.md`
-
-   工作流中引用的相对路径以 `iOS_Workflow/` 为基准。
    项目自身明确约定和用户当前要求具有更高优先级。
+   iOS 需求、设计、开发、测试、提交或 review 使用 `$ios-workflow`。
    ```
 
-4. 在 Codex 桌面端打开该工作目录，直接提出项目需求。
+4. 直接提出项目需求，或使用 `$ios-workflow` 显式调用。
 
-入口路径不随工作流版本变化，一个入口可以服务该工作目录下的多个业务项目。团队成员更新 `iOS_Workflow/` 不会修改业务项目的 Git 历史，建议由团队统一指定并切换版本 tag。
-
-注意：文件名必须是 `AGENTS.md`；若工作流目录改名，需要同步修改轻量入口中的路径。原始完整入口始终保留在 `iOS_Workflow/AGENTS.md`。
+Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`。该文件包含官方要求的 `name` 和 `description` 元数据；详细规则、模板和脚本只在任务需要时加载。
 
 ## 按任务加载，减少 Token
 
@@ -79,38 +77,28 @@
 
 ## 默认配置
 
-新项目默认配置位于 [`config/defaults.jsonc`](config/defaults.jsonc)：Swift、UIKit、MVVM、语言跟随系统、英语本地化、中文注释等级 3、CocoaPods。用户当前明确指定的选项优先。
+新项目默认配置位于 [`defaults.jsonc`](.agents/skills/ios-workflow/assets/config/defaults.jsonc)：Swift、UIKit、MVVM、语言跟随系统、英语本地化、中文注释等级 3、CocoaPods。用户当前明确指定的选项优先。
 
-新生成手写代码的注释规则见 [`code-generation.md`](standards/code-generation.md)。系统方法、继承方法、生命周期和代理/数据源回调不生成解释性注释，也不生成文件元数据或模板化职责标签。
+新生成手写代码的注释规则见 [`code-generation.md`](.agents/skills/ios-workflow/references/standards/code-generation.md)。系统方法、继承方法、生命周期和代理/数据源回调不生成解释性注释，也不生成文件元数据或模板化职责标签。
 
-三方库规则见 [`dependencies.md`](standards/dependencies.md)。直接依赖必须使用唯一精确版本；新项目、依赖版本变化和编译前按当前依赖管理方式安装或解析依赖。
+三方库规则见 [`dependencies.md`](.agents/skills/ios-workflow/references/standards/dependencies.md)。直接依赖必须使用唯一精确版本；新项目、依赖版本变化和编译前按当前依赖管理方式安装或解析依赖。
 
 ## 规则与检查文件
 
-- [`requirements.md`](standards/requirements.md)：编码前的目标、范围、验收标准、影响和完成定义。
-- [`requirement-lifecycle.md`](standards/requirement-lifecycle.md)：需求状态、步骤、恢复、Git 关联和完成规则。
-- [`technical-design.md`](standards/technical-design.md)：编码前的设计分级、方案内容、ADR 和变更规则。
-- [`project-generation.md`](standards/project-generation.md)：配置校验、项目生成顺序、支持组合和验证要求。
-- [`testing.md`](standards/testing.md)：测试分层、最小矩阵、证据复用、失败分类和 flaky test 处理。
-- [`feature.md`](templates/requirements/feature.md) 与 [`bug.md`](templates/requirements/bug.md)：按任务类型加载的需求卡模板。
-- [`design/feature-design.md`](templates/design/feature-design.md)、[`design/bug-fix-design.md`](templates/design/bug-fix-design.md) 与 [`design/adr.md`](templates/design/adr.md)：完整技术设计和关键决策模板。
-- [`tracking/index.jsonc`](templates/tracking/index.jsonc)、[`tracking/requirement.md`](templates/tracking/requirement.md) 与 [`tracking/project-history.jsonc`](templates/tracking/project-history.jsonc)：索引、需求档案和项目执行台账模板。
-- [`testing/test-plan.md`](templates/testing/test-plan.md) 与 [`testing/test-report.md`](templates/testing/test-report.md)：跨会话或高风险任务的测试计划和结果证据模板。
-- [`code-core.md`](standards/code-core.md)：通用命名、架构、日志、隐私和测试基线。
-- [`code-swift.md`](standards/code-swift.md)：仅 Swift 项目加载的语言规则。
-- [`code-objc.md`](standards/code-objc.md)：仅 Objective-C 或混编项目按需加载的语言规则。
-- [`code-generation.md`](standards/code-generation.md)：生成代码和中文注释等级。
-- [`dependencies.md`](standards/dependencies.md)：依赖管理、精确版本、安装、更新和编译。
-- [`ui-style.md`](standards/ui-style.md) 与 [`design-tokens.jsonc`](config/design-tokens.jsonc)：UI、可访问性、本地化和设计参数。
-- [`pre-commit-review.md`](checklists/pre-commit-review.md)：提交、推送和 review 的门禁及模块路由。
-- [`core.md`](checklists/core.md)：始终执行的通用检查。
-- [`subscription.md`](checklists/subscription.md)：仅订阅相关 diff 执行。
-- [`analytics.md`](checklists/analytics.md)：仅打点相关 diff 执行。
-- [`requirement-traceability.md`](checklists/requirement-traceability.md)：活动需求与 diff、步骤、验收和 commit 的关联检查。
-- [`technical-design.md`](checklists/technical-design.md)：设计等级、完整性、风险和实现一致性检查。
-- [`project-generation.md`](checklists/project-generation.md)：新项目与生成器变更的专项检查。
-- [`testing.md`](checklists/testing.md)：代码、测试、工程、依赖和验收行为变化时的质量门禁。
-- [`project_generation.py`](tools/project_generation.py)：Codex 内部调用的配置校验、项目骨架、DesignTokens、XcodeGen 和依赖准备模块，不提供面向团队成员的 CLI。
+- [`requirements.md`](.agents/skills/ios-workflow/references/standards/requirements.md)：编码前的目标、范围、验收标准、影响和完成定义。
+- [`requirement-lifecycle.md`](.agents/skills/ios-workflow/references/standards/requirement-lifecycle.md)：需求状态、步骤、恢复、Git 关联和完成规则。
+- [`technical-design.md`](.agents/skills/ios-workflow/references/standards/technical-design.md)：编码前的设计分级、方案内容、ADR 和变更规则。
+- [`project-generation.md`](.agents/skills/ios-workflow/references/standards/project-generation.md)：配置校验、项目生成顺序、支持组合和验证要求。
+- [`testing.md`](.agents/skills/ios-workflow/references/standards/testing.md)：测试分层、最小矩阵、证据复用、失败分类和 flaky test 处理。
+- [`templates/`](.agents/skills/ios-workflow/assets/templates)：需求、设计、追踪与测试产物模板。
+- [`code-core.md`](.agents/skills/ios-workflow/references/standards/code-core.md)：通用命名、架构、日志、隐私和测试基线。
+- [`code-swift.md`](.agents/skills/ios-workflow/references/standards/code-swift.md)：仅 Swift 项目加载的语言规则。
+- [`code-objc.md`](.agents/skills/ios-workflow/references/standards/code-objc.md)：仅 Objective-C 或混编项目按需加载的语言规则。
+- [`code-generation.md`](.agents/skills/ios-workflow/references/standards/code-generation.md)：生成代码和中文注释等级。
+- [`dependencies.md`](.agents/skills/ios-workflow/references/standards/dependencies.md)：依赖管理、精确版本、安装、更新和编译。
+- [`ui-style.md`](.agents/skills/ios-workflow/references/standards/ui-style.md) 与 [`design-tokens.jsonc`](.agents/skills/ios-workflow/assets/config/design-tokens.jsonc)：UI、可访问性、本地化和设计参数。
+- [`checklists/`](.agents/skills/ios-workflow/references/checklists)：提交、推送、review 和条件专项门禁。
+- [`project_generation.py`](.agents/skills/ios-workflow/scripts/project_generation.py)：Codex 内部调用的配置校验、项目骨架、DesignTokens、XcodeGen 和依赖准备模块，不提供面向团队成员的 CLI。
 - [`test_project_generation.py`](tests/test_project_generation.py)：覆盖支持组合、失败场景和工程生成的自动化测试。
 - [`CHANGELOG.md`](CHANGELOG.md)：工作流规则的集中变更历史。
 
@@ -118,7 +106,7 @@
 
 ## 示例项目
 
-仓库根目录的 [`WorkflowDemo`](../WorkflowDemo/) 是使用本工作流生成并继续开发的真实 UIKit/MVVM 项目，包含计数、设置、12 种语言切换、关于我们、单元测试和 UI 测试，可用于查看工作流交付结果。
+仓库根目录的 [`WorkflowDemo`](WorkflowDemo/) 是使用本工作流生成并继续开发的真实 UIKit/MVVM 项目，包含计数、设置、12 种语言切换、关于我们、单元测试和 UI 测试，可用于查看工作流交付结果。
 
 ## 提交与推送门禁
 
@@ -160,4 +148,4 @@
 
 设计状态只有 `pending`、`approved`、`not_required`。只有设计通过或明确不需要设计时才能进入实现。影响长期维护的关键选择使用 ADR，普通实现细节不建 ADR；实现偏离已确认设计时，先更新方案和执行步骤。
 
-`iOSFlowRecords/` 是工作目录中可直接查看的运行状态，不属于可更新的 `iOS_Workflow/` 规则目录。是否纳入版本控制由团队自行决定；本示例仓库选择跟踪该目录，以便共享需求、项目顺序和测试证据，接入其他工作目录时可按团队策略忽略。
+`iOSFlowRecords/` 是工作目录中可直接查看的运行状态，不属于可更新的 `.agents/skills/ios-workflow/` 规则目录。是否纳入版本控制由团队自行决定；本示例仓库选择跟踪该目录，以便共享需求、项目顺序和测试证据，接入其他工作目录时可按团队策略忽略。

@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.0.0 - 2026-09-03
+
+- 将完整工作流迁移为仓库级 `.agents/skills/ios-workflow` Skill，并增加官方要求的 `SKILL.md` 元数据。
+- 根 `AGENTS.md` 只保留始终生效的项目约束和 Skill 触发入口。
+- 规范与检查表迁入 `references/`，配置与模板迁入 `assets/`，项目生成器迁入 `scripts/`。
+- README、架构文档与自动化测试更新为新的 Skill 路径。
+
 ## 3.7.0 - 2026-09-03
 
 - 低风险明确任务使用上下文需求卡和 inline brief，完整需求与技术设计规范改为条件加载。
