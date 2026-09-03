@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.3.0 - 2026-09-03
+
+- 增加内部 iOS 项目生成与配置校验模块，支持 Swift/UIKit、Swift/SwiftUI 和 Objective-C/UIKit。
+- 从配置生成架构、导航、本地化策略、中文注释、DesignTokens、测试、隐私清单和 XcodeGen 工程设置。
+- 增加项目生成专项规范、提交门禁和自动化测试，并验证三种支持组合可完成模拟器编译。
+
 ## 3.2.0 - 2026-09-03
 
 - 增加 brief/full 技术设计分级、Feature/Bug Fix/ADR 模板和编码前设计门禁。

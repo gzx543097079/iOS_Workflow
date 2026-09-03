@@ -24,6 +24,7 @@
     │   ├── requirements.md           需求分析与任务定义
     │   ├── requirement-lifecycle.md  状态、恢复与 Git 关联
     │   ├── technical-design.md       技术设计分级与架构方案
+    │   ├── project-generation.md     项目生成顺序与支持范围
     │   ├── code-core.md              核心代码规则
     │   ├── code-swift.md             Swift 语言规则
     │   ├── code-objc.md              Objective-C 语言规则
@@ -40,8 +41,14 @@
     │   ├── subscription.md           订阅专项检查
     │   ├── analytics.md              打点专项检查
     │   ├── technical-design.md       技术设计检查
+    │   ├── project-generation.md     项目生成专项检查
     │   └── requirement-traceability.md 需求追溯检查
-    └── docs/                         非运行时说明
+    ├── tools/
+    │   └── project_generation.py     内部项目生成与依赖准备模块
+    ├── tests/
+    │   └── test_project_generation.py 生成器自动化测试
+    └── docs/
+        └── adr/                      工作流长期技术决策
 ```
 
 ## 加载流程
@@ -52,8 +59,8 @@
 4. 需要保存或执行时在可见的 `iOSFlowRecords/` 创建档案和步骤；首次执行时写入项目台账并分配固定顺序号。继续任务只加载索引及活动需求。
 5. 工作流入口判断任务类型，只加载对应规则；组合任务取规则并集并按文件路径去重，已进入上下文的文件不再读取。
 6. 用户明确选项覆盖默认配置，业务项目自身约定优先于通用工作流。
-7. 普通代码、生成代码、UI、依赖和新项目分别走独立路由；Swift 与 Objective-C 规范也按实际语言选择。
-8. 提交、推送或 review 时加载门禁和通用检查；按 diff 加载技术设计、订阅、打点和需求追溯模块。
+7. 普通代码、生成代码、UI、依赖和新项目分别走独立路由；新项目先校验配置，再由内部生成器创建三种受支持的工程组合，Swift 与 Objective-C 规范按实际语言选择。
+8. 提交、推送或 review 时加载门禁和通用检查；按 diff 加载技术设计、项目生成、订阅、打点和需求追溯模块。
 9. 存在 `❌` 时阻止提交或推送；通过时把结果写入提交备注或推送结果，并更新需求记录。
 10. diff、配置和依赖未变化时复用本任务的安装、构建和测试证据；提交后立即推送只进行远端增量检查。
 

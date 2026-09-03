@@ -21,6 +21,8 @@
     ├── standards/
     ├── templates/
     ├── checklists/
+    ├── tools/
+    ├── tests/
     └── docs/
 ```
 
@@ -85,6 +87,7 @@
 - [`requirements.md`](standards/requirements.md)：编码前的目标、范围、验收标准、影响和完成定义。
 - [`requirement-lifecycle.md`](standards/requirement-lifecycle.md)：需求状态、步骤、恢复、Git 关联和完成规则。
 - [`technical-design.md`](standards/technical-design.md)：编码前的设计分级、方案内容、ADR 和变更规则。
+- [`project-generation.md`](standards/project-generation.md)：配置校验、项目生成顺序、支持组合和验证要求。
 - [`feature.md`](templates/requirements/feature.md) 与 [`bug.md`](templates/requirements/bug.md)：按任务类型加载的需求卡模板。
 - [`design/feature-design.md`](templates/design/feature-design.md)、[`design/bug-fix-design.md`](templates/design/bug-fix-design.md) 与 [`design/adr.md`](templates/design/adr.md)：完整技术设计和关键决策模板。
 - [`tracking/index.jsonc`](templates/tracking/index.jsonc)、[`tracking/requirement.md`](templates/tracking/requirement.md) 与 [`tracking/project-history.jsonc`](templates/tracking/project-history.jsonc)：索引、需求档案和项目执行台账模板。
@@ -100,6 +103,9 @@
 - [`analytics.md`](checklists/analytics.md)：仅打点相关 diff 执行。
 - [`requirement-traceability.md`](checklists/requirement-traceability.md)：活动需求与 diff、步骤、验收和 commit 的关联检查。
 - [`technical-design.md`](checklists/technical-design.md)：设计等级、完整性、风险和实现一致性检查。
+- [`project-generation.md`](checklists/project-generation.md)：新项目与生成器变更的专项检查。
+- [`project_generation.py`](tools/project_generation.py)：Codex 内部调用的配置校验、项目骨架、DesignTokens、XcodeGen 和依赖准备模块，不提供面向团队成员的 CLI。
+- [`test_project_generation.py`](tests/test_project_generation.py)：覆盖支持组合、失败场景和工程生成的自动化测试。
 - [`CHANGELOG.md`](CHANGELOG.md)：工作流规则的集中变更历史。
 
 修改规则时同步更新 `CHANGELOG.md`，通过 review 后再发布新版本。
@@ -121,6 +127,8 @@
 ```
 
 第一条适合已有项目功能开发；第二条用于明确覆盖默认选项；第三条会自动执行提交和推送门禁。
+
+新建项目时 Codex 会先校验默认配置，再调用内部生成器创建源码、DesignTokens、本地化、测试、隐私清单和 XcodeGen 配置；随后生成 Xcode 工程并按配置准备依赖。团队成员仍然只需使用自然语言，不需要直接运行 Python 或工作流命令。若配置非法、目标目录非空、XcodeGen 或依赖工具缺失，流程会停止并说明原因，不会继续编译。
 
 收到新增功能或缺陷任务后，Codex 会先在上下文中整理最小需求卡。只有关键信息会改变方案或验收结果时才询问，不会为了填写模板重复追问；除非用户要求，否则不会在业务仓库创建需求文档。
 
