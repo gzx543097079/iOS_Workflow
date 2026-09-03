@@ -8,6 +8,10 @@
 <工作目录>/
 ├── AGENTS.md
 ├── MyProject/
+├── iOSFlowRecords/
+│   ├── index.jsonc            活动需求索引
+│   ├── requirements/          单个需求档案
+│   └── projects/              各项目的需求执行顺序
 └── iOS_Workflow/
     ├── AGENTS.md
     ├── README.md
@@ -15,12 +19,14 @@
     ├── LICENSE
     ├── config/
     ├── standards/
+    ├── templates/
     ├── checklists/
     └── docs/
 ```
 
 - `<工作目录>/AGENTS.md`：Codex 自动读取的轻量入口。
 - `<工作目录>/MyProject/`：团队成员自己的业务项目和 Git 仓库。
+- `<工作目录>/iOSFlowRecords/`：可见的需求台账目录，按项目保存索引、执行顺序、状态和提交记录，由工作流按需创建。
 - `<工作目录>/iOS_Workflow/`：独立维护、按 tag 发布的工作流仓库。
 
 `<工作目录>` 只是路径占位符，可以是团队成员已有的任意目录，不要求命名为 `Workspace`。
@@ -52,6 +58,8 @@
 
 完整入口只负责路由，不再要求每次任务读取所有配置和规范：
 
+- 新功能和缺陷修复先加载精简需求规范；只有需要正式需求卡或补齐信息时才加载对应模板。
+- 继续任务时先读取 `iOSFlowRecords/index.jsonc`，再只读取当前需求档案，不扫描全部历史。
 - 普通业务修改只加载核心规范和当前使用的 Swift 或 Objective-C 规范。
 - 新生成代码额外加载生成与注释规范。
 - UI 任务额外加载 UI 规范和 DesignTokens。
@@ -73,6 +81,10 @@
 
 ## 规则与检查文件
 
+- [`requirements.md`](standards/requirements.md)：编码前的目标、范围、验收标准、影响和完成定义。
+- [`requirement-lifecycle.md`](standards/requirement-lifecycle.md)：需求状态、步骤、恢复、Git 关联和完成规则。
+- [`feature.md`](templates/requirements/feature.md) 与 [`bug.md`](templates/requirements/bug.md)：按任务类型加载的需求卡模板。
+- [`tracking/index.jsonc`](templates/tracking/index.jsonc)、[`tracking/requirement.md`](templates/tracking/requirement.md) 与 [`tracking/project-history.jsonc`](templates/tracking/project-history.jsonc)：索引、需求档案和项目执行台账模板。
 - [`code-core.md`](standards/code-core.md)：通用命名、架构、日志、隐私和测试基线。
 - [`code-swift.md`](standards/code-swift.md)：仅 Swift 项目加载的语言规则。
 - [`code-objc.md`](standards/code-objc.md)：仅 Objective-C 或混编项目按需加载的语言规则。
@@ -83,6 +95,7 @@
 - [`core.md`](checklists/core.md)：始终执行的通用检查。
 - [`subscription.md`](checklists/subscription.md)：仅订阅相关 diff 执行。
 - [`analytics.md`](checklists/analytics.md)：仅打点相关 diff 执行。
+- [`requirement-traceability.md`](checklists/requirement-traceability.md)：活动需求与 diff、步骤、验收和 commit 的关联检查。
 - [`CHANGELOG.md`](CHANGELOG.md)：工作流规则的集中变更历史。
 
 修改规则时同步更新 `CHANGELOG.md`，通过 review 后再发布新版本。
@@ -104,3 +117,15 @@
 ```
 
 第一条适合已有项目功能开发；第二条用于明确覆盖默认选项；第三条会自动执行提交和推送门禁。
+
+收到新增功能或缺陷任务后，Codex 会先在上下文中整理最小需求卡。只有关键信息会改变方案或验收结果时才询问，不会为了填写模板重复追问；除非用户要求，否则不会在业务仓库创建需求文档。
+
+## 需求执行与恢复
+
+需求需要保存或开始实施时，Codex 在工作目录的 `iOSFlowRecords/` 中创建索引和单文件需求档案。需求首次开始执行时取得不可变的项目顺序号，并写入 `iOSFlowRecords/projects/<项目>/history.jsonc`；完成、阻塞或取消都保留原顺序。步骤使用 `STEP-NNN`，只在状态变化、验证、阻塞、提交和推送时记录摘要，不保存完整命令、日志或 diff。
+
+用户说“继续上次需求”时，Codex 从索引找到活动需求，核对项目、分支、HEAD 和工作区，再从第一个未完成步骤继续。提交正文使用 `Requirement` 和 `Steps` 关联需求；提交成功后记录 hash、完成步骤、验证结果和下一步。只有验收、测试、文档和提交记录全部满足时才标记完成。
+
+用户询问“这个项目执行过哪些需求”时，Codex 只读取对应项目台账，按 `sequence` 输出需求顺序、状态和最终提交，不加载全部需求正文。
+
+`iOSFlowRecords/` 是工作目录中可直接查看的运行状态，不属于可更新的 `iOS_Workflow/` 规则目录。是否纳入业务项目版本控制由团队自行决定；工作流源码仓库默认忽略它。
