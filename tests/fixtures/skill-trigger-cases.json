@@ -1,0 +1,134 @@
+{
+  "skill": "ios-workflow",
+  "purpose": "使用独立、干净的 Codex 会话验证 Skill 的显式调用与隐式触发边界。",
+  "cases": [
+    {
+      "id": "zh-ios-uikit-feature",
+      "language": "zh",
+      "category": "ios_feature",
+      "prompt": "为现有 iOS 应用增加一个 UIKit 设置页面，并补充单元测试。",
+      "expected_activation": true,
+      "reason": "明确要求 iOS、UIKit 开发和测试。"
+    },
+    {
+      "id": "zh-ios-swiftui-bug",
+      "language": "zh",
+      "category": "ios_debugging",
+      "prompt": "修复这个 SwiftUI 页面旋转设备后状态丢失的问题。",
+      "expected_activation": true,
+      "reason": "属于 iOS SwiftUI 故障修复。"
+    },
+    {
+      "id": "zh-xcode-build",
+      "language": "zh",
+      "category": "ios_debugging",
+      "prompt": "检查 Xcode 工程为什么无法在 iPhone 模拟器编译。",
+      "expected_activation": true,
+      "reason": "明确涉及 Xcode 和 iPhone 构建。"
+    },
+    {
+      "id": "en-objective-c-refactor",
+      "language": "en",
+      "category": "ios_feature",
+      "prompt": "Refactor this Objective-C iOS view controller without changing its public behavior.",
+      "expected_activation": true,
+      "reason": "明确涉及 Objective-C iOS 重构。"
+    },
+    {
+      "id": "mixed-ios-dependency",
+      "language": "mixed",
+      "category": "ios_delivery",
+      "prompt": "帮我 update this iOS app 的 Swift Package dependency，然后 build 验证。",
+      "expected_activation": true,
+      "reason": "中英混合表达，但 iOS 依赖和构建范围明确。"
+    },
+    {
+      "id": "zh-ios-ui-test",
+      "language": "zh",
+      "category": "ios_delivery",
+      "prompt": "为 iPhone 登录流程补充 XCUITest 并运行相关测试。",
+      "expected_activation": true,
+      "reason": "属于 iOS UI 测试任务。"
+    },
+    {
+      "id": "explicit-ios-workflow",
+      "language": "zh",
+      "category": "explicit_invocation",
+      "prompt": "使用 $ios-workflow 审查当前改动并准备提交。",
+      "expected_activation": true,
+      "reason": "通过 Skill 名称显式调用。"
+    },
+    {
+      "id": "boundary-flutter-ios-signing",
+      "language": "zh",
+      "category": "ios_boundary",
+      "prompt": "Flutter 项目的 Android 已完成，现在只排查 iOS target 的签名和 Xcode Archive 失败。",
+      "expected_activation": true,
+      "reason": "跨平台项目中明确限定了 iOS 交付问题。"
+    },
+    {
+      "id": "zh-android-compose",
+      "language": "zh",
+      "category": "unrelated_platform",
+      "prompt": "为 Android 应用增加 Jetpack Compose 设置页面。",
+      "expected_activation": false,
+      "reason": "任务只涉及 Android。"
+    },
+    {
+      "id": "en-react-dashboard",
+      "language": "en",
+      "category": "unrelated_platform",
+      "prompt": "Build a responsive React analytics dashboard.",
+      "expected_activation": false,
+      "reason": "任务只涉及 Web 前端。"
+    },
+    {
+      "id": "zh-macos-appkit",
+      "language": "zh",
+      "category": "unrelated_platform",
+      "prompt": "使用 AppKit 修复 macOS 窗口恢复问题。",
+      "expected_activation": false,
+      "reason": "任务明确属于 macOS，而不是 iOS。"
+    },
+    {
+      "id": "en-python-backend",
+      "language": "en",
+      "category": "unrelated_platform",
+      "prompt": "Add pagination to this Python FastAPI endpoint.",
+      "expected_activation": false,
+      "reason": "任务属于后端服务。"
+    },
+    {
+      "id": "zh-generic-git",
+      "language": "zh",
+      "category": "ambiguous_technology",
+      "prompt": "提交并推送这个普通文档仓库的修改。",
+      "expected_activation": false,
+      "reason": "没有 iOS 上下文，通用 Git 操作不应触发。"
+    },
+    {
+      "id": "zh-generic-documentation",
+      "language": "zh",
+      "category": "ambiguous_technology",
+      "prompt": "整理 README 的目录并修正错别字。",
+      "expected_activation": false,
+      "reason": "没有 iOS 或 Xcode 范围。"
+    },
+    {
+      "id": "en-swift-vapor",
+      "language": "en",
+      "category": "ios_boundary",
+      "prompt": "Implement a server-side Swift Vapor authentication middleware.",
+      "expected_activation": false,
+      "reason": "Swift 不自动等同于 iOS，任务明确属于服务端。"
+    },
+    {
+      "id": "mixed-flutter-android",
+      "language": "mixed",
+      "category": "ios_boundary",
+      "prompt": "这个 Flutter app 只需要 fix Android Gradle build，不处理 iOS。",
+      "expected_activation": false,
+      "reason": "明确排除了 iOS 工作。"
+    }
+  ]
+}

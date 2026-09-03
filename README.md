@@ -100,6 +100,7 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`。该文件包含�
 - [`checklists/`](.agents/skills/ios-workflow/references/checklists)：提交、推送、review 和条件专项门禁。
 - [`project_generation.py`](.agents/skills/ios-workflow/scripts/project_generation.py)：Codex 内部调用的配置校验、项目骨架、DesignTokens、XcodeGen 和依赖准备模块，不提供面向团队成员的 CLI。
 - [`test_project_generation.py`](tests/test_project_generation.py)：覆盖支持组合、失败场景和工程生成的自动化测试。
+- [`skill-trigger-cases.json`](tests/fixtures/skill-trigger-cases.json)：覆盖应触发、不应触发、显式调用、跨平台边界及中英文提示的 Skill 前向评测语料。
 - [`CHANGELOG.md`](CHANGELOG.md)：工作流规则的集中变更历史。
 
 修改规则时同步更新 `CHANGELOG.md`，通过 review 后再发布新版本。
