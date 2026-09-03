@@ -1,2 +1,1 @@
-# 每个工作目录的本地需求执行状态，不进入工作流源码仓库。
-iOSFlowRecords/
+.DS_Store

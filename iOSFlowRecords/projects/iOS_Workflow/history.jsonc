@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "project": "iOS_Workflow",
+  "next_sequence": 6,
+  "execution_order": [
+    {
+      "sequence": 1,
+      "id": "REQ-20260903-001",
+      "title": "增加需求生命周期与执行记录",
+      "status": "done",
+      "started_at": "2026-09-03 09:47 +0800",
+      "completed_at": "2026-09-03 10:01 +0800",
+      "latest_commit": "097301b7f44f0b1ba8df473542c4a97a6204235f"
+    },
+    {
+      "sequence": 2,
+      "id": "REQ-20260903-002",
+      "title": "增加技术方案与架构设计模块",
+      "status": "done",
+      "started_at": "2026-09-03 10:04 +0800",
+      "completed_at": "2026-09-03 10:10 +0800",
+      "latest_commit": "6e02cd0b7b52b9ad73b9d8ac3713a6816a715e2b"
+    },
+    {
+      "sequence": 3,
+      "id": "REQ-20260903-003",
+      "title": "增加项目生成与配置校验模块",
+      "status": "done",
+      "started_at": "2026-09-03 10:12 +0800",
+      "completed_at": "2026-09-03 10:53 +0800",
+      "latest_commit": "da3e060de1362f821bf594e3619ea0eb1130564b"
+    },
+    {
+      "sequence": 4,
+      "id": "REQ-20260903-004",
+      "title": "增加测试与质量保障模块",
+      "status": "done",
+      "started_at": "2026-09-03 10:54 +0800",
+      "completed_at": "2026-09-03 11:00 +0800",
+      "latest_commit": "a09cdf4d7cbfb7f316b26bea520feacd648fe3e6"
+    }
+  ]
+}

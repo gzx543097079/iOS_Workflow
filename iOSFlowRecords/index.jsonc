@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "active_requirement": "",
+  "requirements": [
+    {
+      "id": "REQ-20260903-001",
+      "project": "iOS_Workflow",
+      "file": "requirements/iOS_Workflow/REQ-20260903-001.md",
+      "title": "增加需求生命周期与执行记录",
+      "type": "feature",
+      "sequence": 1,
+      "status": "done",
+      "current_step": "",
+      "branch": "main",
+      "base_commit": "2bcbba8fe9058693ca2eaa27b63967408d09da17",
+      "latest_commit": "097301b7f44f0b1ba8df473542c4a97a6204235f",
+      "updated_at": "2026-09-03 10:01 +0800"
+    },
+    {
+      "id": "REQ-20260903-002",
+      "project": "iOS_Workflow",
+      "file": "requirements/iOS_Workflow/REQ-20260903-002.md",
+      "title": "增加技术方案与架构设计模块",
+      "type": "feature",
+      "sequence": 2,
+      "status": "done",
+      "current_step": "",
+      "branch": "main",
+      "base_commit": "097301b7f44f0b1ba8df473542c4a97a6204235f",
+      "latest_commit": "6e02cd0b7b52b9ad73b9d8ac3713a6816a715e2b",
+      "updated_at": "2026-09-03 10:10 +0800"
+    },
+    {
+      "id": "REQ-20260903-003",
+      "project": "iOS_Workflow",
+      "file": "requirements/iOS_Workflow/REQ-20260903-003.md",
+      "title": "增加项目生成与配置校验模块",
+      "type": "feature",
+      "sequence": 3,
+      "status": "done",
+      "current_step": "",
+      "branch": "main",
+      "base_commit": "6e02cd0b7b52b9ad73b9d8ac3713a6816a715e2b",
+      "latest_commit": "da3e060de1362f821bf594e3619ea0eb1130564b",
+      "updated_at": "2026-09-03 10:53 +0800"
+    },
+    {
+      "id": "REQ-20260903-004",
+      "project": "iOS_Workflow",
+      "file": "requirements/iOS_Workflow/REQ-20260903-004.md",
+      "title": "增加测试与质量保障模块",
+      "type": "feature",
+      "sequence": 4,
+      "status": "done",
+      "current_step": "",
+      "branch": "main",
+      "base_commit": "da3e060de1362f821bf594e3619ea0eb1130564b",
+      "latest_commit": "a09cdf4d7cbfb7f316b26bea520feacd648fe3e6",
+      "updated_at": "2026-09-03 11:00 +0800"
+    },
+    {
+      "id": "REQ-20260903-006",
+      "project": "WorkflowDemo",
+      "file": "requirements/WorkflowDemo/REQ-20260903-006.md",
+      "title": "创建真实 Demo 验证 iOS 工作流",
+      "type": "feature",
+      "sequence": 1,
+      "status": "done",
+      "current_step": "",
+      "branch": "main",
+      "base_commit": "",
+      "latest_commit": "53c4feb20e174ffce8549320f62f0068f5b32e6e",
+      "updated_at": "2026-09-03 14:19 +0800"
+    }
+  ]
+}

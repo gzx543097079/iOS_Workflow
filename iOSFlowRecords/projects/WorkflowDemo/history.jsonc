@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "project": "WorkflowDemo",
+  "next_sequence": 2,
+  "execution_order": [
+    {
+      "sequence": 1,
+      "requirement": "REQ-20260903-006",
+      "title": "创建真实 Demo 验证 iOS 工作流",
+      "status": "done",
+      "branch": "main",
+      "started_at": "2026-09-03 11:29 +0800",
+      "updated_at": "2026-09-03 14:19 +0800",
+      "final_commit": "53c4feb20e174ffce8549320f62f0068f5b32e6e"
+    }
+  ]
+}
