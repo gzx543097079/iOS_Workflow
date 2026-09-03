@@ -1,0 +1,15 @@
+"home.title" = "工作流演示";
+"counter.value" = "计数：%d";
+"counter.increment" = "增加";
+"counter.reset" = "重置";
+"home.settings" = "设置";
+"settings.title" = "设置";
+"settings.general" = "通用";
+"settings.language" = "语言";
+"settings.information" = "信息";
+"settings.about" = "关于我们";
+"language.title" = "语言";
+"language.system" = "跟随系统";
+"about.title" = "关于我们";
+"about.description" = "一个用于验证 iOS 工作流的本地计数演示。";
+"about.version" = "版本 %@";

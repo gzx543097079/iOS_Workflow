@@ -1,0 +1,15 @@
+"home.title" = "Workflow-Demo";
+"counter.value" = "Zähler: %d";
+"counter.increment" = "Erhöhen";
+"counter.reset" = "Zurücksetzen";
+"home.settings" = "Einstellungen";
+"settings.title" = "Einstellungen";
+"settings.general" = "Allgemein";
+"settings.language" = "Sprache";
+"settings.information" = "Informationen";
+"settings.about" = "Über uns";
+"language.title" = "Sprache";
+"language.system" = "Systemstandard";
+"about.title" = "Über uns";
+"about.description" = "Eine lokale Zähler-Demo zur Validierung des iOS-Workflows.";
+"about.version" = "Version %@";

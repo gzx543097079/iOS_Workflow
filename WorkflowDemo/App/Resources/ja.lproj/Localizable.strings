@@ -1,0 +1,15 @@
+"home.title" = "ワークフローデモ";
+"counter.value" = "カウント: %d";
+"counter.increment" = "増やす";
+"counter.reset" = "リセット";
+"home.settings" = "設定";
+"settings.title" = "設定";
+"settings.general" = "一般";
+"settings.language" = "言語";
+"settings.information" = "情報";
+"settings.about" = "このアプリについて";
+"language.title" = "言語";
+"language.system" = "システム設定";
+"about.title" = "このアプリについて";
+"about.description" = "iOS ワークフローを検証するためのローカルカウンターデモです。";
+"about.version" = "バージョン %@";

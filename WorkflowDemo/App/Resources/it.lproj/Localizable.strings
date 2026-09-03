@@ -1,0 +1,15 @@
+"home.title" = "Demo del flusso di lavoro";
+"counter.value" = "Conteggio: %d";
+"counter.increment" = "Incrementa";
+"counter.reset" = "Reimposta";
+"home.settings" = "Impostazioni";
+"settings.title" = "Impostazioni";
+"settings.general" = "Generali";
+"settings.language" = "Lingua";
+"settings.information" = "Informazioni";
+"settings.about" = "Informazioni su di noi";
+"language.title" = "Lingua";
+"language.system" = "Predefinita di sistema";
+"about.title" = "Informazioni su di noi";
+"about.description" = "Una demo del contatore locale per convalidare il flusso di lavoro iOS.";
+"about.version" = "Versione %@";

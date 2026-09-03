@@ -1,0 +1,15 @@
+"home.title" = "工作流程示範";
+"counter.value" = "計數：%d";
+"counter.increment" = "增加";
+"counter.reset" = "重設";
+"home.settings" = "設定";
+"settings.title" = "設定";
+"settings.general" = "一般";
+"settings.language" = "語言";
+"settings.information" = "資訊";
+"settings.about" = "關於我們";
+"language.title" = "語言";
+"language.system" = "跟隨系統";
+"about.title" = "關於我們";
+"about.description" = "一個用於驗證 iOS 工作流程的本機計數示範。";
+"about.version" = "版本 %@";

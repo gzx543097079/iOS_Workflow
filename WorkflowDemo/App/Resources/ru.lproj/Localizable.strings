@@ -1,0 +1,15 @@
+"home.title" = "Демонстрация рабочего процесса";
+"counter.value" = "Счётчик: %d";
+"counter.increment" = "Увеличить";
+"counter.reset" = "Сбросить";
+"home.settings" = "Настройки";
+"settings.title" = "Настройки";
+"settings.general" = "Основные";
+"settings.language" = "Язык";
+"settings.information" = "Информация";
+"settings.about" = "О нас";
+"language.title" = "Язык";
+"language.system" = "Системный язык";
+"about.title" = "О нас";
+"about.description" = "Локальная демонстрация счётчика для проверки рабочего процесса iOS.";
+"about.version" = "Версия %@";

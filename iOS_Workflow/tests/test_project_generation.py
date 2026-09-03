@@ -54,6 +54,7 @@ class ProjectGenerationTests(unittest.TestCase):
         self.assertIn('mode = "system"', (output / "App/Core/Localization/LocalizationPolicy.swift").read_text())
         self.assertIn("SWIFT_STRICT_CONCURRENCY: complete", (output / "project.yml").read_text())
         self.assertIn("PRODUCT_MODULE_NAME: DemoAppAppModule", (output / "project.yml").read_text())
+        self.assertIn('UISceneDelegateClassName: "$(PRODUCT_MODULE_NAME).SceneDelegate"', (output / "project.yml").read_text())
         self.assertIn("业务模块的入口", (output / "App/Features/Home/HomeViewController.swift").read_text())
         self.assertGreater(len(files), 10)
 
@@ -80,6 +81,7 @@ class ProjectGenerationTests(unittest.TestCase):
         self.assertTrue((output / "App/Features/Home/APPHomeViewModel.h").is_file())
         self.assertTrue((output / "App/Core/Localization/APPLocalizationPolicy.m").is_file())
         self.assertTrue((output / "Cartfile").is_file())
+        self.assertIn('UISceneDelegateClassName: "APPSceneDelegate"', (output / "project.yml").read_text())
 
     def test_honors_fixed_language_mvc_navigation_and_ui_tests(self):
         temporary, output, _ = self.generate({

@@ -1,0 +1,5 @@
+DerivedData*/
+build/
+*.xcresult
+xcuserdata/
+.DS_Store

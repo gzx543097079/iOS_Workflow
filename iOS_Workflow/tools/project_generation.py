@@ -383,8 +383,22 @@ def _project_yml(name: str, config: Dict[str, Any]) -> str:
     warnings = "YES" if config["warnings_as_errors"] else "NO"
     device_family = ",".join("1" if item == "iphone" else "2" for item in config["target_devices"])
     team_setting = f"        DEVELOPMENT_TEAM: {config['development_team']}\n" if config["development_team"] else ""
-    scene_setting = "        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES\n" if config["ui"] == "uikit" else ""
-    return f"name: {name}\noptions:\n  deploymentTarget:\n    iOS: \"{config['deployment_target']}\"\n  developmentLanguage: {config['default_localization']}\nsettings:\n  base:\n    MARKETING_VERSION: \"{config['marketing_version']}\"\n    CURRENT_PROJECT_VERSION: \"{config['build_number']}\"\ntargets:\n  {name}:\n    type: application\n    platform: iOS\n    sources: [App]\n    settings:\n      base:\n        PRODUCT_MODULE_NAME: {name}AppModule\n        PRODUCT_BUNDLE_IDENTIFIER: {bundle_id}\n        TARGETED_DEVICE_FAMILY: \"{device_family}\"\n        CODE_SIGN_STYLE: {config['code_sign_style'].capitalize()}\n{team_setting}{swift_setting}        SWIFT_TREAT_WARNINGS_AS_ERRORS: {warnings}\n        GCC_TREAT_WARNINGS_AS_ERRORS: {warnings}\n        GENERATE_INFOPLIST_FILE: YES\n        INFOPLIST_KEY_UILaunchScreen_Generation: YES\n{scene_setting}{test_lines}"
+    generated_info_setting = "        GENERATE_INFOPLIST_FILE: YES\n        INFOPLIST_KEY_UILaunchScreen_Generation: YES\n" if config["ui"] == "swiftui" else ""
+    info_section = ""
+    if config["ui"] == "uikit":
+        scene_delegate = "$(PRODUCT_MODULE_NAME).SceneDelegate" if config["language"] == "swift" else f"{config['objc_class_prefix']}SceneDelegate"
+        info_section = f'''    info:
+      path: App/Resources/Info.plist
+      properties:
+        UILaunchScreen: {{}}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: "{scene_delegate}"
+'''
+    return f"name: {name}\noptions:\n  deploymentTarget:\n    iOS: \"{config['deployment_target']}\"\n  developmentLanguage: {config['default_localization']}\nsettings:\n  base:\n    MARKETING_VERSION: \"{config['marketing_version']}\"\n    CURRENT_PROJECT_VERSION: \"{config['build_number']}\"\ntargets:\n  {name}:\n    type: application\n    platform: iOS\n    sources: [App]\n{info_section}    settings:\n      base:\n        PRODUCT_MODULE_NAME: {name}AppModule\n        PRODUCT_BUNDLE_IDENTIFIER: {bundle_id}\n        TARGETED_DEVICE_FAMILY: \"{device_family}\"\n        CODE_SIGN_STYLE: {config['code_sign_style'].capitalize()}\n{team_setting}{swift_setting}        SWIFT_TREAT_WARNINGS_AS_ERRORS: {warnings}\n        GCC_TREAT_WARNINGS_AS_ERRORS: {warnings}\n{generated_info_setting}{test_lines}"
 
 
 def _privacy_manifest() -> str:

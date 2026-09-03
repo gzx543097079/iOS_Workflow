@@ -1,0 +1,15 @@
+"home.title" = "워크플로 데모";
+"counter.value" = "카운트: %d";
+"counter.increment" = "증가";
+"counter.reset" = "재설정";
+"home.settings" = "설정";
+"settings.title" = "설정";
+"settings.general" = "일반";
+"settings.language" = "언어";
+"settings.information" = "정보";
+"settings.about" = "앱 정보";
+"language.title" = "언어";
+"language.system" = "시스템 기본값";
+"about.title" = "앱 정보";
+"about.description" = "iOS 워크플로를 검증하기 위한 로컬 카운터 데모입니다.";
+"about.version" = "버전 %@";

@@ -1,0 +1,15 @@
+"home.title" = "عرض سير العمل";
+"counter.value" = "العدد: %d";
+"counter.increment" = "زيادة";
+"counter.reset" = "إعادة تعيين";
+"home.settings" = "الإعدادات";
+"settings.title" = "الإعدادات";
+"settings.general" = "عام";
+"settings.language" = "اللغة";
+"settings.information" = "المعلومات";
+"settings.about" = "من نحن";
+"language.title" = "اللغة";
+"language.system" = "لغة النظام";
+"about.title" = "من نحن";
+"about.description" = "عرض عدّاد محلي للتحقق من سير عمل iOS.";
+"about.version" = "الإصدار %@";

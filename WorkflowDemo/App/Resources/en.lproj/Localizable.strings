@@ -1,0 +1,15 @@
+"home.title" = "Workflow Demo";
+"counter.value" = "Count: %d";
+"counter.increment" = "Increment";
+"counter.reset" = "Reset";
+"home.settings" = "Settings";
+"settings.title" = "Settings";
+"settings.general" = "General";
+"settings.language" = "Language";
+"settings.information" = "Information";
+"settings.about" = "About Us";
+"language.title" = "Language";
+"language.system" = "System Default";
+"about.title" = "About Us";
+"about.description" = "A local counter demo for validating the iOS workflow.";
+"about.version" = "Version %@";

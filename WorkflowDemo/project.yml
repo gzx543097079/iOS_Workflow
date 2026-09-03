@@ -1,0 +1,46 @@
+name: WorkflowDemo
+options:
+  deploymentTarget:
+    iOS: "14.0"
+  developmentLanguage: en
+settings:
+  base:
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  WorkflowDemo:
+    type: application
+    platform: iOS
+    sources: [App]
+    info:
+      path: App/Resources/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: "$(PRODUCT_MODULE_NAME).SceneDelegate"
+    settings:
+      base:
+        PRODUCT_MODULE_NAME: WorkflowDemoAppModule
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.workflowdemo
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_VERSION: "5.10"
+        SWIFT_STRICT_CONCURRENCY: complete
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+        GCC_TREAT_WARNINGS_AS_ERRORS: NO
+  WorkflowDemoTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests]
+    dependencies:
+      - target: WorkflowDemo
+  WorkflowDemoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: WorkflowDemo
