@@ -41,21 +41,33 @@ class ResumeContextTests(unittest.TestCase):
                           "inputs": [{"path": "old", "sha256": "old"}]}],
         }
         self.progress = {"schema_version": 1, "items": [self.item]}
+        self.history = {"version": 3, "project": ".", "next_sequence": 2, "execution_order": [{
+            "id": "REQ-current", "file": ".ios-workflow/requirements/REQ-current.md",
+            "sequence": 1, "status": "in_progress",
+        }]}
         for relative in (".ios-workflow/requirements/REQ-current.md", ".ios-workflow/sources/PRD.md",
                          ".ios-workflow/handoff.md", ".ios-workflow/evidence/result.txt", "App/Restore.swift"):
             target = self.project / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text("Do not read file content during summary extraction", encoding="utf-8")
+        self.write_requirement("REQ-current", 1)
         self.save()
+
+    def write_requirement(self, requirement_id, sequence):
+        target = self.project / f".ios-workflow/requirements/{requirement_id}.md"
+        target.write_text(f"---\nid: {requirement_id}\nproject: .\nsequence: {sequence}\nstatus: in_progress\n---\n"
+                          "Do not read the Markdown body during summary extraction\n")
 
     def save(self):
         (self.project / ".ios-workflow/index.jsonc").write_text("// Project activity\n" + json.dumps(self.index))
         (self.project / ".ios-workflow/progress.json").write_text(json.dumps(self.progress))
+        (self.project / ".ios-workflow/history.jsonc").write_text(json.dumps(self.history))
 
     def test_selects_current_requirement_and_returns_only_recorded_metadata(self):
         result = load_resume_context(self.project)
         self.assertEqual([], result["errors"])
         self.assertTrue(result["metadata_only"])
+        self.assertTrue(result["tracking_state_checked"])
         self.assertEqual("REQ-current", result["requirement_id"])
         self.assertEqual("verified", result["items"][0]["recorded_status"])
         self.assertNotIn("status", result["items"][0])
@@ -68,20 +80,21 @@ class ResumeContextTests(unittest.TestCase):
         self.assertIn(".ios-workflow/handoff.md", result["required_files"])
         self.assertNotIn("complete", result)
 
-    def test_reads_only_index_and_progress_and_does_not_write(self):
+    def test_reads_only_tracking_json_and_selected_frontmatter_and_does_not_write(self):
         before = {str(p.relative_to(self.project)): p.read_bytes() for p in self.project.rglob("*") if p.is_file()}
         original = Path.read_text
         reads = []
 
         def checked_read(path, *args, **kwargs):
             relative = str(path.relative_to(self.project.resolve()))
-            self.assertIn(relative, {".ios-workflow/index.jsonc", ".ios-workflow/progress.json"})
+            self.assertIn(relative, {".ios-workflow/index.jsonc", ".ios-workflow/progress.json",
+                                    ".ios-workflow/history.jsonc"})
             reads.append(relative)
             return original(path, *args, **kwargs)
 
         with patch.object(Path, "read_text", checked_read):
             self.assertEqual([], load_resume_context(self.project)["errors"])
-        self.assertEqual(2, len(reads))
+        self.assertEqual(3, len(reads))
         self.assertEqual(before, {str(p.relative_to(self.project)): p.read_bytes() for p in self.project.rglob("*") if p.is_file()})
 
     def test_hundreds_of_unrelated_history_items_are_not_inspected_or_returned(self):
@@ -141,6 +154,12 @@ class ResumeContextTests(unittest.TestCase):
             item = copy.deepcopy(self.item)
             item.update(id=f"REQ-other-AC-{number:03}", requirement_id="REQ-other")
             self.progress["items"].append(item)
+        self.history["execution_order"].append({
+            "id": "REQ-other", "file": ".ios-workflow/requirements/REQ-other.md",
+            "sequence": 2, "status": "in_progress",
+        })
+        self.history["next_sequence"] = 3
+        self.write_requirement("REQ-other", 2)
         self.save()
         result = load_resume_context(self.project, "REQ-other", max_items=10, offset=10)
         self.assertEqual([], result["errors"])
@@ -150,6 +169,7 @@ class ResumeContextTests(unittest.TestCase):
         self.assertEqual("REQ-other-AC-010", result["items"][0]["id"])
         self.assertIsNone(result["active_requirement"])
         self.assertIsNone(result["next_action"])
+        self.assertIn(".ios-workflow/requirements/REQ-other.md", result["required_files"])
         last = load_resume_context(self.project, "REQ-other", max_items=10, offset=20)
         self.assertEqual(5, len(last["items"]))
         self.assertFalse(last["has_more"])
@@ -238,3 +258,14 @@ class ResumeContextTests(unittest.TestCase):
         for root in (None, self.project / "missing", self.project / ".ios-workflow/progress.json", SKILL_ROOT):
             with self.subTest(root=root):
                 self.assertTrue(load_resume_context(root)["errors"])
+
+    def test_normal_resume_detects_current_tracking_disagreement(self):
+        self.history["execution_order"][0]["status"] = "done"
+        self.save()
+        result = load_resume_context(self.project)
+        self.assertTrue(any("档案与执行台账不一致" in error for error in result["errors"]))
+
+    def test_deep_json_returns_diagnostics_instead_of_crashing(self):
+        path = self.project / ".ios-workflow/progress.json"
+        path.write_text('{"schema_version":1,"items":[],"metadata":' + '[' * 1100 + '0' + ']' * 1100 + '}')
+        self.assertTrue(load_resume_context(self.project)["errors"])

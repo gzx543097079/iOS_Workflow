@@ -2,5 +2,6 @@
   "version": 3,
   "project": ".",
   "next_sequence": 1,
+  // 首次执行时追加 {"id": "稳定需求ID", "file": ".ios-workflow/requirements/需求ID.md", "sequence": 1, "status": "in_progress"}，并递增 next_sequence。
   "execution_order": []
 }

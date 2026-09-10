@@ -28,4 +28,11 @@
 4. 需求状态只使用 `draft`、`ready`、`in_progress`、`blocked`、`done`、`cancelled`。分析完成且实施所需信息充分时进入 `ready`；编码前按技术设计规范确定设计等级，设计状态须为 `approved` 或 `not_required`，开始实施时进入 `in_progress`。
 5. 需求首次进入 `in_progress` 时，按项目台账的 `next_sequence` 追加执行记录并递增序号。一个需求只登记一次，已共享的顺序号不得重排、复用或删除。并行分支出现未共享的序号碰撞时保留两条需求，结合实际首次执行时间协调新条目的序号，并记录调整原因；不得丢掉其中一条。
 
+## 可机器核对的关联
+
+- `history.jsonc` 保持 `version: 3`、`project: "."`、`next_sequence` 和 `execution_order`。每条执行记录包含 `id`、`file`（档案项目相对路径）、正整数 `sequence`、当前需求 `status`；可增加时间和说明字段。全台账需求 ID 和序号不得重复，`next_sequence` 必须大于所有已登记序号。未开始的 `draft`/`ready` 需求允许档案 `sequence: null` 且尚无执行记录。
+- 选定需求的档案 frontmatter 使用已有的 `id`、`project`、`sequence`、`status`，与索引及执行台账一致。`current_step` 仍可只保留在正文恢复摘要；如果档案额外提供同名 frontmatter 字段，才与活动索引比较，不要求旧档案补字段。
+- [tracking_state.py](../../scripts/tracking_state.py) 的 `validate_tracking_state(project_root, requirement_id=None)` 只读核对这些关系和选定需求的登记状态；不读取正文、无关历史档案或测试证据，不改状态。`metadata_only` 和 `checked` 不是业务验收成功；先处理 `errors`，再按当前任务检查实际工程与相关证据。
+- 为避免额外 YAML 依赖，档案开头的 `---` 元数据仅支持平面 `key: scalar`：普通单行字符串、JSON 双引号字符串、YAML 单引号字符串（内部引号写作 `''`）、整数、`null`、`true`、`false`。允许空行和整行注释；带冒号的时间保持原样，含 `: ` 或行内注释的文字须加引号。不支持嵌套、集合、块值、标签或锚点，重复字段、复杂写法、缺失分隔符及超过 256 行/64 KiB 的元数据明确报错，不猜测解析或自动重写档案。正文不受此标量约束。
+
 建立或变更验收账本时再读取[验收与证据](tracking-evidence.md)；需要生成工程时读取[项目生成](project-generation.md)。记录创建不代表相应需求已实现或已获外部操作授权。

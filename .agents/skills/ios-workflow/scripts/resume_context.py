@@ -7,9 +7,10 @@ from typing import Any
 
 from project_generation import ConfigurationError, load_jsonc
 from progress_validation import SKILL_ROOT, STATUSES, _file, _within
+from tracking_state import _check_tracking_state
 
 
-CONTEXT_SCOPE = "仅提取当前页元数据和文件引用；未核验证据内容、哈希、环境或业务验收，不作完成判断。"
+CONTEXT_SCOPE = "提取当前页元数据并核对选定需求的记录一致性；未核验证据内容、哈希、环境或业务验收，不作完成判断。"
 _REQUIREMENT_STATUSES = {"draft", "ready", "in_progress", "blocked", "done", "cancelled"}
 
 
@@ -50,7 +51,7 @@ def _read_record(root: Path, relative: str, errors: list[str]) -> dict | None:
         return None
     try:
         return load_jsonc(path)
-    except (ConfigurationError, UnicodeError):
+    except (ConfigurationError, UnicodeError, RecursionError):
         errors.append(f"{relative}: 无法读取有效 JSON 对象")
         return None
 
@@ -77,8 +78,9 @@ def load_resume_context(project_root: Path, requirement_id: str | None = None,
     empty active index does not imply that every requirement is complete.
     ``recorded_status`` deliberately preserves that distinction. The caller
     must validate the selected requirement's evidence before reusing it.
-    Only index/progress JSON is read. Requirement text, handoff text, evidence
-    contents, historical generation configuration and unrelated files are not.
+    Read index/progress JSON, history linkage metadata and only the selected
+    requirement's scalar frontmatter. Markdown bodies, handoff text, evidence
+    contents, historical generation configuration and unrelated archives are not.
     ``required_files`` lists safe project-relative entry points for follow-up.
     Summary text is capped at 800 characters, blockers at 20 and diagnostics
     at 50. ``truncated_fields`` and ``omitted`` disclose shortened output;
@@ -88,6 +90,7 @@ def load_resume_context(project_root: Path, requirement_id: str | None = None,
     truncated_fields = _BoundedList(50)
     result = {
         "metadata_only": True, "validation_scope": CONTEXT_SCOPE,
+        "tracking_state_checked": False,
         "requirement_id": None, "active_requirement": None, "items": [],
         "blockers": [], "next_action": None, "required_files": [],
         "total_items": 0, "offset": offset, "max_items": max_items,
@@ -231,5 +234,12 @@ def load_resume_context(project_root: Path, requirement_id: str | None = None,
                         reference = entry if field == "implementation" else entry.get("path") if isinstance(entry, dict) else None
                         _reference(root, reference, f"{label}.{field}[{number}]", errors, evidence=field == "evidence")
                 result["items"].append(summary)
+    if not errors and requirement_id is not None and index is not None and progress is not None:
+        state = _check_tracking_state(root, requirement_id, index, progress)
+        result["tracking_state_checked"] = state["checked"]
+        for error in state["errors"]:
+            errors.append(error)
+        if state["requirement_file"] is not None:
+            required_files.add(state["requirement_file"])
     result["required_files"] = sorted(required_files)
     return _finish(result)
