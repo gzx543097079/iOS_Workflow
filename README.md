@@ -44,11 +44,11 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`，包含 YAML `name
 
 ## 团队分发
 
-版本 Tag 推送后，GitHub Actions 会先运行完整测试，再生成 `ios-workflow-<版本>.zip` 和 SHA-256 校验文件并创建 GitHub Release。分发包包含 `.agents/skills/ios-workflow/`、最外层配置示例与字段说明、`AGENTS.md` 示例、版本标记和接入说明，不包含本仓库的 `.ios-workflow/` 运行历史。
+版本 Tag 推送后，GitHub Actions 会先运行完整 Python 测试和五组 macOS 无签名编译检查（覆盖三种技术组合及 Swift 5/6），均通过后再生成 `ios-workflow-<版本>.zip` 和 SHA-256 校验文件并创建 GitHub Release。分发包包含 `.agents/skills/ios-workflow/`、最外层配置示例与字段说明、`AGENTS.md` 示例、版本标记和接入说明，不包含本仓库的 `.ios-workflow/` 运行历史。
 
 团队成员在临时目录解压发布包，将 `.agents/skills/ios-workflow/` 放入业务仓库的相同路径；没有 `AGENTS.md` 时使用包内示例，已有该文件时只合并适用规则。业务仓库应提交这些文件，使全体成员使用同一版本。详细步骤见 [`distribution/INSTALL.md`](distribution/INSTALL.md)。
 
-维护者可在发布前本地生成并检查分发包：
+维护者先按[生成工程编译检查](docs/generated-project-checks.md)验证生成源码及测试 target，再本地生成并检查分发包：
 
 ```bash
 python3 scripts/build_distribution.py --version 6.2.0 --output dist
