@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from copy import deepcopy
+import math
 import re
 import shutil
 import subprocess
@@ -102,26 +103,58 @@ def load_jsonc(path: Path) -> Dict[str, Any]:
     return value
 
 
-def validate_project_instance(instance: Dict[str, Any]) -> Dict[str, Any]:
-    """仅校验首次生成输入，不补全字段或加载示例。"""
+def _diagnose_keys(value: Dict[str, Any], required: Iterable[str], path: str,
+                   *, optional: Iterable[str] = ()) -> List[str]:
+    required, optional = set(required), set(optional)
+    prefix = f"{path}." if path else ""
+    errors = [f"{prefix}{key} 缺失" for key in sorted(required - set(value))]
+    errors.extend(f"{prefix}{key} 未知字段" for key in sorted(set(value) - required - optional, key=str))
+    return errors
+
+
+def diagnose_project_instance(instance: Any) -> List[str]:
+    """一次汇总首次生成输入的问题，不补值、不修改输入、不读取或写入文件。"""
+    if not isinstance(instance, dict):
+        return ["instance 必须是对象"]
     required = {"schema_version", "project_name", "config", "design_tokens", "sources", "constraints"}
-    if set(instance) != required or type(instance.get("schema_version")) is not int or instance["schema_version"] != 1:
-        raise ConfigurationError("项目实例字段不完整或 schema_version 不受支持，需要显式迁移")
-    if not isinstance(instance["project_name"], str) or not instance["project_name"].strip():
-        raise ConfigurationError("project_name 必须是非空字符串")
-    if not isinstance(instance["config"], dict) or not isinstance(instance["design_tokens"], dict):
-        raise ConfigurationError("config 和 design_tokens 必须是对象")
-    # 配置键集合属于当前实例版本的契约；不接受静默忽略的拼写错误。
-    keys = INSTANCE_CONFIG_KEYS
-    if set(instance["config"]) != keys:
-        raise ConfigurationError("config 字段不完整或包含不支持的字段，需要显式迁移")
-    validate_config(instance["config"])
-    validate_design_tokens(instance["design_tokens"])
-    sources = instance["sources"]
-    if not isinstance(sources, dict) or set(sources) != keys or not all(isinstance(v, str) and v for v in sources.values()):
-        raise ConfigurationError("sources 必须为每个配置字段记录来源")
-    if not isinstance(instance["constraints"], list) or not all(isinstance(v, str) and v for v in instance["constraints"]):
-        raise ConfigurationError("constraints 必须是非空字符串组成的数组")
+    errors = _diagnose_keys(instance, required, "")
+    if "schema_version" in instance and (type(instance["schema_version"]) is not int or instance["schema_version"] != 1):
+        errors.append("schema_version 不受支持；可选值：整数 1，需要显式迁移")
+    if "project_name" in instance:
+        name = instance["project_name"]
+        if not isinstance(name, str) or not name.strip():
+            errors.append("project_name 必须是非空字符串")
+        elif not re.search(r"[A-Za-z0-9]", name):
+            errors.append("project_name 必须包含英文字母或数字，以生成工程名称")
+    if "config" in instance:
+        errors.extend(_diagnose_config(instance["config"]))
+    if "design_tokens" in instance:
+        errors.extend(_diagnose_design_tokens(instance["design_tokens"]))
+    if "sources" in instance:
+        sources = instance["sources"]
+        if not isinstance(sources, dict):
+            errors.append("sources 必须是为每个配置字段记录来源的对象")
+        else:
+            errors.extend(_diagnose_keys(sources, INSTANCE_CONFIG_KEYS, "sources"))
+            for key, value in sources.items():
+                if not isinstance(value, str) or not value.strip():
+                    errors.append(f"sources.{key} 必须是非空来源说明")
+    if "constraints" in instance:
+        constraints = instance["constraints"]
+        if not isinstance(constraints, list):
+            errors.append("constraints 必须是非空字符串组成的数组")
+        else:
+            for index, value in enumerate(constraints):
+                if not isinstance(value, str) or not value.strip():
+                    errors.append(f"constraints[{index}] 必须是非空字符串")
+    return errors
+
+
+def validate_project_instance(instance: Dict[str, Any]) -> Dict[str, Any]:
+    """仅校验首次生成输入，并一次报告全部诊断，不补全字段或加载示例。"""
+    errors = diagnose_project_instance(instance)
+    if errors:
+        raise ConfigurationError("项目配置校验失败：\n" + "\n".join(f"- {error}" for error in errors))
     return deepcopy(instance)
 
 
@@ -138,61 +171,70 @@ def save_project_instance(path: Path, instance: Dict[str, Any]) -> None:
         stream.write(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
 
 
-def _require_choice(config: Dict[str, Any], key: str, choices: Iterable[str]) -> str:
-    value = config.get(key)
-    allowed = tuple(choices)
-    if value not in allowed:
-        raise ConfigurationError(f"{key} 必须是 {', '.join(allowed)} 之一")
-    return str(value)
-
-
-def validate_config(config: Dict[str, Any]) -> Dict[str, Any]:
-    """验证完整项目配置以及不受支持的技术组合。"""
-    if set(config) != INSTANCE_CONFIG_KEYS:
-        raise ConfigurationError("config 字段不完整或包含不支持的字段")
-    language = _require_choice(config, "language", ("swift", "objc"))
-    ui = _require_choice(config, "ui", ("uikit", "swiftui"))
-    _require_choice(config, "architecture", ("mvvm", "mvc"))
-    _require_choice(config, "dependency_manager", ("pod", "spm", "carthage", "none"))
-    _require_choice(config, "default_language_mode", ("system", "fixed"))
-    _require_choice(config, "test_framework", ("xctest",))
-    _require_choice(config, "strict_concurrency", ("minimal", "targeted", "complete"))
-    _require_choice(config, "code_sign_style", ("automatic", "manual"))
-    if language == "objc" and ui == "swiftui":
-        raise ConfigurationError("Objective-C 项目不支持 SwiftUI，请选择 UIKit 或 Swift")
-    if not re.fullmatch(r"\d+\.\d+", str(config.get("deployment_target", ""))):
-        raise ConfigurationError("deployment_target 必须是 major.minor")
-    if not re.fullmatch(r"\d+\.\d+", str(config.get("swift_version", ""))):
-        raise ConfigurationError("swift_version 必须是 major.minor")
-    if not re.fullmatch(r"\d+(?:\.\d+){1,2}", str(config.get("marketing_version", ""))):
-        raise ConfigurationError("marketing_version 必须是数字版本")
-    if not str(config.get("build_number", "")).isdigit():
-        raise ConfigurationError("build_number 必须是正整数字符串")
-    if config.get("comment_level") not in (1, 2, 3, 4):
-        raise ConfigurationError("comment_level 必须是 1 到 4")
-    if not re.fullmatch(r"[A-Z]{2,3}", str(config.get("objc_class_prefix", ""))):
-        raise ConfigurationError("objc_class_prefix 必须是 2–3 个大写字母")
+def _diagnose_config(config: Any) -> List[str]:
+    if not isinstance(config, dict):
+        return ["config 必须是对象"]
+    errors = _diagnose_keys(config, INSTANCE_CONFIG_KEYS, "config")
+    choices = {
+        "language": ("swift", "objc"), "ui": ("uikit", "swiftui"),
+        "architecture": ("mvvm", "mvc"), "dependency_manager": ("pod", "spm", "carthage", "none"),
+        "default_language_mode": ("system", "fixed"), "test_framework": ("xctest",),
+        "strict_concurrency": ("minimal", "targeted", "complete"), "code_sign_style": ("automatic", "manual"),
+    }
+    for key, allowed in choices.items():
+        if key in config and (not isinstance(config[key], str) or config[key] not in allowed):
+            errors.append(f"config.{key} 无效；可选值：{', '.join(allowed)}")
+    if config.get("language") == "objc" and config.get("ui") == "swiftui":
+        errors.append("config.language / config.ui：Objective-C 项目不支持 SwiftUI，请选择 UIKit 或 Swift")
+    patterns = {
+        "deployment_target": (r"[0-9]+\.[0-9]+", "major.minor 字符串"),
+        "swift_version": (r"[0-9]+\.[0-9]+", "major.minor 字符串"),
+        "marketing_version": (r"[0-9]+(?:\.[0-9]+){1,2}", "数字版本字符串"),
+        "build_number": (r"[0-9]+", "正整数字符串"),
+        "objc_class_prefix": (r"[A-Z]{2,3}", "2–3 个大写字母"),
+        "bundle_id_prefix": (r"[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+", "反向域名字符串"),
+        "bundle_id": (r"(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)?", "空字符串或反向域名字符串"),
+    }
+    for key, (pattern, description) in patterns.items():
+        if key in config and (not isinstance(config[key], str) or not re.fullmatch(pattern, config[key])):
+            errors.append(f"config.{key} 必须是{description}")
+    if isinstance(config.get("build_number"), str) and re.fullmatch(r"0+", config["build_number"]):
+        errors.append("config.build_number 必须是大于 0 的正整数字符串")
+    if "comment_level" in config and (type(config["comment_level"]) is not int or config["comment_level"] not in (1, 2, 3, 4)):
+        errors.append("config.comment_level 必须是整数；可选值：1, 2, 3, 4")
+    for key in ("organization_name", "development_team", "default_localization"):
+        if key in config and not isinstance(config[key], str):
+            errors.append(f"config.{key} 必须是字符串")
     localizations = config.get("supported_localizations")
-    if not isinstance(localizations, list) or not localizations or not all(isinstance(x, str) and x for x in localizations):
-        raise ConfigurationError("supported_localizations 必须是非空字符串数组")
-    if config.get("default_localization") not in localizations:
-        raise ConfigurationError("default_localization 必须包含在 supported_localizations 中")
+    valid_localizations = isinstance(localizations, list) and bool(localizations) and all(isinstance(x, str) and x.strip() for x in localizations)
+    if "supported_localizations" in config and not valid_localizations:
+        errors.append("config.supported_localizations 必须是非空字符串数组")
+    if valid_localizations and "default_localization" in config and config["default_localization"] not in localizations:
+        errors.append("config.default_localization 必须包含在 config.supported_localizations 中")
     localization_strings = config.get("localization_strings")
-    if not isinstance(localization_strings, dict) or not localization_strings:
-        raise ConfigurationError("localization_strings 必须是非空对象")
-    for key, translations in localization_strings.items():
-        if not isinstance(key, str) or not key or not isinstance(translations, dict):
-            raise ConfigurationError("localization_strings 必须使用非空字符串键和语言映射")
-        missing = [locale for locale in localizations if not isinstance(translations.get(locale), str) or not translations[locale]]
-        if missing:
-            raise ConfigurationError(f"localization_strings.{key} 缺少语言: {', '.join(missing)}")
-    devices = config.get("target_devices")
-    if not isinstance(devices, list) or not devices or not set(devices).issubset({"iphone", "ipad"}):
-        raise ConfigurationError("target_devices 只能包含 iphone、ipad")
-    orientations = config.get("supported_orientations", [])
-    allowed_orientations = {"portrait", "portrait_upside_down", "landscape_left", "landscape_right"}
-    if not isinstance(orientations, list) or not all(isinstance(v, str) and v in allowed_orientations for v in orientations) or len(set(orientations)) != len(orientations):
-        raise ConfigurationError("supported_orientations 包含不支持或重复的方向")
+    if "localization_strings" in config and (not isinstance(localization_strings, dict) or not localization_strings):
+        errors.append("config.localization_strings 必须是非空对象")
+    if isinstance(localization_strings, dict):
+        for key, translations in localization_strings.items():
+            if not isinstance(key, str) or not key.strip() or not isinstance(translations, dict):
+                errors.append(f"config.localization_strings.{key} 必须使用非空字符串键和语言映射")
+                continue
+            if valid_localizations:
+                missing = [locale for locale in localizations if not isinstance(translations.get(locale), str) or not translations[locale]]
+                if missing:
+                    errors.append(f"config.localization_strings.{key} 缺少语言: {', '.join(missing)}")
+    for key, allowed, allow_empty in (
+        ("target_devices", ("iphone", "ipad"), False),
+        ("supported_orientations", ("portrait", "portrait_upside_down", "landscape_left", "landscape_right"), True),
+    ):
+        if key not in config:
+            continue
+        value = config[key]
+        if (not isinstance(value, list) or (not allow_empty and not value)
+                or not all(isinstance(x, str) and x in allowed for x in value)):
+            errors.append(f"config.{key} 必须是{'可为空的' if allow_empty else '非空'}数组；可选值：{', '.join(allowed)}")
+        elif len(set(value)) != len(value):
+            errors.append(f"config.{key} 包含重复值；可选值：{', '.join(allowed)}")
     boolean_keys = (
         "navigation_enabled",
         "supports_dark_mode",
@@ -204,39 +246,67 @@ def validate_config(config: Dict[str, Any]) -> Dict[str, Any]:
         "generate_xcodeproj",
     )
     for key in boolean_keys:
-        if not isinstance(config.get(key), bool):
-            raise ConfigurationError(f"{key} 必须是布尔值")
-    if config["supports_manual_dark_mode_switch"] and not config["supports_dark_mode"]:
-        raise ConfigurationError("supports_manual_dark_mode_switch 只能在 supports_dark_mode 为 true 时开启")
-    prefix = str(config.get("bundle_id_prefix", ""))
-    bundle_id = str(config.get("bundle_id", ""))
-    identifier_pattern = r"[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+"
-    if not re.fullmatch(identifier_pattern, prefix):
-        raise ConfigurationError("bundle_id_prefix 必须是反向域名格式")
-    if bundle_id and not re.fullmatch(identifier_pattern, bundle_id):
-        raise ConfigurationError("bundle_id 必须为空或使用反向域名格式")
+        if key in config and not isinstance(config[key], bool):
+            errors.append(f"config.{key} 必须是布尔值；可选值：true, false")
+    if config.get("supports_manual_dark_mode_switch") is True and config.get("supports_dark_mode") is False:
+        errors.append("config.supports_manual_dark_mode_switch 只能在 supports_dark_mode 为 true 时开启")
+    return errors
+
+
+def _diagnose_design_tokens(tokens: Any) -> List[str]:
+    if not isinstance(tokens, dict):
+        return ["design_tokens 必须是对象"]
+    maps = ("spacing", "radius", "control_height", "icon_size", "border_width", "opacity", "animation_duration")
+    scalars = ("content_margin", "content_max_width", "minimum_tap_target")
+    errors = _diagnose_keys(tokens, (*maps, *scalars, "typography", "colors"), "design_tokens", optional=("version",))
+    def is_number(value: Any) -> bool:
+        return type(value) is int or (type(value) is float and math.isfinite(value))
+    if "version" in tokens and (type(tokens["version"]) is not int or tokens["version"] < 1):
+        errors.append("design_tokens.version 必须是正整数")
+    for key in maps:
+        if key not in tokens:
+            continue
+        value = tokens[key]
+        if not isinstance(value, dict) or not value:
+            errors.append(f"design_tokens.{key} 必须是非空对象")
+            continue
+        for name, number in value.items():
+            if not isinstance(name, str) or not name.strip():
+                errors.append(f"design_tokens.{key}.{name} 必须使用非空字符串键")
+            if not is_number(number):
+                errors.append(f"design_tokens.{key}.{name} 必须是有限数字，不能是布尔值")
+    for key in scalars:
+        if key in tokens and not is_number(tokens[key]):
+            errors.append(f"design_tokens.{key} 必须是有限数字，不能是布尔值")
+    supported_text_styles = ("largeTitle", "title", "title2", "title3", "headline", "subheadline", "body", "callout", "footnote", "caption", "caption2")
+    for key in ("typography", "colors"):
+        if key not in tokens:
+            continue
+        value = tokens[key]
+        if not isinstance(value, dict) or not value:
+            errors.append(f"design_tokens.{key} 必须是非空字符串对象")
+            continue
+        for name, text in value.items():
+            if not isinstance(name, str) or not name.strip() or not isinstance(text, str) or not text.strip():
+                errors.append(f"design_tokens.{key}.{name} 必须使用非空字符串键和值")
+            elif key == "typography" and text not in supported_text_styles:
+                errors.append(f"design_tokens.typography.{name} 不支持此系统文字样式；可选值：{', '.join(supported_text_styles)}")
+    return errors
+
+
+def validate_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    """保持独立配置校验 API，并汇总报告全部字段和组合问题。"""
+    errors = _diagnose_config(config)
+    if errors:
+        raise ConfigurationError("\n".join(errors))
     return dict(config)
 
 
 def validate_design_tokens(tokens: Dict[str, Any]) -> Dict[str, Any]:
     """验证生成代码需要的 DesignTokens 字段和数值。"""
-    maps = ("spacing", "radius", "control_height", "icon_size", "border_width", "opacity", "animation_duration")
-    for key in maps:
-        value = tokens.get(key)
-        if not isinstance(value, dict) or not value:
-            raise ConfigurationError(f"DesignTokens.{key} 必须是非空对象")
-        if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in value.values()):
-            raise ConfigurationError(f"DesignTokens.{key} 只能包含数字")
-    for key in ("content_margin", "content_max_width", "minimum_tap_target"):
-        if not isinstance(tokens.get(key), (int, float)) or isinstance(tokens.get(key), bool):
-            raise ConfigurationError(f"DesignTokens.{key} 必须是数字")
-    for key in ("typography", "colors"):
-        value = tokens.get(key)
-        if not isinstance(value, dict) or not value or not all(isinstance(v, str) and v for v in value.values()):
-            raise ConfigurationError(f"DesignTokens.{key} 必须是非空字符串对象")
-    supported_text_styles = {"largeTitle", "title", "title2", "title3", "headline", "subheadline", "body", "callout", "footnote", "caption", "caption2"}
-    if not set(tokens["typography"].values()).issubset(supported_text_styles):
-        raise ConfigurationError("DesignTokens.typography 包含不支持的系统文字样式")
+    errors = _diagnose_design_tokens(tokens)
+    if errors:
+        raise ConfigurationError("\n".join(errors))
     return dict(tokens)
 
 

@@ -6,7 +6,7 @@
 
 1. 客户端按 `requirement-intake.md` 从需求文档提取明确选项，按项目技术方案补齐未指定选项，并记录字段来源；无需用户先手工填写。发布包最外层示例只供结构参考，也可手工复制修改，不自动填入默认值。
 2. 首次生成输入保存到 `<项目根目录>/.ios-workflow/generation/project.jsonc`；需求及追踪记录同样保存在业务项目内，禁止为了生成前留档而写入共享工作目录或 Skill。
-3. `load_project_instance(path)` 校验完整输入；缺失、未知字段、非法组合和不支持的版本拒绝生成。`save_project_instance(path, instance)` 可保存新输入文件，不覆盖已有文件。
+3. `load_project_instance(path)` 校验完整输入；缺失、未知字段、非法组合和不支持的版本拒绝生成，并一次返回所有独立问题。客户端可先调用 `diagnose_project_instance(instance)` 取得带字段路径的诊断列表，集中修正后再生成，不反复只处理第一个错误。`save_project_instance(path, instance)` 可保存新输入文件，不覆盖已有文件。
 4. 调用 `materialize_project(instance_path, project_root, allow_project_records=True)` 生成工程并准备依赖；仅验证骨架调用同名参数的 `generate_project`。此模式只接受根目录为空或仅含普通 `.ios-workflow/` 及接入元数据（`.agents/`、`AGENTS.md`、`.git`、`.gitignore`），不覆盖已有业务代码；普通空目录调用仍受支持。
 5. 生成器不自动复制输入，不生成 `workflow.json` 或 `.ios-workflow/project.json`；客户端保存的 generation 输入仅首次使用，不成为后续核对依据。
 
