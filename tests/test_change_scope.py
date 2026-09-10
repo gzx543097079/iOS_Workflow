@@ -1,11 +1,12 @@
 import copy
+import subprocess
 import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / '.agents/skills/ios-workflow/scripts'))
-from change_scope import select_checks
+from change_scope import assess_gate, select_checks
 from progress_validation import validate_progress_scope
 from tests import test_progress_validation as progress_fixture
 
@@ -44,6 +45,77 @@ class ChangeScopeTests(unittest.TestCase):
         for kwargs in ({'changed_paths': ['../secret']}, {'changed_paths': [], 'impacts': ['guess']}, {'changed_paths': [], 'operation': 'unknown'}):
             with self.assertRaises(ValueError):
                 select_checks(**kwargs)
+
+
+class CheckpointGateTests(unittest.TestCase):
+    def setUp(self):
+        self.integrity = dict.fromkeys(('scope', 'privacy', 'user_files', 'records'), 'passed')
+
+    def assess(self, **kwargs):
+        return assess_gate(['App/Feature.swift'], integrity=self.integrity, **kwargs)
+
+    def test_actual_failed_check_can_be_saved_without_becoming_successful(self):
+        execution = subprocess.run([sys.executable, '-c', 'raise SystemExit(1)'],
+                                   capture_output=True, text=True, timeout=10)
+        self.assertEqual(1, execution.returncode)
+        result = self.assess(operation='checkpoint',
+                             validation_result='passed' if execution.returncode == 0 else 'failed')
+        self.assertTrue(result['gate_passed'])
+        self.assertEqual('failed', result['validation_result'])
+        self.assertFalse(result['validation_passed'])
+        self.assertEqual('unknown', result['completion_result'])
+        self.assertFalse(result['completion_required'])
+
+    def test_unexecuted_or_blocked_validation_can_be_saved_with_its_original_status(self):
+        for status in ('unknown', 'blocked', 'skipped'):
+            with self.subTest(status=status):
+                result = self.assess(operation='checkpoint', validation_result=status)
+                self.assertTrue(result['gate_passed'])
+                self.assertEqual(status, result['validation_result'])
+                self.assertFalse(result['validation_passed'])
+
+    def test_actual_or_unknown_integrity_problems_block_even_checkpoint(self):
+        for check in self.integrity:
+            for status in ('failed', 'unknown'):
+                with self.subTest(check=check, status=status):
+                    checks = dict(self.integrity, **{check: status})
+                    result = assess_gate(['App/Feature.swift'], operation='checkpoint',
+                                          integrity=checks, validation_result='failed')
+                    self.assertFalse(result['gate_passed'])
+                    self.assertEqual([f'integrity.{check}:{status}'], result['blocking_reasons'])
+                    self.assertEqual(checks, result['integrity'])
+
+    def test_normal_delivery_keeps_relevant_success_requirements(self):
+        for operation in ('commit', 'push', 'review', 'release'):
+            for status in ('failed', 'unknown', 'blocked', 'skipped', 'not_required'):
+                with self.subTest(operation=operation, status=status):
+                    self.assertFalse(self.assess(operation=operation, validation_result=status)['gate_passed'])
+        self.assertTrue(self.assess(operation='commit', validation_result='passed')['gate_passed'])
+
+    def test_release_requires_completion_and_checkpoint_cannot_claim_unverified_completion(self):
+        self.assertFalse(self.assess(operation='release', validation_result='passed')['gate_passed'])
+        self.assertTrue(self.assess(operation='release', validation_result='passed',
+                                    completion_result='passed')['gate_passed'])
+        self.assertFalse(self.assess(operation='checkpoint', validation_result='failed',
+                                     completion_result='passed')['gate_passed'])
+
+    def test_document_only_commit_does_not_fabricate_test_success(self):
+        result = assess_gate(['README.md'], integrity=self.integrity, validation_result='not_required')
+        self.assertTrue(result['gate_passed'])
+        self.assertFalse(result['validation_required'])
+        self.assertFalse(result['validation_passed'])
+        self.assertEqual('not_required', result['validation_result'])
+
+    def test_assessment_does_not_mutate_inputs_and_rejects_ambiguous_facts(self):
+        before = copy.deepcopy(self.integrity)
+        result = self.assess(operation='checkpoint', validation_result='failed')
+        result['integrity']['records'] = 'unknown'
+        self.assertEqual(before, self.integrity)
+        for kwargs in ({'integrity': {}}, {'integrity': dict(before, privacy=True)},
+                       {'validation_result': True}, {'validation_result': 'maybe'},
+                       {'completion_result': []}):
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                assess_gate(['App/Feature.swift'], **{'integrity': before, **kwargs})
 
 
 class ScopedProgressTests(unittest.TestCase):
