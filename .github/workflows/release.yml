@@ -1,0 +1,27 @@
+name: 发布 iOS Workflow
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出发布版本
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: 验证工作流
+        run: python3 -m unittest discover -s tests -v
+
+      - name: 生成分发包
+        run: python3 scripts/build_distribution.py --version "$GITHUB_REF_NAME" --output dist
+
+      - name: 创建 GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes --title "iOS Workflow $GITHUB_REF_NAME"
