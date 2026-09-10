@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / '.agents/skills/ios-workflow/scripts'))
-from project_generation import generate_project, generate_xcodeproj, load_project_instance, save_project_instance
+from project_generation import GENERATION_MINIMUM_IOS, generate_project, generate_xcodeproj, load_project_instance, save_project_instance
 
 CASES = {
     'swift-uikit-5': ('swift', 'uikit', '5'),
@@ -35,9 +35,10 @@ def check_case(case: str, output: Path) -> dict:
     instance = load_project_instance(ROOT / 'distribution/project.example.jsonc')
     instance['project_name'] = 'WorkflowBuildFixture'
     instance['config'].update(language=language, ui=ui, swift_version=mode,
+                              deployment_target=GENERATION_MINIMUM_IOS[(language, ui)],
                               dependency_manager='none', include_unit_tests=True, include_ui_tests=True,
                               supports_manual_dark_mode_switch=True, generate_xcodeproj=True)
-    for field in ('language', 'ui', 'swift_version', 'dependency_manager', 'include_unit_tests',
+    for field in ('language', 'ui', 'swift_version', 'deployment_target', 'dependency_manager', 'include_unit_tests',
                   'include_ui_tests', 'supports_manual_dark_mode_switch', 'generate_xcodeproj'):
         instance['sources'][field] = f'Workflow compilation fixture: {case}'
     instance['constraints'] = ['Generated fixture only; compilation does not verify product requirements.']
@@ -45,7 +46,8 @@ def check_case(case: str, output: Path) -> dict:
     save_project_instance(config, instance)
     artifacts = output / '.ios-workflow/artifacts'
     artifacts.mkdir(parents=True)
-    report = {'case': case, 'result': 'blocked', 'recorded_at': datetime.now(timezone.utc).isoformat(),
+    report = {'case': case, 'deployment_target': instance['config']['deployment_target'],
+              'result': 'blocked', 'recorded_at': datetime.now(timezone.utc).isoformat(),
               'validation': 'build-for-testing only; tests and App are not executed', 'exit_code': None}
     try:
         environment = {}

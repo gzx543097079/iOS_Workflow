@@ -9,7 +9,7 @@
 | `config.architecture` | `mvvm` 或 `mvc` |
 | `config.dependency_manager` | `pod`、`spm`、`carthage` 或 `none` |
 | `config.bundle_id` / `bundle_id_prefix` | 完整 Bundle ID；完整值为空时项目明确选择由前缀与名称组合 |
-| `config.deployment_target` | 最低 iOS 版本，例如 `16.0` |
+| `config.deployment_target` | 项目明确的最低 iOS 版本；当前 UIKit 骨架要求至少 `13.0`，SwiftUI 骨架至少 `14.0`，不自动补值或提高项目要求 |
 | `config.swift_version` | 生成器支持的 Swift 语言模式：字符串 `5` 或 `6`，写入 `SWIFT_VERSION`；`5.10` 是工具链版本，不是合法语言模式 |
 | `config.marketing_version` / `build_number` | 产品版本和构建号 |
 | `config.target_devices` | `iphone`、`ipad` 的非空数组 |

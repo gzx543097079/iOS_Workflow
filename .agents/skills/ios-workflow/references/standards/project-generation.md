@@ -19,6 +19,7 @@
 - `localization_strings` 中每个用户可见文案键必须覆盖 `supported_localizations` 的全部语言；生成器按配置写入对应 `.lproj/Localizable.strings`，缺少译文时在写文件前拒绝生成。
 - 本地化标识使用 `en`、`zh-Hans`、`pt-BR` 等连字符形式，拒绝路径和大小写重复项。生成前检查全部输出路径；写入以项目目录为边界，拒绝符号链接重定向并只创建新文件，遇到并发产生的已有文件也不覆盖。
 - UIKit 与 SwiftUI 生成结果必须兼容 `deployment_target`，不可使用高于最低版本且无降级路径的 API。
+- 当前 UIKit 骨架使用 Scene 生命周期，最低支持 iOS 13.0；SwiftUI 骨架使用 App 生命周期，最低支持 iOS 14.0。生成前按语言/UI 组合核对下限，手动外观开关不降低生命周期要求。低于能力下限时拒绝写入并解释原因，保留项目要求，按已明确方案扩展模板或采用兼容的工程实现；不能自动提高最低版本。实际编译还须确认所选 Xcode/SDK 支持项目目标。
 - MVVM 生成最小 ViewModel，MVC 不生成 ViewModel；`navigation_enabled` 必须真实决定根导航容器。
 - `supports_dark_mode` 为 `false` 时在工程配置中固定浅色外观；`supports_manual_dark_mode_switch` 为 `true` 时生成持久化的跟随系统、浅色和深色切换策略，但不自动生成设置页面。手动切换不能在暗黑模式关闭时启用。
 - 按配置生成单元测试、UI 测试、本地化资源和隐私清单；测试骨架保留明确 TODO。

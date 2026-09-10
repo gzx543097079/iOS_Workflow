@@ -46,6 +46,8 @@ class GeneratedBuildCheckTests(unittest.TestCase):
             self.assertTrue(config['include_unit_tests'])
             self.assertTrue(config['include_ui_tests'])
             self.assertEqual('none', config['dependency_manager'])
+            self.assertEqual('13.0', config['deployment_target'])
+            self.assertEqual('13.0', report['deployment_target'])
 
     def test_compiler_failure_fails_the_check_and_preserves_diagnostics(self):
         with tempfile.TemporaryDirectory() as name:

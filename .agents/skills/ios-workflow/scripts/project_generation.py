@@ -48,6 +48,13 @@ INSTANCE_CONFIG_KEYS = frozenset({
     "warnings_as_errors",
 })
 
+# 当前源码模板的能力下限，不是项目默认值；UIKit 使用 Scene 生命周期，SwiftUI 使用 App 生命周期。
+GENERATION_MINIMUM_IOS = {
+    ("swift", "uikit"): "13.0",
+    ("objc", "uikit"): "13.0",
+    ("swift", "swiftui"): "14.0",
+}
+
 
 class ConfigurationError(ValueError):
     """配置无法安全生成项目时抛出的错误。"""
@@ -199,6 +206,11 @@ def _diagnose_config(config: Any) -> List[str]:
     for key, (pattern, description) in patterns.items():
         if key in config and (not isinstance(config[key], str) or not re.fullmatch(pattern, config[key])):
             errors.append(f"config.{key} 必须是{description}")
+    language, ui, deployment = config.get("language"), config.get("ui"), config.get("deployment_target")
+    if isinstance(language, str) and isinstance(ui, str) and isinstance(deployment, str) and re.fullmatch(r"[0-9]+\.[0-9]+", deployment):
+        minimum = GENERATION_MINIMUM_IOS.get((language, ui))
+        if minimum and tuple(map(int, deployment.split("."))) < tuple(map(int, minimum.split("."))):
+            errors.append(f"config.deployment_target：当前 {language}/{ui} 骨架最低支持 iOS {minimum}，不支持 {deployment}；保留需求，改用兼容的工程实现或扩展模板，不自动提高部署版本")
     if isinstance(config.get("build_number"), str) and re.fullmatch(r"0+", config["build_number"]):
         errors.append("config.build_number 必须是大于 0 的正整数字符串")
     if "comment_level" in config and (type(config["comment_level"]) is not int or config["comment_level"] not in (1, 2, 3, 4)):
