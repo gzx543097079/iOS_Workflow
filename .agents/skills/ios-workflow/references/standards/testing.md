@@ -48,3 +48,9 @@
 - 提交检查只覆盖本次 diff 与声明完成的范围。用户要求保存未完成进度或跨设备交接时，可提交如实记录的未完成/未验证状态和失败结果；不得伪造通过，也不得据此合并为已验收交付或发布。
 
 跨设备恢复的验证不得仅凭上次对话或通过标记复用；读取项目内测试报告，核对受测输入哈希、环境和证据可用性。报告/轻量证据纳入项目同步，大型产物与原始日志保存到 `<项目根目录>/.ios-workflow/artifacts/` 并忽略；证据缺失时补取或重跑，不能制造通过。
+
+## 证据辅助接口
+
+执行真实 iOS 测试并保存项目内报告后，可调用 `scripts/evidence_tools.py` 的 `capture_evidence(project_root, evidence_path, input_paths, environment, result, recorded_at=None)` 返回证据记录，避免反复手写哈希代码。环境对象必须提供实际 xcode、sdk、scheme、configuration、destination、test_selection；输入集合由本次影响确定，结果来自实际执行，不由辅助接口猜测。
+
+`compare_evidence(project_root, record, current_environment, current_input_paths)` 返回 `matched`、`stale` 或 `unknown` 及原因，分别表示登记内容一致、已变化或无法完整核对。首次记录没有环境指纹的旧证据返回 unknown；不自动迁移或假定可复用。接口不执行测试、不写文件、不提升验收状态；matched 仍需确认验收覆盖、平台限制和未登记输入是否变化。非 iOS 测试可按实际工具保存报告，不为满足接口字段虚构 Xcode 环境。
