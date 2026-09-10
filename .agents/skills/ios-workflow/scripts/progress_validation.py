@@ -220,3 +220,39 @@ def validate_progress(project_root: Path, progress: dict) -> list[str]:
             for missing in sorted(expected_inputs - recorded_inputs):
                 errors.append(f"{label}.evidence.inputs: 未覆盖需求来源或实现 {missing.relative_to(root)}")
     return errors
+
+
+def validate_progress_scope(project_root: Path, progress: dict, *, requirement_ids=(), item_ids=()) -> list[str]:
+    """仅核对指定需求/验收项的证据，同时保留全账本 ID 唯一性检查。"""
+    if not isinstance(progress, dict) or type(progress.get('schema_version')) is not int or progress.get('schema_version') != 1 or not isinstance(progress.get('items'), list):
+        return ['progress: 无效账本结构']
+    if any(not isinstance(values, (list, tuple)) or not all(isinstance(value, str) and value.strip() for value in values)
+           for values in (requirement_ids, item_ids)):
+        return ['scope: 必须显式提供需求或验收 ID 数组']
+    if not requirement_ids and not item_ids:
+        return ['scope: 范围为空；全项目核验请显式调用 validate_progress']
+    errors = []
+    seen = set()
+    selected = []
+    found_requirements = set()
+    found_items = set()
+    for item in progress['items']:
+        if not isinstance(item, dict) or not isinstance(item.get('id'), str) or not item['id'].strip():
+            errors.append('progress: 验收项缺少有效 ID，无法确定范围')
+            continue
+        if item['id'] in seen:
+            errors.append(f"progress: 重复 ID {item['id']}")
+        seen.add(item['id'])
+        rid = item.get('requirement_id')
+        if rid in requirement_ids or item['id'] in item_ids:
+            selected.append(item)
+            if rid in requirement_ids:
+                found_requirements.add(rid)
+            found_items.add(item['id'])
+    for missing in sorted(set(requirement_ids) - found_requirements):
+        errors.append(f'scope: 未找到需求 {missing}')
+    for missing in sorted(set(item_ids) - found_items):
+        errors.append(f'scope: 未找到验收项 {missing}')
+    if errors:
+        return errors
+    return validate_progress(project_root, {'schema_version': 1, 'items': selected})

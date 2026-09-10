@@ -14,13 +14,15 @@
 - 普通提交核对本次 diff 的相关验证；宣布需求完成或发布时才要求对应范围全部验收通过。所有模式仍须处理覆盖用户文件、暴露凭据、丢失记录等实际问题，不能用“阶段保存”掩盖。
 - 状态含义不变：失败结果保留为失败，阶段提交成功仅说明内容已保存，不表示功能验收通过。
 
+可调用 `scripts/change_scope.py` 的 `select_checks(changed_paths, operation=..., impacts=..., requirement_ids=...)` 返回适用清单和追溯范围。路径只提供线索，调用方必须补充依赖、隐私、订阅等语义影响；结果不是通过结论。
+
 ## 条件加载
 
 0. 后续版本按实际 diff、当前工程与需求检查，不读取或核对初始生成配置；历史生成配置不构成提交或推送门禁。
 1. 始终读取 `references/checklists/core.md`。
 2. diff 涉及 StoreKit、商品、价格、购买、收据、订阅或权益时读取 `references/checklists/subscription.md`，否则整组 `➖`。
 3. diff 涉及事件、曝光、点击、分析 SDK、参数、埋点或遥测时读取 `references/checklists/analytics.md`，否则整组 `➖`。
-4. 当前项目存在活动需求、`.ios-workflow/progress.json` 或本次提交声明 Requirement ID 时读取 `references/checklists/requirement-traceability.md`；无关联需求的维护操作整组 `➖` 并说明原因。
+4. 本次修改关联活动需求、声明 Requirement ID 或改变对应验收行为时读取 `references/checklists/requirement-traceability.md`；无关联需求的维护操作整组 `➖` 并说明原因；账本存在本身不触发全项目核验。
 5. 活动需求需要技术设计，或 diff 涉及架构、公共接口、数据结构、依赖、并发、迁移、隐私安全时读取 `references/checklists/technical-design.md`；否则整组 `➖`。
 6. 首次生成项目，或维护 `scripts/project_generation.py`、分发配置示例和 DesignTokens 生成逻辑时读取 `references/checklists/project-generation.md`；否则整组 `➖`。
 7. diff 涉及源码、测试、工程配置、依赖、生成器或 Requirement 验收行为时读取 `references/checklists/testing.md`；纯文档且不影响执行行为时整组 `➖`。

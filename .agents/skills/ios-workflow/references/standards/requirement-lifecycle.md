@@ -37,7 +37,7 @@
 5. `implementation` 只登记实际存在的项目相对文件路径；测试名、符号和行号等定位写入额外说明。规则或文档类验收可指向实际落实规则的文件，不能为满足字段而虚构源码。
 6. `evidence` 每条记录包含项目相对 `path`、文件实际 `sha256` 及非空 `inputs: [{path, sha256}]`，并提供非空 `environment`、`result`（`passed`/`failed`/`blocked`/`skipped`）和含时区的 ISO 8601 `recorded_at`。`verified` 的所有当前证据必须为 `passed`；历史记录缺字段明确待补证，不自动迁移或猜测。证据文件放在项目 `.ios-workflow/` 下；当前证据的输入集合须覆盖来源文件和全部实现文件，并按影响加入工程文件、依赖锁等内容。记录真实测试范围、结论、环境和未覆盖项；哈希只能由实际文件计算，不能手填示例值或编造成功日志。
 7. 按测试规范检查证据是否适用：源码、依赖或相关环境变化导致原结论失效时，受影响项退回 `implemented` 或 `blocked`，将旧证据移出当前 `evidence` 数组，存入 `archived_evidence` 或历史报告并安排最小复验；纯文档或运行记录变化不使无关测试失效。仅有报告文件及正确哈希不能证明业务正确，仍要审阅报告与验收的对应关系。
-8. 完成、交接和相关 review 前，由客户端读取项目 `.ios-workflow/progress.json`，调用 `scripts/progress_validation.py` 的 `validate_progress(project_root, progress)` 检查账本结构、路径、证据及登记输入的完整性；返回非空错误列表时处理相关错误，不报告校验通过。此接口只做结构核验，不代替业务验收，也不会自动把项目或功能标记完成。
+8. 完成、交接和相关 review 前，由客户端读取项目 `.ios-workflow/progress.json`，调用 `scripts/progress_validation.py` 的 `validate_progress_scope(project_root, progress, requirement_ids=[...], item_ids=[...])` 检查本次相关条目的路径、证据及登记输入，并保留全账本 ID 唯一性检查；仅显式全项目健康检查调用 `validate_progress(project_root, progress)`；返回非空错误列表时处理相关错误，不报告校验通过。此接口只做结构核验，不代替业务验收，也不会自动把项目或功能标记完成。
 
 ## 执行与恢复
 
