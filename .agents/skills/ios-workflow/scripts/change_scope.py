@@ -33,6 +33,8 @@ def select_checks(changed_paths, *, operation='commit', impacts=(), requirement_
     tests_affected = bool(suffixes & {'.swift', '.m', '.mm', '.h', '.py', '.plist', '.entitlements', '.xcconfig', '.pbxproj', '.yml', '.yaml', '.xcprivacy'})
     if suffixes & {'.entitlements', '.xcprivacy'}:
         effects.add('privacy')
+    if '.entitlements' in suffixes:
+        effects.add('release')
     if operation == 'release':
         effects.add('release')
     checks = ['core.md']

@@ -32,6 +32,13 @@ class ChangeScopeTests(unittest.TestCase):
         self.assertIn('references/checklists/project-generation.md', result['checks'])
         self.assertIn('dependencies', result['impacts'])
 
+    def test_entitlement_change_also_loads_release_checks(self):
+        result = select_checks(['App/Puzzle.entitlements'])
+        self.assertIn('references/checklists/release-distribution.md', result['checks'])
+        self.assertIn('privacy', result['impacts'])
+        self.assertIn('release', result['impacts'])
+        self.assertFalse(result['completion_required'])
+
     def test_health_is_explicit_and_bad_inputs_rejected(self):
         self.assertEqual(select_checks([], operation='health')['progress_scope'], 'all')
         for kwargs in ({'changed_paths': ['../secret']}, {'changed_paths': [], 'impacts': ['guess']}, {'changed_paths': [], 'operation': 'unknown'}):
