@@ -4,40 +4,26 @@
 
 ## 推荐目录结构
 
+工作流只提供 iOS 规则、模板和脚本。业务项目拥有自己的需求、状态和证据，跨设备时随项目同步。
+
 ```text
-<工作目录>/
-├── AGENTS.md
-├── .agents/
-│   └── skills/
-│       └── ios-workflow/
-│           ├── SKILL.md
-│           ├── agents/
-│           ├── references/
-│           │   ├── standards/
-│           │   └── checklists/
-│           ├── assets/
-│           │   ├── config/
-│           │   └── templates/
-│           └── scripts/
-├── MyProject/
-├── .ios-workflow/
-│   ├── index.jsonc            活动需求索引
-│   ├── requirements/          单个需求档案
-│   ├── projects/              各项目的需求执行顺序
-│   └── tests/                 跨会话测试计划与报告
-├── tests/                      Skill 与生成器测试
-├── docs/
-├── README.md
-├── CHANGELOG.md
-└── LICENSE
+<业务项目根目录>/
+├── App/                         实际 iOS 源码与工程
+├── .agents/skills/ios-workflow/  接入的工作流规则，不写运行记录
+└── .ios-workflow/
+    ├── sources/                 需求原文副本、来源与版本
+    ├── generation/              首次生成配置，后续不核对
+    ├── requirements/            需求档案、方案与变更
+    ├── index.jsonc              当前活动摘要
+    ├── history.jsonc            项目执行历史
+    ├── progress.json            验收项与证据映射
+    ├── handoff.md               跨设备交接
+    ├── tests/                   计划及报告
+    ├── evidence/                可同步的轻量证据
+    └── artifacts/               日志、构建等大型产物，Git 忽略
 ```
 
-- `<工作目录>/AGENTS.md`：Codex 自动读取的精简、永久项目规则。
-- `<工作目录>/.agents/skills/ios-workflow/`：Codex 自动发现并按需加载的 iOS 工作流 Skill。
-- `<工作目录>/MyProject/`：团队成员自己的业务项目和 Git 仓库。
-- `<工作目录>/.ios-workflow/`：工作流自定义的隐藏需求台账目录，按项目保存索引、执行顺序、状态和提交记录，由工作流按需创建；它不是 Codex 官方 Skill 结构的一部分。
-
-`<工作目录>` 只是路径占位符，可以是团队成员已有的任意目录，不要求命名为 `Workspace`。
+首次生成时先在目标项目内建立 `.ios-workflow/`；`allow_project_records=True` 允许生成器保留该目录，仍拒绝覆盖已有业务文件。如工作流集中安装在另一目录，运行记录也只写业务项目。规则仓库里的历史记录保留为旧版只读资料，不在其中继续登记业务项目进度。
 
 ## 接入方法
 
@@ -65,7 +51,7 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`。该文件包含�
 维护者可在发布前本地生成并检查分发包：
 
 ```bash
-python3 scripts/build_distribution.py --version 6.0.0 --output dist
+python3 scripts/build_distribution.py --version 6.1.0 --output dist
 ```
 
 ## 按任务加载，减少 Token
@@ -88,19 +74,16 @@ python3 scripts/build_distribution.py --version 6.0.0 --output dist
 
 组合任务加载对应规则的并集。不要为了“可能有用”预读其他文件；命令成功时仅保留摘要，失败时仅保留相关日志。当前 diff、配置和依赖未变化时，可以复用本任务已经成功的安装、构建、测试和静态检查证据。
 
-## 首次生成项目配置
+## 从需求文档开始
 
-工作流不设置默认配置。解压发布包后，最外层直接提供 `project.example.jsonc` 和 `PROJECT_CONFIGURATION.md`，团队成员无需进入 Skill 目录寻找。
+你可以直接说：“按这份需求文档创建 iOS 项目，并支持跨设备继续开发。”不要求文档使用固定格式；客户端读取 Markdown、文本、PDF、Word 或表格，提取业务需求和 iOS 约束。无法读取的内容明确列为缺失。
 
-1. 复制最外层示例，按项目需求修改，保存为自己的配置文件。
-2. 将配置路径交给生成器，首次生成工程；配置缺项或非法时明确报错，不自动补值。
-3. 生成完成后以实际工程为准，配置可以归档或删除。后续版本不再读取、核对或同步生成配置。
+1. 记录文档来源和版本，逐项判断与通用规则或工具能力的差异。项目明确需求优先于示例和通用建议；内部矛盾或不可实现的要求单独处理，不静默改需求。
+2. 客户端根据明确需求和项目技术决定产出完整配置，保存在业务项目 `.ios-workflow/generation/`。发布包最外层 `project.example.jsonc` 仅作结构参考，不要求用户先填表，也不自动补入示例值。
+3. 建立需求及验收追踪，再生成工程。首次配置只用于生成，后续开发依据实际工程及当前需求，不重新核对初始配置。
+4. 每个验收项保存来源、实现、测试和证据。编写代码不等于验证通过；缺失证据标记待验证，不推断完成。
 
-已有项目接入不需要生成配置。仓库中的 [配置示例](distribution/project.example.jsonc) 和 [字段说明](distribution/PROJECT_CONFIGURATION.md) 位于 `distribution/`，打包时放到最外层。详见 [首次生成规范](.agents/skills/ios-workflow/references/standards/project-configuration.md)。
-
-新生成手写代码的注释规则见 [`code-generation.md`](.agents/skills/ios-workflow/references/standards/code-generation.md)。系统方法、继承方法、生命周期和代理/数据源回调不生成解释性注释，也不生成文件元数据或模板化职责标签。
-
-三方库规则见 [`dependencies.md`](.agents/skills/ios-workflow/references/standards/dependencies.md)。直接依赖必须使用唯一精确版本；新项目、依赖版本变化和编译前按当前依赖管理方式安装或解析依赖。
+详见 [需求导入规范](.agents/skills/ios-workflow/references/standards/requirement-intake.md)、[首次配置规范](.agents/skills/ios-workflow/references/standards/project-configuration.md) 和 [NimbleFive 对照示例](docs/configuration-samples/nimblefive/README.md)。本仓库修改和测试工作流，不因此开发该 App。
 
 ## 规则与检查文件
 
@@ -146,30 +129,28 @@ python3 scripts/build_distribution.py --version 6.0.0 --output dist
 提交并推送当前修改。
 ```
 
-第一条适合已有项目功能开发；第二条用于明确覆盖默认选项；第三条会自动执行提交和推送门禁。
+第一条适合已有项目功能开发；第二条用于明确项目技术选型；第三条会自动执行提交和推送门禁。
 
-新建项目时 Codex 调用内部生成器，先由客户端提取需求并保存独立配置实例，生成器读取并校验实例，再创建源码、本地化、测试、隐私清单和 XcodeGen 配置；完整配置不会先进入模型上下文。团队成员仍然只需使用自然语言，不需要直接运行 Python 或工作流命令。若配置非法、目标目录非空、XcodeGen 或依赖工具缺失，流程会停止并说明原因，不会继续编译。
+新建项目时 Codex 调用内部生成器，先由客户端提取需求并保存独立配置实例，生成器读取并校验实例，再创建源码、本地化、测试、隐私清单和 XcodeGen 配置；完整配置不会先进入模型上下文。团队成员仍然只需使用自然语言，不需要直接运行 Python 或工作流命令。若配置非法、目标目录已有业务文件、XcodeGen 或依赖工具缺失，流程会停止并说明原因，不会继续编译。
 
 测试任务会先把 Requirement 验收项映射到单元、集成、UI 或专项验证，再选择最小充分的设备和系统矩阵。低风险结果可记录在需求档案；跨模块、高风险或跨会话任务使用 `.ios-workflow/tests/` 中的计划和报告。环境阻塞、真实失败和 flaky test 会分别报告，不会通过无限重试或跳过测试制造通过结果。
 
 发布任务按“预检 → Release 验证 → Archive 与校验 → 导出或上传 → TestFlight → App Store 审核与发布 → 监控和止损”推进。上传成功、构建处理完成、可供测试、审核通过和用户可用分别记录；证书、私钥和 API Key 不进入仓库或日志。没有明确外部动作授权时，工作流停在本地准备或报告阶段。
 
-收到目标明确的低风险任务后，Codex 直接在上下文中整理精简需求卡和 inline brief；范围不清、需要留档或触发完整设计时才加载对应规范。只有关键信息会改变方案或验收结果时才询问，不会为了填写模板重复追问；除非用户要求，否则不会在业务仓库创建需求文档。
+收到目标明确的低风险任务后，Codex 直接在上下文中整理精简需求卡和 inline brief；范围不清、需要留档或触发完整设计时才加载对应规范。只有关键信息会改变方案或验收结果时才询问；文档执行或跨设备任务会在业务项目内保留需求追踪，普通低风险维护不强制建档。
 
-## 需求执行与恢复
+## 需求执行与跨设备恢复
 
-只有用户明确要求留档，或任务跨会话、跨模块、多阶段、高风险、需要共享追踪时，Codex 才在工作目录的 `.ios-workflow/` 中创建索引和单文件需求档案；低风险、可在单轮完成的改动只在当前上下文保留精简需求卡，开始执行本身不会触发建档。需求首次开始执行时取得不可变的项目顺序号，并写入 `.ios-workflow/projects/<项目>/history.jsonc`；完成、阻塞或取消都保留原顺序。步骤使用 `STEP-NNN`，同一阶段内连续步骤合并记录，不保存完整命令、日志或 diff。
+执行整份需求文档或跨设备任务必须在业务项目内建档；普通低风险单轮维护仍可用上下文需求卡。需求分解成稳定验收项，区分待实现、实现中、已实现、已验证、阻塞、延期和取消；仅当前范围全部验收成立后才可标记需求完成。
 
-活动索引只保存一个完整恢复摘要和最后使用的 Requirement ID，不再随历史增长。用户说“继续上次需求”时，Codex 先读取索引，摘要足够即可继续；只有范围、步骤、设计或历史信息不足时才按章节读取需求档案。需求完成或取消后从活动索引移除，历史仍保留在项目台账和需求档案中。
+跨设备时同步业务项目 Git 中的源码、需求、进度、交接及轻量证据。切换前保存当前步骤、下一动作、阻塞、受测输入和环境。新设备核对远端/分支/HEAD、工作区、文件和哈希后恢复；未推送、未同步、冲突、丢失证据或环境不可用均明确报告，不猜测旧对话内容。
 
-需求在验收、必要测试和文档同步完成后即可标记 `done`。Git 提交正文中的 `Requirement` 和 `Steps` 是权威关联，提交与推送状态从 Git 日志、上游和远端引用实时判断；不会为了把当前提交 hash 或推送状态写回档案而制造额外提交。
+`progress_validation.py` 只读检查验收项的路径、文件和证据哈希。结构验证不证明业务正确，也不保证永不产生 AI 错误；它帮助发现缺失、过期或错误引用的证据，实际验收仍必须运行或人工执行。
 
-用户询问“这个项目执行过哪些需求”时，Codex 只读取对应项目台账，按 `sequence` 输出需求顺序和状态，不加载全部需求正文；需要提交信息时再从 Git 日志按 Requirement ID 查询。
+用户授权的 Git 提交/推送用于同步；仅本地完成不等于其他设备已可继续。大型日志和构建产物存项目内 `artifacts/` 并忽略，需要另行共享或重新验证。不要忽略整个 `.ios-workflow/`，不要用另一台设备的绝对路径充当可用证据。
 
 ## 技术方案与架构设计
 
 需求分析完成后，Codex 在编码前选择设计等级：纯维护可标记 `not_required`；单模块低风险改动，以及不改变公共契约的简单新增页面或内部模块使用 `brief`；跨模块、公共接口、数据结构、依赖、并发、迁移、隐私安全或订阅支付变化使用 `full` 模板。“新增模块”本身不自动升级为完整设计。
 
 设计状态只有 `pending`、`approved`、`not_required`。只有设计通过或明确不需要设计时才能进入实现。影响长期维护的关键选择使用 ADR，普通实现细节不建 ADR；实现偏离已确认设计时，先更新方案和执行步骤。
-
-`.ios-workflow/` 是工作目录中的隐藏运行状态，不属于可更新的 `.agents/skills/ios-workflow/` 官方 Skill 目录。是否纳入版本控制由团队自行决定；本示例仓库选择跟踪该目录，以便共享需求、项目顺序和测试证据，接入其他工作目录时可按团队策略忽略。需要查看时可在 Finder 中按 `Command + Shift + .` 显示隐藏文件。

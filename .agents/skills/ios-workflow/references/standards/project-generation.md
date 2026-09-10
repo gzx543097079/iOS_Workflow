@@ -5,7 +5,7 @@
 ## 生成顺序
 
 1. 先按 `project-configuration.md` 保存需求对应的项目实例，再向 `scripts/project_generation.py` 传入 `instance_path`；生成器通过 `load_project_instance` 读取并校验实例，调用方不把完整配置输出到模型上下文；字段、版本、Bundle ID、本地化或技术组合非法时，在写入项目文件前停止。
-2. 目标目录必须不存在或为空，不覆盖已有项目。项目名转换为合法标识符，产品模块名与系统框架隔离。
+2. 默认目标目录必须不存在或为空；`allow_project_records=True` 允许目录仅含普通 `.ios-workflow/` 及接入元数据（`.agents/`、`AGENTS.md`、`.git`、`.gitignore`），以容纳文档和首次生成输入。两种模式都不覆盖已有业务代码，不允许记录目录通过符号链接写到项目外。项目名转换为合法标识符，产品模块名与系统框架隔离。
 3. 按语言、UI、架构、导航、外观、本地化策略、测试、签名和设备配置生成源码与 `project.yml`。
 4. 生成 Swift 或 Objective-C DesignTokens；注释只在生成阶段按 `comment_level` 写入。
 5. 通过 XcodeGen 生成唯一 `.xcodeproj`，不手工拼接 `project.pbxproj`。工具缺失或生成失败时停止并保留已生成文件供排查。

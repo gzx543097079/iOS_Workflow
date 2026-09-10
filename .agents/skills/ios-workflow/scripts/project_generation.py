@@ -648,15 +648,34 @@ def _strings_literal(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r")
 
 
-def generate_project(instance_path: Path, output: Path) -> List[Path]:
-    """在空目录生成项目骨架，返回生成文件列表。"""
+def generate_project(instance_path: Path, output: Path, *, allow_project_records: bool = False) -> List[Path]:
+    """生成骨架；显式允许项目内已有需求记录，但绝不覆盖业务文件。"""
     instance = load_project_instance(instance_path)
     project_name = instance["project_name"]
     config = instance["config"]
     tokens = instance["design_tokens"]
     name = _swift_name(project_name)
-    if output.exists() and any(output.iterdir()):
-        raise FileExistsError(f"输出目录必须为空: {output}")
+    skill_root = Path(__file__).resolve().parents[1]
+    if output.resolve() == skill_root or skill_root in output.resolve().parents:
+        raise ConfigurationError("业务项目不能生成在 Skill 目录内")
+    if output.exists():
+        entries = list(output.iterdir())
+        # 首次生成前可能已经接入 Skill 或通过 Git 同步需求记录。
+        # 生成文件不会使用这些保留名称，所有业务文件仍然拒绝覆盖。
+        def is_setup_metadata(path: Path) -> bool:
+            if path.is_symlink():
+                return False
+            if path.name in (".ios-workflow", ".agents"):
+                return path.is_dir()
+            if path.name in ("AGENTS.md", ".gitignore"):
+                return path.is_file()
+            if path.name == ".git":
+                return path.is_dir() or path.is_file()
+            return False
+
+        records_only = allow_project_records and all(is_setup_metadata(path) for path in entries)
+        if entries and not records_only:
+            raise FileExistsError(f"输出目录必须为空或仅包含显式允许的项目记录: {output}")
     output.mkdir(parents=True, exist_ok=True)
     manual_appearance = config["supports_manual_dark_mode_switch"]
     sources = _swiftui_sources(name, config["comment_level"], config["architecture"], config["navigation_enabled"], manual_appearance) if config["ui"] == "swiftui" else (_swift_uikit_sources(name, config["comment_level"], config["architecture"], config["navigation_enabled"], manual_appearance) if config["language"] == "swift" else _objc_sources(config["objc_class_prefix"], config["comment_level"], config["architecture"], config["navigation_enabled"], manual_appearance))
@@ -731,10 +750,12 @@ def install_dependencies(project_dir: Path, manager: str, project: Path) -> str:
     return f"{manager} 依赖准备完成"
 
 
-def materialize_project(instance_path: Path, output: Path) -> Dict[str, Any]:
+def materialize_project(instance_path: Path, output: Path, *, allow_project_records: bool = False) -> Dict[str, Any]:
     """完成项目文件、Xcode 工程及依赖准备，返回可用于后续编译的摘要。"""
     config = load_project_instance(instance_path)["config"]
-    files = generate_project(instance_path, output)
+    if not config["generate_xcodeproj"] and config["dependency_manager"] != "none":
+        raise ConfigurationError("关闭 generate_xcodeproj 时不能自动准备依赖")
+    files = generate_project(instance_path, output, allow_project_records=allow_project_records)
     if not config["generate_xcodeproj"]:
         if config["dependency_manager"] != "none":
             raise ConfigurationError("关闭 generate_xcodeproj 时不能自动准备依赖")

@@ -1,6 +1,6 @@
 # 配置示例
 
-首次生成项目时，复制同层 `project.example.jsonc` 后按项目需求修改。它不是默认配置，生成器不会自动加载它，也不会补全缺失字段。
+首次生成项目时，客户端根据需求文档与明确的项目选型，以同层 `project.example.jsonc` 为结构参考生成完整输入；团队也可以手工复制修改。它不是默认配置，生成器不会自动加载它，也不会补全缺失字段。
 
 | 字段 | 接入时填写 |
 | --- | --- |
@@ -29,3 +29,5 @@
 完整接入与生成方式见 `.agents/skills/ios-workflow/references/standards/project-configuration.md`（发布包内）。示例内的语言、配色、组织名和工具选择都不代表对业务项目的要求。
 
 配置仅首次生成使用。生成完成后无需保留在项目中，后续开发、测试和发布不读取、不核对或同步它。
+
+文档导入的输入保存到业务项目 `.ios-workflow/generation/`。执行记录和日志同样属于该项目，禁止保存在 Skill 或公共工作流目录。生成器的 `allow_project_records=True` 模式只允许目标已有 `.ios-workflow/` 和普通 Git/Skill 接入元数据。

@@ -100,3 +100,77 @@ class ProjectInstanceTests(unittest.TestCase):
         result = materialize_project(path, self.root / 'Output')
         self.assertIsNone(result['project'])
         self.assertFalse((self.root / 'Output/Podfile').exists())
+
+    def test_document_records_and_config_can_precede_generation_inside_project(self):
+        project = self.root / 'NimbleFive'
+        config_path = project / '.ios-workflow/generation/project.jsonc'
+        save_project_instance(config_path, load_project_instance(self.example))
+        source = project / '.ios-workflow/sources/requirements.md'
+        source.parent.mkdir()
+        source.write_text('SwiftUI / iOS 16 / iPhone / portrait')
+        before = {p.relative_to(project): p.read_bytes() for p in project.rglob('*') if p.is_file()}
+        with self.assertRaises(FileExistsError):
+            generate_project(config_path, project)
+        generate_project(config_path, project, allow_project_records=True)
+        for path, data in before.items():
+            self.assertEqual((project / path).read_bytes(), data)
+        self.assertTrue((project / 'project.yml').exists())
+        self.assertFalse((project / 'workflow.json').exists())
+        self.assertFalse((self.root / '.ios-workflow').exists())
+
+    def test_record_mode_does_not_overwrite_existing_business_files(self):
+        project = self.root / 'Existing'
+        config_path = project / '.ios-workflow/generation/project.jsonc'
+        save_project_instance(config_path, self.create())
+        original = project / 'App.swift'
+        original.write_text('existing business code')
+        with self.assertRaises(FileExistsError):
+            generate_project(config_path, project, allow_project_records=True)
+        self.assertEqual(original.read_text(), 'existing business code')
+
+    def test_record_directory_cannot_be_a_symlink(self):
+        project = self.root / 'Project'
+        project.mkdir()
+        outside = self.root / 'Outside'
+        outside.mkdir()
+        (project / '.ios-workflow').symlink_to(outside, target_is_directory=True)
+        with self.assertRaises(FileExistsError):
+            generate_project(self.example, project, allow_project_records=True)
+        self.assertEqual(list(outside.iterdir()), [])
+
+    def test_materialize_with_project_records_and_preflight_error(self):
+        project = self.root / 'Project'
+        config_path = project / '.ios-workflow/generation/project.jsonc'
+        save_project_instance(config_path, self.create({'generate_xcodeproj': False}))
+        with self.assertRaises(ConfigurationError):
+            materialize_project(config_path, project, allow_project_records=True)
+        self.assertEqual([p.name for p in project.iterdir()], ['.ios-workflow'])
+        config_path.unlink()
+        save_project_instance(config_path, self.create({'generate_xcodeproj': False, 'dependency_manager': 'none'}))
+        result = materialize_project(config_path, project, allow_project_records=True)
+        self.assertIsNone(result['project'])
+        self.assertTrue((project / 'project.yml').exists())
+
+    def test_cannot_generate_business_project_inside_skill(self):
+        with self.assertRaises(ConfigurationError):
+            generate_project(self.example, SKILL / 'ForbiddenBusinessApp', allow_project_records=True)
+        self.assertFalse((SKILL / 'ForbiddenBusinessApp').exists())
+
+    def test_generation_preserves_initial_git_and_skill_setup(self):
+        project = self.root / 'Project'
+        config_path = project / '.ios-workflow/generation/project.jsonc'
+        save_project_instance(config_path, self.create())
+        setup_files = {
+            '.git/HEAD': 'ref: refs/heads/main',
+            '.agents/skills/ios-workflow/SKILL.md': 'installed skill',
+            'AGENTS.md': 'project rules',
+            '.gitignore': '.ios-workflow/artifacts/',
+        }
+        for relative, content in setup_files.items():
+            path = project / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content)
+        generate_project(config_path, project, allow_project_records=True)
+        for relative, content in setup_files.items():
+            self.assertEqual((project / relative).read_text(), content)
+        self.assertTrue((project / 'project.yml').exists())

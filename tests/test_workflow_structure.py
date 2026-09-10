@@ -19,11 +19,32 @@ class WorkflowStructureTests(unittest.TestCase):
     def test_runtime_records_use_hidden_workflow_directory(self):
         skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
         lifecycle = (SKILL_ROOT / "references/standards/requirement-lifecycle.md").read_text(encoding="utf-8")
-        self.assertTrue((ROOT / ".ios-workflow/index.jsonc").is_file())
         self.assertFalse((ROOT / "iOSFlowRecords").exists())
         self.assertFalse((ROOT / ".iOSFlowRecords").exists())
-        self.assertIn("<工作目录>/.ios-workflow/index.jsonc", skill)
+        self.assertIn("<项目根目录>/.ios-workflow/index.jsonc", skill)
         self.assertIn("本工作流约定，不属于 Codex 官方 Skill 结构", lifecycle)
+
+    def test_document_intake_and_project_local_handoff_are_routed(self):
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        intake = (SKILL_ROOT / "references/standards/requirement-intake.md").read_text(encoding="utf-8")
+        lifecycle = (SKILL_ROOT / "references/standards/requirement-lifecycle.md").read_text(encoding="utf-8")
+        self.assertIn("references/standards/requirement-intake.md", skill)
+        self.assertIn("生成器不解析自然语言", intake)
+        self.assertIn("示例是结构参考，不是默认值", intake)
+        self.assertIn("不写入 Skill", lifecycle)
+        self.assertIn("progress_validation.py", lifecycle)
+        self.assertIn("仅在当前设备保存文件无法保证跨设备不丢进度", lifecycle)
+        self.assertIn("不读取、不核对初始生成配置", lifecycle)
+
+    def test_portable_tracking_templates_do_not_point_to_shared_project_groups(self):
+        index = json.loads((SKILL_ROOT / "assets/templates/tracking/index.jsonc").read_text())
+        progress = json.loads((SKILL_ROOT / "assets/templates/tracking/progress.json").read_text())
+        handoff = (SKILL_ROOT / "assets/templates/tracking/handoff.md").read_text()
+        self.assertEqual(index["active_requirement"]["project"], ".")
+        self.assertTrue(index["active_requirement"]["file"].startswith(".ios-workflow/requirements/"))
+        self.assertEqual(progress, {"schema_version": 1, "items": []})
+        self.assertIn("未核实", handoff)
+        self.assertIn("未提交或未推送", handoff)
 
     def test_testing_route_references_existing_files(self):
         skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")

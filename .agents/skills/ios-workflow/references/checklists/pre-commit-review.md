@@ -14,7 +14,7 @@
 1. 始终读取 `references/checklists/core.md`。
 2. diff 涉及 StoreKit、商品、价格、购买、收据、订阅或权益时读取 `references/checklists/subscription.md`，否则整组 `➖`。
 3. diff 涉及事件、曝光、点击、分析 SDK、参数、埋点或遥测时读取 `references/checklists/analytics.md`，否则整组 `➖`。
-4. 当前项目存在活动需求或本次提交声明 Requirement ID 时读取 `references/checklists/requirement-traceability.md`；无关联需求的维护操作整组 `➖` 并说明原因。
+4. 当前项目存在活动需求、`.ios-workflow/progress.json` 或本次提交声明 Requirement ID 时读取 `references/checklists/requirement-traceability.md`；无关联需求的维护操作整组 `➖` 并说明原因。
 5. 活动需求需要技术设计，或 diff 涉及架构、公共接口、数据结构、依赖、并发、迁移、隐私安全时读取 `references/checklists/technical-design.md`；否则整组 `➖`。
 6. 首次生成项目，或维护 `scripts/project_generation.py`、分发配置示例和 DesignTokens 生成逻辑时读取 `references/checklists/project-generation.md`；否则整组 `➖`。
 7. diff 涉及源码、测试、工程配置、依赖、生成器或 Requirement 验收行为时读取 `references/checklists/testing.md`；纯文档且不影响执行行为时整组 `➖`。
@@ -28,3 +28,5 @@
 - 通过后，提交正文加入 `Checklist`；仅推送时在结果中报告且不改写提交。
 - 提交后立即推送且证据键未变，只报告复用的提交 hash 和增量检查结果。不得为了回写本次提交 hash、推送或 tag 状态再创建记录提交。
 - Checklist 不替代构建、测试或 review。
+
+跨设备交接时核对项目内需求、进度和轻量证据随业务代码同步，确认 Git 忽略规则没有排除必要记录；没有推送授权时只完成本地记录并说明待同步，不声称其他设备已可恢复。

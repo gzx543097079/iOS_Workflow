@@ -1,10 +1,10 @@
 {
   "version": 3,
-  "last_requirement_id": "REQ-YYYYMMDD-NNN",
+  "last_requirement_id": "REQ-YYYYMMDD-NNN-xxxxxxxx",
   "active_requirement": {
-    "id": "REQ-YYYYMMDD-NNN",
-    "project": "项目相对路径",
-    "file": "requirements/项目/REQ-YYYYMMDD-NNN.md",
+    "id": "REQ-YYYYMMDD-NNN-xxxxxxxx",
+    "project": ".",
+    "file": ".ios-workflow/requirements/REQ-YYYYMMDD-NNN-xxxxxxxx.md",
     "title": "需求标题",
     "status": "in_progress",
     "current_step": "STEP-001",
@@ -13,6 +13,7 @@
     "evidence_key": "无",
     "scope_version": 1,
     "branch": "",
+    "observed_head": "",
     "updated_at": "YYYY-MM-DD HH:mm +0800"
   }
 }

@@ -4,11 +4,11 @@
 
 ## 使用步骤
 
-1. 团队成员解压发布包，在最外层复制 `project.example.jsonc` 为自己的配置，例如 `NimbleFive.project.jsonc`。
-2. 按需求修改 `project_name`、完整 `config`、`design_tokens`、`sources` 和 `constraints`。保留示例值属于项目选择，不应声称来自 PRD；脚本不自动加载示例或补值。
-3. 配置放在生成目标目录之外，将其路径明确交给生成器。目标必须不存在或为空，生成器不覆盖已有工程。
-4. `load_project_instance(path)` 校验首次生成输入；缺失、未知字段、非法组合和不支持的版本拒绝生成。`save_project_instance(path, instance)` 可保存新输入文件，但不覆盖已有文件。
-5. 调用 `materialize_project(instance_path, output)` 生成工程并准备依赖；只检查骨架时调用 `generate_project(instance_path, output)`。生成器不将输入配置复制进项目，也不生成 `workflow.json` 或 `.ios-workflow/project.json`。
+1. 客户端按 `requirement-intake.md` 从需求文档提取明确选项，按项目技术方案补齐未指定选项，并记录字段来源；无需用户先手工填写。发布包最外层示例只供结构参考，也可手工复制修改，不自动填入默认值。
+2. 首次生成输入保存到 `<项目根目录>/.ios-workflow/generation/project.jsonc`；需求及追踪记录同样保存在业务项目内，禁止为了生成前留档而写入共享工作目录或 Skill。
+3. `load_project_instance(path)` 校验完整输入；缺失、未知字段、非法组合和不支持的版本拒绝生成。`save_project_instance(path, instance)` 可保存新输入文件，不覆盖已有文件。
+4. 调用 `materialize_project(instance_path, project_root, allow_project_records=True)` 生成工程并准备依赖；仅验证骨架调用同名参数的 `generate_project`。此模式只接受根目录为空或仅含普通 `.ios-workflow/` 及接入元数据（`.agents/`、`AGENTS.md`、`.git`、`.gitignore`），不覆盖已有业务代码；普通空目录调用仍受支持。
+5. 生成器不自动复制输入，不生成 `workflow.json` 或 `.ios-workflow/project.json`；客户端保存的 generation 输入仅首次使用，不成为后续核对依据。
 
 ## 生命周期
 
@@ -20,7 +20,7 @@
 - 不把凭据保存到配置，不将附件文字或配置保存视为开发、上传或发布授权。
 
 ```python
-# 团队成员已经复制并修改发布包最外层示例。
-result = materialize_project(project_config_path, empty_output_directory)
+# 客户端已经根据需求在业务项目内保存配置和需求记录。
+result = materialize_project(project_config_path, project_root, allow_project_records=True)
 # 后续任务直接维护实际工程，不再读取 project_config_path。
 ```
