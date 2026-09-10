@@ -2,60 +2,96 @@
 
 ## 目标
 
-工作流以仓库级 Skill 约束 Codex 的项目生成、编码和 review 行为，不依赖专用 CLI。`AGENTS.md` 保持精简，Skill 通过渐进式加载只读取当前任务需要的规则。
+工作流主要服务 iOS 项目，以一个仓库级 Skill 提供规则、模板和可导入的 Python 辅助接口，不要求团队成员记忆专用 CLI。用户当前要求与业务项目明确约定优先于通用建议；工作过程中的实际需求、进度和证据属于业务项目。
 
-## 部署结构
+## 规则与项目记录
+
+工作流源码及发布素材：
 
 ```text
-<工作目录>/
-├── AGENTS.md                         始终生效的精简项目约束
-├── .agents/
-│   └── skills/
-│       └── ios-workflow/
-│           ├── SKILL.md              Skill 元数据与按任务路由
-│           ├── agents/
-│           │   └── openai.yaml       UI 名称与默认提示
-│           ├── references/
-│           │   ├── standards/        需求、设计、代码、依赖、UI、测试与发布规范
-│           │   └── checklists/       提交、review、发布与专项检查
-│           ├── assets/
-│           │   ├── config/           默认配置与 DesignTokens
-│           │   └── templates/        需求、设计、追踪、测试与发布模板
-│           └── scripts/
-│               └── project_generation.py
-├── MyProject/                        业务项目及其 Git 仓库
-├── .ios-workflow/
-│   ├── index.jsonc                   单个活动需求摘要与最后使用 ID
-│   ├── requirements/                 单个需求档案
-│   ├── projects/                     项目需求执行顺序
-│   └── tests/                        跨会话测试计划与报告
-├── tests/                             Skill 与生成器测试
+iOS_Workflow/
+├── AGENTS.md
+├── .agents/skills/ios-workflow/
+│   ├── SKILL.md                       唯一 Skill 入口与按任务路由
+│   ├── agents/openai.yaml             UI 元数据
+│   ├── references/
+│   │   ├── standards/                通用规范及按任务拆分的追踪规则
+│   │   └── checklists/               提交、review、发布与专项检查
+│   ├── assets/templates/             通用模板，无业务运行状态
+│   └── scripts/                      生成、恢复摘要、证据及检查辅助接口
+├── distribution/
+│   ├── project.example.jsonc         配置结构示例，不是默认配置
+│   ├── PROJECT_CONFIGURATION.md      首次生成字段说明
+│   ├── AGENTS.example.md
+│   └── INSTALL.md
+├── tests/                            工作流、生成器与辅助接口测试
 ├── CHANGELOG.md
-└── docs/adr/                          工作流长期技术决策
+└── docs/                             接入、架构和历史决策说明
 ```
 
-## 加载流程
+每个业务项目独立保存执行状态：
 
-1. Codex 打开工作目录后读取根部 `AGENTS.md`，同时发现 `.agents/skills/ios-workflow/SKILL.md` 的名称和描述；iOS 任务匹配后才加载完整 Skill。
-2. 目标明确的低风险任务直接在上下文形成精简需求卡；范围不清、需要留档、跨模块或高风险时才加载完整需求规范和对应模板。
-3. 无技术决策时直接使用 `not_required`，低风险单模块任务形成 inline brief；边界不明确或触发完整设计时才加载技术设计规范。
-4. 仅在用户明确要求留档，或任务跨会话、跨模块、多阶段、高风险、需要共享追踪时创建运行档案；低风险单轮任务不因开始执行而建档。首次执行时写入项目台账并分配固定顺序号。
-5. 活动索引只保留一个完整恢复摘要和最后使用 ID；摘要足够时无需读取需求档案，信息不足才按章节读取。完成与取消项只保留在项目台账和档案中。
-6. `SKILL.md` 判断任务类型，只加载对应规则；组合任务取规则并集并按文件路径去重，已进入上下文的文件不再读取。
-7. 用户明确选项覆盖默认配置，业务项目自身约定优先于通用工作流。
-8. 普通代码、生成代码、UI、依赖和新项目分别走独立路由；新项目默认只加载生成规范，由内部生成器直接消费配置。只有自定义、故障诊断或后续手写实现时才加载对应代码、UI、依赖和测试规范。
-9. 实现后从 Requirement 验收标准生成最小充分测试范围，按静态检查、编译、单元、集成、UI 和专项验证顺序执行；失败分类处理，flaky 最多确认复跑一次。
-10. Archive、TestFlight 或 App Store 发布任务加载发布分发规范和测试规范，按预检、归档校验、上传处理、测试、审核、发布、监控和止损推进；外部状态变化需要用户当前要求明确授权。
-11. 提交、推送或 review 时加载门禁和通用检查；按 diff 加载技术设计、项目生成、测试、发布分发、订阅、打点和需求追溯模块。
-12. 存在 `❌` 时阻止提交或推送；通过时把 Requirement、Steps 和 Checklist 写入提交正文。Git 交付状态从仓库和远端实时查询，不创建自引用的状态回写提交。
-13. 受测源码、配置、依赖锁、环境和测试选择未变化时复用成功证据；纯文档、运行记录和版本元数据不使证据失效，提交后立即推送只进行远端增量检查。
+```text
+MyProject/
+├── AGENTS.md                         项目自身约定
+├── .agents/skills/ios-workflow/       接入的通用规则，按需安装
+├── App/                              实际源码、工程及依赖
+└── .ios-workflow/
+    ├── sources/                      需求来源或可审阅快照
+    ├── generation/project.jsonc      首次生成输入，后续仅为历史资料
+    ├── index.jsonc                   一个活动需求的紧凑摘要
+    ├── progress.json                 全项目验收状态的唯一机器账本
+    ├── requirements/                 需求档案、方案及阶段记录
+    ├── history.jsonc                 需求首次执行顺序与当前状态
+    ├── handoff.md                    需要交接时保存的恢复入口
+    ├── tests/                        测试计划与精简报告
+    ├── evidence/                     可随 Git 恢复的必要证据
+    └── artifacts/                    可忽略的大型构建产物与原始日志
+```
+
+所有来源、实现与证据引用均相对于所属业务项目根目录。多个项目不共用运行账本；不根据客户端当前工作目录猜测项目归属。`.ios-workflow/` 是项目内约定，不属于官方 Skill 结构。
+
+## 渐进加载
+
+1. `AGENTS.md` 保留精简项目约束。匹配 iOS 任务或明确调用后加载 `SKILL.md`，组合任务按文件路径合并去重规则。
+2. 低风险单轮维护可在上下文形成精简需求卡和 inline brief。执行整份需求文档、跨设备、跨会话、多阶段、跨模块、高风险、共享追踪或明确要求留档时才建立持久记录；执行本身不是建档条件。
+3. 新项目先识别文档来源、授权范围、明确技术选择和能力缺口，再保存完整配置实例并生成工程。示例不提供默认值；后续版本遵循实际工程与当前需求，不核对初始生成配置。
+4. 追踪规则按当前动作直接读取下表模块，不为恢复任务加载完整生命周期。各文件均为普通 reference，不注册成多个 Skill。
+
+| 动作 | 规则文件 |
+| --- | --- |
+| 需要选择追踪模块 | [requirement-lifecycle.md](../.agents/skills/ios-workflow/references/standards/requirement-lifecycle.md) |
+| 建档、分配稳定需求 ID、登记首次执行 | [tracking-start.md](../.agents/skills/ios-workflow/references/standards/tracking-start.md) |
+| 登记验收、核对证据、判定完成 | [tracking-evidence.md](../.agents/skills/ios-workflow/references/standards/tracking-evidence.md) |
+| 执行、继续、阻塞、更新阶段摘要 | [tracking-resume.md](../.agents/skills/ios-workflow/references/standards/tracking-resume.md) |
+| 跨设备、Git 同步或只查执行历史 | [tracking-sync.md](../.agents/skills/ios-workflow/references/standards/tracking-sync.md) |
+
+恢复时先提取活动摘要和相关验收条目，只有不足时才按章节读取当前需求。进入测试步骤后再读取相关报告；只查询执行顺序时读取 `history.jsonc`。普通代码、UI、依赖、项目生成、测试和发布分别按需加载对应规范。
+
+## 辅助接口与事实边界
+
+| 内部模块 | 作用与边界 |
+| --- | --- |
+| `project_generation.py` | 显式读取完整首次配置，生成最小工程；不解析自然语言、不补默认值、不代表业务实现完成。 |
+| `resume_context.py` | 只读索引和账本，分页输出活动摘要与记录状态；截断与省略明确报告，不核验证据内容或宣称完成。 |
+| `progress_validation.py` | 默认按本次相关需求或验收项检查路径、哈希和记录字段，同时保留全账本 ID 唯一性和有效需求关联检查；显式项目健康检查才核验全部账本。 |
+| `evidence_tools.py` | 从实际文件和已知环境生成记录并比较变化；不执行测试、不猜测结果、不提升验收状态。 |
+| `change_scope.py` | 按变更路径和调用方补充的语义影响选择检查模块；路径线索和检查选择不等于通过。 |
+
+`implemented` 表示已有实际实现，`verified` 需要当前适用的成功证据。哈希、摘要或结构检查不能证明业务正确。证据缺失、过期、环境不明或覆盖不足时明确待核验；不由聊天记忆补造结果。
+
+## 验证与 Git
+
+验证从本次需求与 diff 选择最小充分范围，前置失败时停止依赖阶段；flaky 最多额外确认复跑一次。相关源码、配置、依赖、环境和测试选择未变化时可复用成功证据，纯文档或运行记录变化不使无关测试失效。
+
+保存阶段进度、确认需求完成和发布采用各自的检查范围。用户要求阶段保存时可以如实提交未完成、未验证或失败记录；不得把阶段提交当作验收通过。只有授权范围和必需验收全部满足时才标记 `done`，Git 交付不重新激活已完成需求。
+
+业务代码、需求来源、档案、账本、交接和必要的精简证据须能随同一项目 Git 恢复，不能忽略整个 `.ios-workflow/`。大型产物可忽略，但不能把另一设备的绝对路径当作可用证据。同步行为遵守用户当前授权；未提交、未推送、离线或远端未核实时明确可见边界。
+
+提交正文使用 `Requirement`、`Steps` 和相关 Checklist 关联。交付状态从 Git 日志、上游和远端引用实时查询，不为回写当前提交 hash 或推送状态制造额外提交。归档与发布材料可在任务范围内准备，上传、提交审核或开始发布须有对应外部动作授权。
 
 ## 分发边界
 
-版本发布包只包含 `.agents/skills/ios-workflow/`、`AGENTS.md` 示例、版本标记和接入说明。`.ios-workflow/` 属于各业务项目自己的运行状态，不进入分发包。版本 Tag 触发自动测试、压缩包生成、SHA-256 计算和 GitHub Release 创建；业务项目通过普通 Git 提交固定所使用的 Skill 版本。
+版本发布包包含 `.agents/skills/ios-workflow/`，并在 ZIP 最外层提供 `project.example.jsonc`、字段说明、AGENTS 示例、接入说明和版本标记。业务项目记录、工作流测试和仓库 `docs/` 不进入分发包；运行规则不能依赖发布包之外的历史 ADR。
 
-README、`docs/` 和 `CHANGELOG.md` 供接入、维护与追溯使用，不自动进入日常编码上下文。成功命令只输出摘要，失败时保留定位所需的相关日志；Git 验证不重复输出完整提交或 Checklist 正文。
-
-## Git 边界
-
-`.agents/skills/ios-workflow/` 随 Git 仓库提交，可直接在团队间同步。若只把 Skill 安装到另一个业务仓库，复制该目录并在目标仓库的 `AGENTS.md` 中保留必要的项目约束；`.ios-workflow/` 是位于工作目录根部的工作流自定义隐藏状态目录，不属于官方 Skill 目录，是否跟踪由团队决定。
+版本 Tag 触发现有测试、打包、SHA-256 和 GitHub Release 流程。业务项目通过自己的 Git 提交固定接入的 Skill 版本；更新 Skill 不改变项目首次配置或运行状态。README、架构文档和 CHANGELOG 用于接入、维护与追溯，不自动进入日常任务上下文。

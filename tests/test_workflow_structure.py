@@ -28,12 +28,14 @@ class WorkflowStructureTests(unittest.TestCase):
         skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
         intake = (SKILL_ROOT / "references/standards/requirement-intake.md").read_text(encoding="utf-8")
         lifecycle = (SKILL_ROOT / "references/standards/requirement-lifecycle.md").read_text(encoding="utf-8")
+        evidence = (SKILL_ROOT / "references/standards/tracking-evidence.md").read_text(encoding="utf-8")
+        sync = (SKILL_ROOT / "references/standards/tracking-sync.md").read_text(encoding="utf-8")
         self.assertIn("references/standards/requirement-intake.md", skill)
         self.assertIn("生成器不解析自然语言", intake)
         self.assertIn("示例是结构参考，不是默认值", intake)
         self.assertIn("不写入 Skill", lifecycle)
-        self.assertIn("progress_validation.py", lifecycle)
-        self.assertIn("仅在当前设备保存文件无法保证跨设备不丢进度", lifecycle)
+        self.assertIn("progress_validation.py", evidence)
+        self.assertIn("仅在当前设备保存文件无法保证跨设备不丢进度", sync)
         self.assertIn("不读取、不核对初始生成配置", lifecycle)
 
     def test_portable_tracking_templates_do_not_point_to_shared_project_groups(self):
@@ -96,9 +98,9 @@ class WorkflowStructureTests(unittest.TestCase):
 
     def test_low_risk_execution_does_not_require_persistence(self):
         requirements = (SKILL_ROOT / "references/standards/requirements.md").read_text(encoding="utf-8")
-        lifecycle = (SKILL_ROOT / "references/standards/requirement-lifecycle.md").read_text(encoding="utf-8")
+        start = (SKILL_ROOT / "references/standards/tracking-start.md").read_text(encoding="utf-8")
         self.assertIn("执行本身不是建档条件", requirements)
-        self.assertIn("执行本身不是建档条件", lifecycle)
+        self.assertIn("执行本身不是建档条件", start)
 
     def test_compact_index_template_only_tracks_active_requirement(self):
         index = json.loads((SKILL_ROOT / "assets/templates/tracking/index.jsonc").read_text(encoding="utf-8"))
@@ -114,16 +116,18 @@ class WorkflowStructureTests(unittest.TestCase):
         )
 
     def test_resume_prefers_compact_summary(self):
-        lifecycle = (SKILL_ROOT / "references/standards/requirement-lifecycle.md").read_text(encoding="utf-8")
+        resume = (SKILL_ROOT / "references/standards/tracking-resume.md").read_text(encoding="utf-8")
         template = (SKILL_ROOT / "assets/templates/tracking/requirement.md").read_text(encoding="utf-8")
-        self.assertIn("不默认读取完整档案", lifecycle)
+        self.assertIn("不默认读取完整档案", resume)
+        self.assertIn("load_resume_context", resume)
+        self.assertIn("truncated_fields", resume)
         self.assertIn("## 恢复摘要", template)
         self.assertIn("证据键", template)
 
     def test_done_is_independent_from_git_delivery(self):
-        lifecycle = (SKILL_ROOT / "references/standards/requirement-lifecycle.md").read_text(encoding="utf-8")
+        evidence = (SKILL_ROOT / "references/standards/tracking-evidence.md").read_text(encoding="utf-8")
         checklist = (SKILL_ROOT / "references/checklists/requirement-traceability.md").read_text(encoding="utf-8")
-        self.assertIn("`done` 与 Git 提交、推送解耦", lifecycle)
+        self.assertIn("`done` 与 Git 提交、推送解耦", evidence)
         self.assertIn("`done` 不依赖是否已提交或推送", checklist)
 
     def test_simple_new_module_can_use_brief_design(self):
@@ -159,12 +163,23 @@ class WorkflowStructureTests(unittest.TestCase):
         self.assertIn("纯文档、运行记录、版本号", testing)
 
     def test_git_delivery_does_not_create_writeback_commits(self):
-        lifecycle = (SKILL_ROOT / "references/standards/requirement-lifecycle.md").read_text(encoding="utf-8")
+        sync = (SKILL_ROOT / "references/standards/tracking-sync.md").read_text(encoding="utf-8")
         gate = (SKILL_ROOT / "references/checklists/pre-commit-review.md").read_text(encoding="utf-8")
         template = (SKILL_ROOT / "assets/templates/tracking/requirement.md").read_text(encoding="utf-8")
-        self.assertIn("不得仅为写回当前提交 hash", lifecycle)
+        self.assertIn("不得仅为写回当前提交 hash", sync)
         self.assertIn("不得为了回写本次提交 hash", gate)
         self.assertNotIn("delivery_status:", template)
+
+    def test_tracking_entry_links_directly_to_task_specific_references(self):
+        standards = SKILL_ROOT / "references/standards"
+        entry = (standards / "requirement-lifecycle.md").read_text(encoding="utf-8")
+        for name in ("tracking-start.md", "tracking-evidence.md", "tracking-resume.md", "tracking-sync.md"):
+            with self.subTest(name=name):
+                self.assertIn(f"]({name})", entry)
+                self.assertTrue((standards / name).is_file())
+        self.assertIn("不依次加载全部生命周期规则", entry)
+        self.assertNotIn("validate_progress_scope", entry)
+        self.assertNotIn("load_resume_context", entry)
 
 
 if __name__ == "__main__":
