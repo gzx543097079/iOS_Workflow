@@ -284,5 +284,43 @@ class ProgressValidationTests(unittest.TestCase):
                                  for path in self.project.rglob("*") if path.is_file()})
 
 
+class ScopedMetadataValidationTests(unittest.TestCase):
+    def setUp(self):
+        self.fixture = ProgressValidationTests()
+        self.fixture.setUp()
+        self.addCleanup(self.fixture.doCleanups)
+
+    def test_invalid_requirement_mapping_cannot_hide_failed_verified_item(self):
+        from progress_validation import validate_progress_scope
+
+        for value in (None, "", " \t", [], {}, 42):
+            for scope in ({"requirement_ids": ["REQ-001"]}, {"item_ids": ["REQ-001-AC-001"]}):
+                with self.subTest(value=value, scope=scope):
+                    progress = copy.deepcopy(self.fixture.progress)
+                    item = copy.deepcopy(progress["items"][0])
+                    item["id"] = "REQ-001-AC-002"
+                    item["evidence"][0]["result"] = "failed"
+                    if value is None:
+                        del item["requirement_id"]
+                    else:
+                        item["requirement_id"] = value
+                    progress["items"].append(item)
+                    errors = validate_progress_scope(self.fixture.project, progress, **scope)
+                    self.assertTrue(any("REQ-001-AC-002" in error and "requirement_id" in error
+                                        and "无法确定范围" in error for error in errors))
+
+    def test_known_unrelated_requirement_does_not_read_historical_evidence(self):
+        from progress_validation import validate_progress_scope
+
+        progress = copy.deepcopy(self.fixture.progress)
+        historical = copy.deepcopy(progress["items"][0])
+        historical["id"] = "OLD-AC-001"
+        historical["requirement_id"] = "OLD"
+        historical["evidence"][0]["path"] = ".ios-workflow/evidence/missing.txt"
+        historical["evidence"][0]["result"] = "failed"
+        progress["items"].append(historical)
+        self.assertEqual([], validate_progress_scope(self.fixture.project, progress, requirement_ids=["REQ-001"]))
+
+
 if __name__ == "__main__":
     unittest.main()

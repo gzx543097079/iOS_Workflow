@@ -223,7 +223,7 @@ def validate_progress(project_root: Path, progress: dict) -> list[str]:
 
 
 def validate_progress_scope(project_root: Path, progress: dict, *, requirement_ids=(), item_ids=()) -> list[str]:
-    """仅核对指定需求/验收项的证据，同时保留全账本 ID 唯一性检查。"""
+    """仅核对指定范围证据，同时检查全账本 ID 唯一性及有效的需求关联。"""
     if not isinstance(progress, dict) or type(progress.get('schema_version')) is not int or progress.get('schema_version') != 1 or not isinstance(progress.get('items'), list):
         return ['progress: 无效账本结构']
     if any(not isinstance(values, (list, tuple)) or not all(isinstance(value, str) and value.strip() for value in values)
@@ -244,6 +244,9 @@ def validate_progress_scope(project_root: Path, progress: dict, *, requirement_i
             errors.append(f"progress: 重复 ID {item['id']}")
         seen.add(item['id'])
         rid = item.get('requirement_id')
+        if not isinstance(rid, str) or not rid.strip():
+            errors.append(f"progress: 验收项 {item['id']} 缺少有效 requirement_id，无法确定范围")
+            continue
         if rid in requirement_ids or item['id'] in item_ids:
             selected.append(item)
             if rid in requirement_ids:
