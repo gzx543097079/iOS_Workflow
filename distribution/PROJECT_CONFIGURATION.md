@@ -9,7 +9,8 @@
 | `config.architecture` | `mvvm` 或 `mvc` |
 | `config.dependency_manager` | `pod`、`spm`、`carthage` 或 `none` |
 | `config.bundle_id` / `bundle_id_prefix` | 完整 Bundle ID；完整值为空时项目明确选择由前缀与名称组合 |
-| `config.deployment_target` / `swift_version` | 最低 iOS 版本、Swift 语言版本 |
+| `config.deployment_target` | 最低 iOS 版本，例如 `16.0` |
+| `config.swift_version` | 生成器支持的 Swift 语言模式：字符串 `5` 或 `6`，写入 `SWIFT_VERSION`；`5.10` 是工具链版本，不是合法语言模式 |
 | `config.marketing_version` / `build_number` | 产品版本和构建号 |
 | `config.target_devices` | `iphone`、`ipad` 的非空数组 |
 | `config.supported_orientations` | `portrait`、`portrait_upside_down`、`landscape_left`、`landscape_right`；空数组表示选择平台方向行为 |
@@ -25,6 +26,8 @@
 | `sources` / `constraints` | 字段来源与业务约束；示例标记应改成项目的实际决定 |
 
 其余布尔字段按项目是否需要导航、警告视为错误、隐私清单、Xcode 工程生成等能力填写。所有字段都应保留，不能以删除字段表示禁用。
+
+Xcode/Swift 编译工具链版本在实际构建证据的环境中记录，须支持所选语言模式。此字段修正只作用于首次生成输入，不读取或迁移已有项目的历史生成配置。
 
 完整接入与生成方式见 `.agents/skills/ios-workflow/references/standards/project-configuration.md`（发布包内）。示例内的语言、配色、组织名和工具选择都不代表对业务项目的要求。
 

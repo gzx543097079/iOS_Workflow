@@ -181,6 +181,7 @@ def _diagnose_config(config: Any) -> List[str]:
         "architecture": ("mvvm", "mvc"), "dependency_manager": ("pod", "spm", "carthage", "none"),
         "default_language_mode": ("system", "fixed"), "test_framework": ("xctest",),
         "strict_concurrency": ("minimal", "targeted", "complete"), "code_sign_style": ("automatic", "manual"),
+        "swift_version": ("5", "6"),
     }
     for key, allowed in choices.items():
         if key in config and (not isinstance(config[key], str) or config[key] not in allowed):
@@ -189,7 +190,6 @@ def _diagnose_config(config: Any) -> List[str]:
         errors.append("config.language / config.ui：Objective-C 项目不支持 SwiftUI，请选择 UIKit 或 Swift")
     patterns = {
         "deployment_target": (r"[0-9]+\.[0-9]+", "major.minor 字符串"),
-        "swift_version": (r"[0-9]+\.[0-9]+", "major.minor 字符串"),
         "marketing_version": (r"[0-9]+(?:\.[0-9]+){1,2}", "数字版本字符串"),
         "build_number": (r"[0-9]+", "正整数字符串"),
         "objc_class_prefix": (r"[A-Z]{2,3}", "2–3 个大写字母"),

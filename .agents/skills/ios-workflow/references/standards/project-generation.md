@@ -14,6 +14,7 @@
 ## 支持范围
 
 - 支持 Swift + UIKit、Swift + SwiftUI、Objective-C + UIKit；Objective-C + SwiftUI 必须提前拒绝。
+- `swift_version` 表示语言模式，当前骨架支持字符串 `5` 或 `6`，直接写入 `SWIFT_VERSION`；不得传入 `5.10` 等工具链版本。编译前确认实际 Xcode/Swift 支持所选模式，并在验证环境中记录工具链版本。
 - `system` 跟随系统本地化；`fixed` 从 `default_localization` 对应资源读取，资源缺失时安全回退系统语言。
 - `localization_strings` 中每个用户可见文案键必须覆盖 `supported_localizations` 的全部语言；生成器按配置写入对应 `.lproj/Localizable.strings`，缺少译文时在写文件前拒绝生成。
 - 本地化标识使用 `en`、`zh-Hans`、`pt-BR` 等连字符形式，拒绝路径和大小写重复项。生成前检查全部输出路径；写入以项目目录为边界，拒绝符号链接重定向并只创建新文件，遇到并发产生的已有文件也不覆盖。
