@@ -7,10 +7,11 @@ VALID_IMPACTS = {'ui', 'dependencies', 'architecture', 'storage', 'concurrency',
                  'privacy', 'subscription', 'analytics', 'release', 'generation'}
 INTEGRITY_CHECKS = frozenset({'scope', 'privacy', 'user_files', 'records'})
 VALIDATION_RESULTS = frozenset({'passed', 'failed', 'unknown', 'blocked', 'skipped', 'not_required'})
+RELEASE_TARGETS = frozenset({'ios_app', 'workflow'})
 
 
-def select_checks(changed_paths, *, operation='commit', impacts=(), requirement_ids=()):
-    """返回需加载的清单与追溯范围。impacts 由 diff 语义判断，路径仅补充线索。"""
+def select_checks(changed_paths, *, operation='commit', impacts=(), requirement_ids=(), release_target=None):
+    """返回适用清单；发布对象由实际任务显式指定，不根据 CHANGELOG 等路径猜测。"""
     if operation not in VALID_OPERATIONS:
         raise ValueError('operation 必须为 commit/checkpoint/push/review/release/health')
     if not isinstance(changed_paths, (list, tuple)) or not all(isinstance(p, str) and p for p in changed_paths):
@@ -25,6 +26,8 @@ def select_checks(changed_paths, *, operation='commit', impacts=(), requirement_
         raise ValueError('impacts 包含不支持的语义影响')
     if not isinstance(requirement_ids, (list, tuple)) or not all(isinstance(i, str) and i.strip() for i in requirement_ids):
         raise ValueError('requirement_ids 必须为明确的需求 ID 数组')
+    if release_target is not None and (not isinstance(release_target, str) or release_target not in RELEASE_TARGETS):
+        raise ValueError('release_target 必须为 ios_app/workflow')
     effects = set(impacts)
     suffixes = {p.suffix.lower() for p in paths}
     names = {p.name for p in paths}
@@ -39,25 +42,35 @@ def select_checks(changed_paths, *, operation='commit', impacts=(), requirement_
         effects.add('release')
     if operation == 'release':
         effects.add('release')
+    if 'release' in effects and release_target is None:
+        raise ValueError('发布检查必须按实际任务显式指定 release_target=ios_app/workflow')
+    workflow_release = 'release' in effects and release_target == 'workflow'
     checks = ['core.md']
-    if effects & {'architecture', 'storage', 'concurrency', 'dependencies', 'privacy'}:
-        checks.append('technical-design.md')
-    if 'generation' in effects:
-        checks.append('project-generation.md')
-    if tests_affected or effects:
-        checks.append('testing.md')
-    for effect, check in [('subscription', 'subscription.md'), ('analytics', 'analytics.md'), ('release', 'release-distribution.md')]:
-        if effect in effects:
-            checks.append(check)
+    if workflow_release:
+        if 'generation' in effects:
+            checks.append('project-generation.md')
+        checks.append('workflow-release.md')
+    else:
+        if effects & {'architecture', 'storage', 'concurrency', 'dependencies', 'privacy'}:
+            checks.append('technical-design.md')
+        if 'generation' in effects:
+            checks.append('project-generation.md')
+        if tests_affected or effects:
+            checks.append('testing.md')
+        for effect, check in [('subscription', 'subscription.md'), ('analytics', 'analytics.md'), ('release', 'release-distribution.md')]:
+            if effect in effects:
+                checks.append(check)
     ids = list(dict.fromkeys(requirement_ids))
-    if ids or operation == 'health':
+    if not workflow_release and (ids or operation == 'health'):
         checks.append('requirement-traceability.md')
     return {
         'checks': [CHECKS + check for check in checks],
         'requirements': ids,
-        'progress_scope': 'all' if operation == 'health' else ('selected' if ids else 'none'),
-        'completion_required': operation == 'release',
-        'validation_required': 'testing.md' in checks,
+        'progress_scope': 'none' if workflow_release else ('all' if operation == 'health' else ('selected' if ids else 'none')),
+        'completion_required': operation == 'release' and release_target == 'ios_app',
+        'validation_required': bool(tests_affected or effects),
+        'release_result_required': operation == 'release' and workflow_release,
+        'release_target': release_target,
         'operation': operation,
         'impacts': sorted(effects),
         'note': '检查选择不是通过结论；调用方须补充路径无法判断的语义影响，纯推送可按相同证据键复用。',
@@ -65,7 +78,8 @@ def select_checks(changed_paths, *, operation='commit', impacts=(), requirement_
 
 
 def assess_gate(changed_paths, *, integrity, operation='commit', impacts=(), requirement_ids=(),
-                validation_result='unknown', completion_result='unknown'):
+                validation_result='unknown', completion_result='unknown', release_target=None,
+                release_result='unknown'):
     """Evaluate declared checks for this operation without executing or promoting anything.
 
     The caller records observed ``scope``, ``privacy``, ``user_files`` and
@@ -73,10 +87,12 @@ def assess_gate(changed_paths, *, integrity, operation='commit', impacts=(), req
     files or infer their truth. A checkpoint may preserve failed or unknown
     validation, including its separately authorized synchronization; ordinary
     delivery still requires relevant validation. Passing this gate grants no
-    Git or release authorization and never changes acceptance status.
+    Git or release authorization and never changes acceptance status. App
+    release uses ``completion_result`` for its authorized acceptance scope;
+    workflow release uses ``release_result`` for observed package readiness.
     """
     selection = select_checks(changed_paths, operation=operation, impacts=impacts,
-                              requirement_ids=requirement_ids)
+                              requirement_ids=requirement_ids, release_target=release_target)
     if not isinstance(integrity, dict) or set(integrity) != INTEGRITY_CHECKS:
         raise ValueError('integrity 必须显式提供 scope/privacy/user_files/records 检查')
     if not all(isinstance(value, str) and value in {'passed', 'failed', 'unknown'}
@@ -86,6 +102,8 @@ def assess_gate(changed_paths, *, integrity, operation='commit', impacts=(), req
         raise ValueError('validation_result 必须是明确的验证状态')
     if not isinstance(completion_result, str) or completion_result not in {'passed', 'failed', 'unknown'}:
         raise ValueError('completion_result 必须为 passed/failed/unknown')
+    if not isinstance(release_result, str) or release_result not in {'passed', 'failed', 'unknown'}:
+        raise ValueError('release_result 必须为 passed/failed/unknown')
 
     blockers = [f'integrity.{name}:{integrity[name]}' for name in sorted(INTEGRITY_CHECKS)
                 if integrity[name] != 'passed']
@@ -97,6 +115,8 @@ def assess_gate(changed_paths, *, integrity, operation='commit', impacts=(), req
             blockers.append(f'validation:{validation_result}')
     if selection['completion_required'] and completion_result != 'passed':
         blockers.append(f'completion:{completion_result}')
+    if selection['release_result_required'] and release_result != 'passed':
+        blockers.append(f'release:{release_result}')
     if completion_result == 'passed' and validation_required and validation_result != 'passed':
         blockers.append('completion:successful_validation_missing')
 
@@ -107,6 +127,7 @@ def assess_gate(changed_paths, *, integrity, operation='commit', impacts=(), req
         'validation_result': validation_result,
         'validation_passed': validation_result == 'passed',
         'completion_result': completion_result,
+        'release_result': release_result,
         'blocking_reasons': blockers,
         'note': '仅按调用方已核实的检查结果判断本次门禁；不执行操作、不授予权限、不提升验收状态。',
     }

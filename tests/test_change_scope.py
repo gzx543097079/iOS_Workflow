@@ -34,7 +34,7 @@ class ChangeScopeTests(unittest.TestCase):
         self.assertIn('dependencies', result['impacts'])
 
     def test_entitlement_change_also_loads_release_checks(self):
-        result = select_checks(['App/Puzzle.entitlements'])
+        result = select_checks(['App/Puzzle.entitlements'], release_target='ios_app')
         self.assertIn('references/checklists/release-distribution.md', result['checks'])
         self.assertIn('privacy', result['impacts'])
         self.assertIn('release', result['impacts'])
@@ -52,6 +52,8 @@ class CheckpointGateTests(unittest.TestCase):
         self.integrity = dict.fromkeys(('scope', 'privacy', 'user_files', 'records'), 'passed')
 
     def assess(self, **kwargs):
+        if kwargs.get('operation') == 'release':
+            kwargs.setdefault('release_target', 'ios_app')
         return assess_gate(['App/Feature.swift'], integrity=self.integrity, **kwargs)
 
     def test_actual_failed_check_can_be_saved_without_becoming_successful(self):
@@ -116,6 +118,73 @@ class CheckpointGateTests(unittest.TestCase):
                        {'completion_result': []}):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                 assess_gate(['App/Feature.swift'], **{'integrity': before, **kwargs})
+
+
+class ReleaseTargetTests(unittest.TestCase):
+    def setUp(self):
+        self.integrity = dict.fromkeys(('scope', 'privacy', 'user_files', 'records'), 'passed')
+
+    def test_release_target_is_explicit_and_cannot_be_inferred_from_changelog(self):
+        for target in (None, 'guess', [], True):
+            with self.subTest(target=target), self.assertRaises(ValueError):
+                select_checks(['CHANGELOG.md'], operation='release', release_target=target)
+        for paths, impacts in ((['App/Puzzle.entitlements'], ()), (['pipeline.yml'], ['release'])):
+            with self.subTest(paths=paths), self.assertRaises(ValueError):
+                select_checks(paths, impacts=impacts)
+        self.assertIsNone(select_checks(['CHANGELOG.md'])['release_target'])
+
+    def test_workflow_release_uses_package_checks_without_app_acceptance(self):
+        result = select_checks(['CHANGELOG.md'], operation='release', release_target='workflow',
+                               requirement_ids=['workflow-task'])
+        self.assertEqual(['references/checklists/core.md', 'references/checklists/workflow-release.md'], result['checks'])
+        self.assertFalse(result['completion_required'])
+        self.assertEqual('none', result['progress_scope'])
+        self.assertTrue(result['release_result_required'])
+        self.assertTrue(result['validation_required'])
+        self.assertEqual(['workflow-task'], result['requirements'])
+
+    def test_app_release_keeps_app_checks_even_for_the_same_changelog_path(self):
+        result = select_checks(['CHANGELOG.md'], operation='release', release_target='ios_app',
+                               requirement_ids=['APP-REQ'])
+        self.assertIn('references/checklists/release-distribution.md', result['checks'])
+        self.assertIn('references/checklists/testing.md', result['checks'])
+        self.assertIn('references/checklists/requirement-traceability.md', result['checks'])
+        self.assertNotIn('references/checklists/workflow-release.md', result['checks'])
+        self.assertTrue(result['completion_required'])
+        self.assertFalse(result['release_result_required'])
+        self.assertEqual('selected', result['progress_scope'])
+
+    def test_workflow_generator_changes_keep_generation_checks(self):
+        result = select_checks(['.agents/skills/ios-workflow/scripts/project_generation.py'],
+                               operation='release', release_target='workflow')
+        self.assertIn('references/checklists/project-generation.md', result['checks'])
+        self.assertIn('references/checklists/workflow-release.md', result['checks'])
+        self.assertNotIn('references/checklists/testing.md', result['checks'])
+
+    def test_workflow_gate_requires_validation_and_package_readiness_not_business_completion(self):
+        arguments = {'integrity': self.integrity, 'operation': 'release', 'release_target': 'workflow'}
+        ready = assess_gate(['CHANGELOG.md'], **arguments, validation_result='passed', release_result='passed')
+        self.assertTrue(ready['gate_passed'])
+        self.assertEqual('unknown', ready['completion_result'])
+        for status in ('failed', 'unknown'):
+            with self.subTest(status=status):
+                self.assertFalse(assess_gate(['CHANGELOG.md'], **arguments, validation_result='passed',
+                                             release_result=status)['gate_passed'])
+                self.assertFalse(assess_gate(['CHANGELOG.md'], **arguments, validation_result=status,
+                                             release_result='passed')['gate_passed'])
+
+    def test_package_readiness_cannot_replace_app_acceptance(self):
+        result = assess_gate(['CHANGELOG.md'], integrity=self.integrity, operation='release',
+                             release_target='ios_app', validation_result='passed', release_result='passed')
+        self.assertFalse(result['gate_passed'])
+        self.assertIn('completion:unknown', result['blocking_reasons'])
+
+    def test_workflow_automation_commit_does_not_require_a_future_published_tag(self):
+        result = assess_gate(['.github/workflows/release.yml'], integrity=self.integrity,
+                             impacts=['release'], release_target='workflow', validation_result='passed')
+        self.assertTrue(result['gate_passed'])
+        self.assertFalse(result['release_result_required'])
+        self.assertEqual('unknown', result['release_result'])
 
 
 class ScopedProgressTests(unittest.TestCase):

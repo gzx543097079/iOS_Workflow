@@ -107,7 +107,7 @@ python3 scripts/build_distribution.py --version 6.2.0 --output dist
 - [`CHANGELOG.md`](CHANGELOG.md)：工作流规则的集中变更历史。
 - [`build_distribution.py`](scripts/build_distribution.py)：生成不含项目运行记录的团队分发压缩包与 SHA-256 校验文件。
 
-修改规则时同步更新 `CHANGELOG.md`，通过 review 后再发布新版本。
+修改规则时同步更新 `CHANGELOG.md`，通过 review 后再发布新版本。工作流 ZIP 使用[工作流发布清单](.agents/skills/ios-workflow/references/checklists/workflow-release.md)；业务 App 使用发布分发规范。客户端按实际仓库和任务明确发布对象，不从 CHANGELOG 文件名猜测，也不要求工作流包提供 App Store 或签名资料。
 
 ## 示例项目
 
