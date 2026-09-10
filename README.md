@@ -87,6 +87,8 @@ python3 scripts/build_distribution.py --version 6.3.1 --output dist
 
 详见 [需求导入规范](.agents/skills/ios-workflow/references/standards/requirement-intake.md)、[首次配置规范](.agents/skills/ios-workflow/references/standards/project-configuration.md) 和 [NimbleFive 对照示例](docs/configuration-samples/nimblefive/README.md)。本仓库修改和测试工作流，不因此开发该 App。
 
+已有工程接入、工程结构或依赖变化、构建环境不明时，按[已有工程维护](.agents/skills/ios-workflow/references/standards/existing-project.md)确认持续维护的定义和实际入口。XcodeGen 项目维护当前 `project.yml`；Tuist、SwiftPM 和手工 Xcode 工程沿用原有方式。普通方法修改不额外加载此模块，首次生成配置仍不参与迭代。
+
 ## 规则与检查文件
 
 - [`requirements.md`](.agents/skills/ios-workflow/references/standards/requirements.md)：编码前的目标、范围、验收标准、影响和完成定义。

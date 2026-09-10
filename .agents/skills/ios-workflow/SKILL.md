@@ -38,6 +38,7 @@ description: "规划、生成、实现、测试、审查和交付 iOS 项目，�
 | 当前任务 | 读取与处理 |
 | --- | --- |
 | 首次生成项目 | [首次配置](references/standards/project-configuration.md)和[项目生成](references/standards/project-generation.md)。生成器读取已保存实例并校验，不输出完整配置到上下文；自定义、故障诊断或手写实现再合并相关规则 |
+| 已有工程接入、工程结构或依赖变更、构建环境不明 | [已有工程维护](references/standards/existing-project.md)，按实际工程确认入口和持续维护的定义；普通方法修改不额外加载 |
 | 业务修改、重构、修复 | 基础规则；新增手写代码再读[代码生成](references/standards/code-generation.md) |
 | UI | 基础规则、[UI](references/standards/ui-style.md)和项目当前设计系统；新增代码再读生成规范 |
 | 依赖或编译 | [依赖](references/standards/dependencies.md)，修改源码再合并代码规则 |

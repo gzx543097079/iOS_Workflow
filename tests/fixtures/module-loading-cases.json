@@ -26,7 +26,8 @@
         "references/standards/code-swift.md",
         "references/standards/testing.md",
         "assets/templates/requirements/*",
-        "assets/templates/tracking/*"
+        "assets/templates/tracking/*",
+        "references/standards/existing-project.md"
       ],
       "forbidden_modules": [
         "references/standards/project-configuration.md",
@@ -52,7 +53,8 @@
       "forbidden_modules": [
         "references/standards/project-configuration.md",
         "references/standards/project-generation.md",
-        "references/standards/tracking-start.md"
+        "references/standards/tracking-start.md",
+        "references/standards/existing-project.md"
       ],
       "max_reads_per_module": 1
     },
