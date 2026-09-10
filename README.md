@@ -74,6 +74,8 @@ python3 scripts/build_distribution.py --version 6.2.0 --output dist
 
 组合任务加载对应规则的并集。不要为了“可能有用”预读其他文件；命令成功时仅保留摘要，失败时仅保留相关日志。当前 diff、配置和依赖未变化时，可以复用本任务已经成功的安装、构建、测试和静态检查证据。
 
+维护者可用[模块加载与 Token 评测](docs/module-loading-evaluation.md)导入真实工具事件，或显式运行单个只读探针，检查多余加载、重复读取和实际用量。九个场景的期望与运行结果分开保存；无法观察的操作标为无法判定。该工具不进入日常 Skill 路由，不在普通测试中启动模型，也不把会话总用量当作本 Skill 的节省比例。
+
 ## 从需求文档开始
 
 你可以直接说：“按这份需求文档创建 iOS 项目，并支持跨设备继续开发。”不要求文档使用固定格式；客户端读取 Markdown、文本、PDF、Word 或表格，提取业务需求和 iOS 约束。无法读取的内容明确列为缺失。
@@ -104,6 +106,7 @@ python3 scripts/build_distribution.py --version 6.2.0 --output dist
 - [`project_generation.py`](.agents/skills/ios-workflow/scripts/project_generation.py)：Codex 内部调用的配置校验、项目骨架、DesignTokens、XcodeGen 和依赖准备模块，不提供面向团队成员的 CLI。
 - [`test_project_generation.py`](tests/test_project_generation.py)：覆盖支持组合、失败场景和工程生成的自动化测试。
 - [`skill-trigger-cases.json`](tests/fixtures/skill-trigger-cases.json)：覆盖应触发、不应触发、显式调用、跨平台边界及中英文提示的 Skill 前向评测语料。
+- [`evaluate_module_loading.py`](scripts/evaluate_module_loading.py)：维护者按真实事件核对模块加载及 Token；[场景断言](tests/fixtures/module-loading-cases.json)不代表已完成真实运行。
 - [`CHANGELOG.md`](CHANGELOG.md)：工作流规则的集中变更历史。
 - [`build_distribution.py`](scripts/build_distribution.py)：生成不含项目运行记录的团队分发压缩包与 SHA-256 校验文件。
 

@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "purpose": "维护用只读前向评测；expected 是断言，只有导入或采集真实工具事件后才有 actual，不代表完整开发交付。",
+  "cases": [
+    {
+      "id": "existing-app-iteration",
+      "prompt": "这是已有 iOS UIKit 工程，请按 Requirements-v1.1.md 迭代当前版本。先做需求导入阶段的规则加载和必要只读核对，保持既有工程，不创建项目。",
+      "files": {
+        "README.md": "既有 iOS UIKit 工程，当前 v1.0，本轮根据新版本 PRD 迭代，保持实际工程和架构。\n",
+        "App/AppDelegate.swift": "import UIKit\n@main final class AppDelegate: UIResponder, UIApplicationDelegate { var window: UIWindow? }\n",
+        "App/Counter.swift": "struct Counter { var value = 0; mutating func increment() { value += 1 } }\n",
+        "Requirements-v1.1.md": "# v1.1 需求\n现有计数应用增加 reset 操作，回到0。保留 UIKit、Swift 和现有工程结构。验收：递增后 reset 得到0。无需新建工程。\n",
+        "project.yml": "name: ExistingApp\noptions:\n  deploymentTarget:\n    iOS: \"16.0\"\ntargets:\n  ExistingApp:\n    type: application\n    platform: iOS\n    sources: [App]\n    settings:\n      GENERATE_INFOPLIST_FILE: YES\n      PRODUCT_BUNDLE_IDENTIFIER: com.example.existing\n",
+        "ExistingApp.xcodeproj/project.pbxproj": "// !$*UTF8*$!\n{\n\tarchiveVersion = 1;\n\tclasses = {\n\t};\n\tobjectVersion = 77;\n\tobjects = {\n\n/* Begin PBXBuildFile section */\n\t\tC1AFA40BEC76E98CBAB45B36 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D810730530E79AEBB925CD /* AppDelegate.swift */; };\n\t\tD98C2787B046D0136A8123D4 /* Counter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFFF29FFD39CAA2CDC13908A /* Counter.swift */; };\n/* End PBXBuildFile section */\n\n/* Begin PBXFileReference section */\n\t\t19D36919A8E23BBE73607901 /* ExistingApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ExistingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };\n\t\t68D810730530E79AEBB925CD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = \"<group>\"; };\n\t\tCFFF29FFD39CAA2CDC13908A /* Counter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Counter.swift; sourceTree = \"<group>\"; };\n/* End PBXFileReference section */\n\n/* Begin PBXGroup section */\n\t\t56BAA0751C0E07F8356BA08E /* Products */ = {\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\t19D36919A8E23BBE73607901 /* ExistingApp.app */,\n\t\t\t);\n\t\t\tname = Products;\n\t\t\tsourceTree = \"<group>\";\n\t\t};\n\t\t9753C5A1F7CACB5130FAFBBA = {\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\tB241FE123E01FDF26C3A1217 /* App */,\n\t\t\t\t56BAA0751C0E07F8356BA08E /* Products */,\n\t\t\t);\n\t\t\tsourceTree = \"<group>\";\n\t\t};\n\t\tB241FE123E01FDF26C3A1217 /* App */ = {\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\t68D810730530E79AEBB925CD /* AppDelegate.swift */,\n\t\t\t\tCFFF29FFD39CAA2CDC13908A /* Counter.swift */,\n\t\t\t);\n\t\t\tpath = App;\n\t\t\tsourceTree = \"<group>\";\n\t\t};\n/* End PBXGroup section */\n\n/* Begin PBXNativeTarget section */\n\t\tD530F79EB556549CD791A001 /* ExistingApp */ = {\n\t\t\tisa = PBXNativeTarget;\n\t\t\tbuildConfigurationList = DC92BCA881AAD3184C7BAFC1 /* Build configuration list for PBXNativeTarget \"ExistingApp\" */;\n\t\t\tbuildPhases = (\n\t\t\t\t316F8A0D712463E41AF14EBD /* Sources */,\n\t\t\t);\n\t\t\tbuildRules = (\n\t\t\t);\n\t\t\tdependencies = (\n\t\t\t);\n\t\t\tname = ExistingApp;\n\t\t\tpackageProductDependencies = (\n\t\t\t);\n\t\t\tproductName = ExistingApp;\n\t\t\tproductReference = 19D36919A8E23BBE73607901 /* ExistingApp.app */;\n\t\t\tproductType = \"com.apple.product-type.application\";\n\t\t};\n/* End PBXNativeTarget section */\n\n/* Begin PBXProject section */\n\t\t9DC4B05BE52A95D1BFB456E9 /* Project object */ = {\n\t\t\tisa = PBXProject;\n\t\t\tattributes = {\n\t\t\t\tBuildIndependentTargetsInParallel = YES;\n\t\t\t\tLastUpgradeCheck = 1430;\n\t\t\t\tTargetAttributes = {\n\t\t\t\t};\n\t\t\t};\n\t\t\tbuildConfigurationList = 04A7011446D3781A661FBA66 /* Build configuration list for PBXProject \"ExistingApp\" */;\n\t\t\tdevelopmentRegion = en;\n\t\t\thasScannedForEncodings = 0;\n\t\t\tknownRegions = (\n\t\t\t\tBase,\n\t\t\t\ten,\n\t\t\t);\n\t\t\tmainGroup = 9753C5A1F7CACB5130FAFBBA;\n\t\t\tminimizedProjectReferenceProxies = 1;\n\t\t\tpreferredProjectObjectVersion = 77;\n\t\t\tproductRefGroup = 56BAA0751C0E07F8356BA08E /* Products */;\n\t\t\tprojectDirPath = \"\";\n\t\t\tprojectRoot = \"\";\n\t\t\ttargets = (\n\t\t\t\tD530F79EB556549CD791A001 /* ExistingApp */,\n\t\t\t);\n\t\t};\n/* End PBXProject section */\n\n/* Begin PBXSourcesBuildPhase section */\n\t\t316F8A0D712463E41AF14EBD /* Sources */ = {\n\t\t\tisa = PBXSourcesBuildPhase;\n\t\t\tbuildActionMask = 2147483647;\n\t\t\tfiles = (\n\t\t\t\tC1AFA40BEC76E98CBAB45B36 /* AppDelegate.swift in Sources */,\n\t\t\t\tD98C2787B046D0136A8123D4 /* Counter.swift in Sources */,\n\t\t\t);\n\t\t\trunOnlyForDeploymentPostprocessing = 0;\n\t\t};\n/* End PBXSourcesBuildPhase section */\n\n/* Begin XCBuildConfiguration section */\n\t\t6FFA8DAB8A6FACBD99C4499C /* Debug */ = {\n\t\t\tisa = XCBuildConfiguration;\n\t\t\tbuildSettings = {\n\t\t\t\tALWAYS_SEARCH_USER_PATHS = NO;\n\t\t\t\tCLANG_ANALYZER_NONNULL = YES;\n\t\t\t\tCLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;\n\t\t\t\tCLANG_CXX_LANGUAGE_STANDARD = \"gnu++14\";\n\t\t\t\tCLANG_CXX_LIBRARY = \"libc++\";\n\t\t\t\tCLANG_ENABLE_MODULES = YES;\n\t\t\t\tCLANG_ENABLE_OBJC_ARC = YES;\n\t\t\t\tCLANG_ENABLE_OBJC_WEAK = YES;\n\t\t\t\tCLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;\n\t\t\t\tCLANG_WARN_BOOL_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_COMMA = YES;\n\t\t\t\tCLANG_WARN_CONSTANT_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;\n\t\t\t\tCLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;\n\t\t\t\tCLANG_WARN_DOCUMENTATION_COMMENTS = YES;\n\t\t\t\tCLANG_WARN_EMPTY_BODY = YES;\n\t\t\t\tCLANG_WARN_ENUM_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_INFINITE_RECURSION = YES;\n\t\t\t\tCLANG_WARN_INT_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;\n\t\t\t\tCLANG_WARN_OBJC_LITERAL_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;\n\t\t\t\tCLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;\n\t\t\t\tCLANG_WARN_RANGE_LOOP_ANALYSIS = YES;\n\t\t\t\tCLANG_WARN_STRICT_PROTOTYPES = YES;\n\t\t\t\tCLANG_WARN_SUSPICIOUS_MOVE = YES;\n\t\t\t\tCLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;\n\t\t\t\tCLANG_WARN_UNREACHABLE_CODE = YES;\n\t\t\t\tCLANG_WARN__DUPLICATE_METHOD_MATCH = YES;\n\t\t\t\tCOPY_PHASE_STRIP = NO;\n\t\t\t\tDEBUG_INFORMATION_FORMAT = dwarf;\n\t\t\t\tENABLE_STRICT_OBJC_MSGSEND = YES;\n\t\t\t\tENABLE_TESTABILITY = YES;\n\t\t\t\tGCC_C_LANGUAGE_STANDARD = gnu11;\n\t\t\t\tGCC_DYNAMIC_NO_PIC = NO;\n\t\t\t\tGCC_NO_COMMON_BLOCKS = YES;\n\t\t\t\tGCC_OPTIMIZATION_LEVEL = 0;\n\t\t\t\tGCC_PREPROCESSOR_DEFINITIONS = (\n\t\t\t\t\t\"$(inherited)\",\n\t\t\t\t\t\"DEBUG=1\",\n\t\t\t\t);\n\t\t\t\tGCC_WARN_64_TO_32_BIT_CONVERSION = YES;\n\t\t\t\tGCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;\n\t\t\t\tGCC_WARN_UNDECLARED_SELECTOR = YES;\n\t\t\t\tGCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;\n\t\t\t\tGCC_WARN_UNUSED_FUNCTION = YES;\n\t\t\t\tGCC_WARN_UNUSED_VARIABLE = YES;\n\t\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 16.0;\n\t\t\t\tMTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;\n\t\t\t\tMTL_FAST_MATH = YES;\n\t\t\t\tONLY_ACTIVE_ARCH = YES;\n\t\t\t\tPRODUCT_NAME = \"$(TARGET_NAME)\";\n\t\t\t\tSDKROOT = iphoneos;\n\t\t\t\tSWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;\n\t\t\t\tSWIFT_OPTIMIZATION_LEVEL = \"-Onone\";\n\t\t\t\tSWIFT_VERSION = 5.0;\n\t\t\t};\n\t\t\tname = Debug;\n\t\t};\n\t\t790198722335701C03B80C28 /* Debug */ = {\n\t\t\tisa = XCBuildConfiguration;\n\t\t\tbuildSettings = {\n\t\t\t\tASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;\n\t\t\t\tCODE_SIGN_IDENTITY = \"iPhone Developer\";\n\t\t\t\tGENERATE_INFOPLIST_FILE = YES;\n\t\t\t\tLD_RUNPATH_SEARCH_PATHS = (\n\t\t\t\t\t\"$(inherited)\",\n\t\t\t\t\t\"@executable_path/Frameworks\",\n\t\t\t\t);\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.example.existing;\n\t\t\t\tSDKROOT = iphoneos;\n\t\t\t\tTARGETED_DEVICE_FAMILY = \"1,2\";\n\t\t\t};\n\t\t\tname = Debug;\n\t\t};\n\t\t7B792CB3E75CCF752369FB0F /* Release */ = {\n\t\t\tisa = XCBuildConfiguration;\n\t\t\tbuildSettings = {\n\t\t\t\tASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;\n\t\t\t\tCODE_SIGN_IDENTITY = \"iPhone Developer\";\n\t\t\t\tGENERATE_INFOPLIST_FILE = YES;\n\t\t\t\tLD_RUNPATH_SEARCH_PATHS = (\n\t\t\t\t\t\"$(inherited)\",\n\t\t\t\t\t\"@executable_path/Frameworks\",\n\t\t\t\t);\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.example.existing;\n\t\t\t\tSDKROOT = iphoneos;\n\t\t\t\tTARGETED_DEVICE_FAMILY = \"1,2\";\n\t\t\t};\n\t\t\tname = Release;\n\t\t};\n\t\t9DF371A2787DB5F87C662455 /* Release */ = {\n\t\t\tisa = XCBuildConfiguration;\n\t\t\tbuildSettings = {\n\t\t\t\tALWAYS_SEARCH_USER_PATHS = NO;\n\t\t\t\tCLANG_ANALYZER_NONNULL = YES;\n\t\t\t\tCLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;\n\t\t\t\tCLANG_CXX_LANGUAGE_STANDARD = \"gnu++14\";\n\t\t\t\tCLANG_CXX_LIBRARY = \"libc++\";\n\t\t\t\tCLANG_ENABLE_MODULES = YES;\n\t\t\t\tCLANG_ENABLE_OBJC_ARC = YES;\n\t\t\t\tCLANG_ENABLE_OBJC_WEAK = YES;\n\t\t\t\tCLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;\n\t\t\t\tCLANG_WARN_BOOL_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_COMMA = YES;\n\t\t\t\tCLANG_WARN_CONSTANT_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;\n\t\t\t\tCLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;\n\t\t\t\tCLANG_WARN_DOCUMENTATION_COMMENTS = YES;\n\t\t\t\tCLANG_WARN_EMPTY_BODY = YES;\n\t\t\t\tCLANG_WARN_ENUM_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_INFINITE_RECURSION = YES;\n\t\t\t\tCLANG_WARN_INT_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;\n\t\t\t\tCLANG_WARN_OBJC_LITERAL_CONVERSION = YES;\n\t\t\t\tCLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;\n\t\t\t\tCLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;\n\t\t\t\tCLANG_WARN_RANGE_LOOP_ANALYSIS = YES;\n\t\t\t\tCLANG_WARN_STRICT_PROTOTYPES = YES;\n\t\t\t\tCLANG_WARN_SUSPICIOUS_MOVE = YES;\n\t\t\t\tCLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;\n\t\t\t\tCLANG_WARN_UNREACHABLE_CODE = YES;\n\t\t\t\tCLANG_WARN__DUPLICATE_METHOD_MATCH = YES;\n\t\t\t\tCOPY_PHASE_STRIP = NO;\n\t\t\t\tDEBUG_INFORMATION_FORMAT = \"dwarf-with-dsym\";\n\t\t\t\tENABLE_NS_ASSERTIONS = NO;\n\t\t\t\tENABLE_STRICT_OBJC_MSGSEND = YES;\n\t\t\t\tGCC_C_LANGUAGE_STANDARD = gnu11;\n\t\t\t\tGCC_NO_COMMON_BLOCKS = YES;\n\t\t\t\tGCC_WARN_64_TO_32_BIT_CONVERSION = YES;\n\t\t\t\tGCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;\n\t\t\t\tGCC_WARN_UNDECLARED_SELECTOR = YES;\n\t\t\t\tGCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;\n\t\t\t\tGCC_WARN_UNUSED_FUNCTION = YES;\n\t\t\t\tGCC_WARN_UNUSED_VARIABLE = YES;\n\t\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 16.0;\n\t\t\t\tMTL_ENABLE_DEBUG_INFO = NO;\n\t\t\t\tMTL_FAST_MATH = YES;\n\t\t\t\tPRODUCT_NAME = \"$(TARGET_NAME)\";\n\t\t\t\tSDKROOT = iphoneos;\n\t\t\t\tSWIFT_COMPILATION_MODE = wholemodule;\n\t\t\t\tSWIFT_OPTIMIZATION_LEVEL = \"-O\";\n\t\t\t\tSWIFT_VERSION = 5.0;\n\t\t\t};\n\t\t\tname = Release;\n\t\t};\n/* End XCBuildConfiguration section */\n\n/* Begin XCConfigurationList section */\n\t\t04A7011446D3781A661FBA66 /* Build configuration list for PBXProject \"ExistingApp\" */ = {\n\t\t\tisa = XCConfigurationList;\n\t\t\tbuildConfigurations = (\n\t\t\t\t6FFA8DAB8A6FACBD99C4499C /* Debug */,\n\t\t\t\t9DF371A2787DB5F87C662455 /* Release */,\n\t\t\t);\n\t\t\tdefaultConfigurationIsVisible = 0;\n\t\t\tdefaultConfigurationName = Debug;\n\t\t};\n\t\tDC92BCA881AAD3184C7BAFC1 /* Build configuration list for PBXNativeTarget \"ExistingApp\" */ = {\n\t\t\tisa = XCConfigurationList;\n\t\t\tbuildConfigurations = (\n\t\t\t\t790198722335701C03B80C28 /* Debug */,\n\t\t\t\t7B792CB3E75CCF752369FB0F /* Release */,\n\t\t\t);\n\t\t\tdefaultConfigurationIsVisible = 0;\n\t\t\tdefaultConfigurationName = Debug;\n\t\t};\n/* End XCConfigurationList section */\n\t};\n\trootObject = 9DC4B05BE52A95D1BFB456E9 /* Project object */;\n}\n"
+      },
+      "expected_modules": [
+        "SKILL.md",
+        "references/standards/requirement-intake.md"
+      ],
+      "optional_modules": [
+        "references/standards/requirements.md",
+        "references/standards/tracking-start.md",
+        "references/standards/tracking-evidence.md",
+        "references/standards/technical-design.md",
+        "references/standards/code-core.md",
+        "references/standards/code-swift.md",
+        "references/standards/testing.md",
+        "assets/templates/requirements/*",
+        "assets/templates/tracking/*"
+      ],
+      "forbidden_modules": [
+        "references/standards/project-configuration.md",
+        "references/standards/project-generation.md"
+      ],
+      "max_reads_per_module": 1
+    },
+    {
+      "id": "low-risk-code-change",
+      "prompt": "这是已有 iOS UIKit 应用。请修复 App/Counter.swift 中递增操作错误的问题，开始前先做当前阶段需要的规则加载和只读检查。",
+      "files": {
+        "App/Counter.swift": "struct Counter { var value = 0; mutating func increment() { value -= 1 } }\n",
+        "README.md": "已有 iOS UIKit 应用，修改现有 Swift 方法，暂无活动需求。\n"
+      },
+      "expected_modules": [
+        "SKILL.md",
+        "references/standards/code-core.md",
+        "references/standards/code-swift.md"
+      ],
+      "optional_modules": [
+        "references/standards/testing.md"
+      ],
+      "forbidden_modules": [
+        "references/standards/project-configuration.md",
+        "references/standards/project-generation.md",
+        "references/standards/tracking-start.md"
+      ],
+      "max_reads_per_module": 1
+    },
+    {
+      "id": "first-generation",
+      "prompt": "请根据 Requirements.md 首次生成 iOS 项目。先完成需求与配置生成阶段需要的规则加载和只读检查。",
+      "files": {
+        "Requirements.md": "# Pocket Notes\n新建 iPhone 竖屏离线笔记应用，Swift、SwiftUI、iOS 16、英语、无第三方依赖。验收：笔记可新增和本地恢复。\n"
+      },
+      "expected_modules": [
+        "SKILL.md",
+        "references/standards/requirement-intake.md",
+        "references/standards/project-configuration.md",
+        "references/standards/project-generation.md"
+      ],
+      "optional_modules": [
+        "references/standards/requirements.md",
+        "references/standards/technical-design.md",
+        "references/standards/tracking-start.md",
+        "references/standards/tracking-evidence.md",
+        "references/standards/dependencies.md"
+      ],
+      "forbidden_modules": [
+        "references/standards/release-distribution.md",
+        "references/checklists/subscription.md",
+        "references/checklists/analytics.md"
+      ],
+      "max_reads_per_module": 1
+    },
+    {
+      "id": "resume-only",
+      "prompt": "仍在同一台设备，只恢复这个已有 iOS 项目 REQ-EVAL-001 的登记进度，告诉我状态和下一步；不涉及切换设备或同步，不开发、不验收、不核对历史生成配置。",
+      "files": {
+        "README.md": "已有 Swift UIKit iOS 应用，当前只恢复登记进度。\n",
+        ".ios-workflow/index.jsonc": "{\"version\":3,\"last_requirement_id\":\"REQ-EVAL-001\",\"active_requirement\":{\"id\":\"REQ-EVAL-001\",\"project\":\".\",\"file\":\".ios-workflow/requirements/REQ-EVAL-001.md\",\"title\":\"计数恢复\",\"status\":\"in_progress\",\"current_step\":\"STEP-002\",\"next_action\":\"补充存档恢复实现后再运行相关测试\",\"blockers\":[],\"evidence_key\":\"无\",\"scope_version\":1,\"branch\":\"codex/evaluation\",\"observed_head\":\"\",\"updated_at\":\"2026-09-10T10:00:00+08:00\"}}\n",
+        ".ios-workflow/progress.json": "{\"schema_version\": 1, \"items\": [{\"id\": \"REQ-EVAL-001-AC-001\", \"requirement_id\": \"REQ-EVAL-001\", \"source\": {\"path\": \".ios-workflow/sources/requirements.md\", \"section\": \"恢复\"}, \"status\": \"pending\", \"implementation\": [], \"evidence\": [], \"criterion\": \"退出后再次打开，计数恢复。\"}]}\n",
+        ".ios-workflow/requirements/REQ-EVAL-001.md": "---\nid: REQ-EVAL-001\nproject: .\nsequence: 1\nstatus: in_progress\ncurrent_step: STEP-002\n---\n\n# 计数恢复\n下一步：补充存档恢复实现。\n",
+        ".ios-workflow/sources/requirements.md": "# 恢复\n退出后再次打开，计数应恢复。\n",
+        ".ios-workflow/history.jsonc": "{\"version\": 3, \"project\": \".\", \"next_sequence\": 2, \"execution_order\": [{\"id\": \"REQ-EVAL-001\", \"file\": \".ios-workflow/requirements/REQ-EVAL-001.md\", \"sequence\": 1, \"status\": \"in_progress\"}]}\n"
+      },
+      "expected_modules": [
+        "SKILL.md",
+        "references/standards/tracking-resume.md"
+      ],
+      "optional_modules": [],
+      "forbidden_modules": [
+        "references/standards/project-configuration.md",
+        "references/standards/project-generation.md",
+        "references/standards/tracking-evidence.md",
+        "references/standards/code-core.md",
+        "scripts/resume_context.py",
+        "scripts/progress_validation.py",
+        "references/standards/tracking-sync.md"
+      ],
+      "max_reads_per_module": 1
+    },
+    {
+      "id": "cross-device-resume",
+      "prompt": "我换了台电脑。恢复这个 iOS 项目 REQ-EVAL-001 的登记进度，并按切换设备场景只读核对交接与同步状态；本轮不开发、不验收、不核对历史生成配置。",
+      "files": {
+        "README.md": "已有 Swift UIKit iOS 应用，当前只恢复登记进度。\n",
+        ".ios-workflow/index.jsonc": "{\"version\":3,\"last_requirement_id\":\"REQ-EVAL-001\",\"active_requirement\":{\"id\":\"REQ-EVAL-001\",\"project\":\".\",\"file\":\".ios-workflow/requirements/REQ-EVAL-001.md\",\"title\":\"计数恢复\",\"status\":\"in_progress\",\"current_step\":\"STEP-002\",\"next_action\":\"补充存档恢复实现后再运行相关测试\",\"blockers\":[],\"evidence_key\":\"无\",\"scope_version\":1,\"branch\":\"codex/evaluation\",\"observed_head\":\"\",\"updated_at\":\"2026-09-10T10:00:00+08:00\"}}\n",
+        ".ios-workflow/progress.json": "{\"schema_version\": 1, \"items\": [{\"id\": \"REQ-EVAL-001-AC-001\", \"requirement_id\": \"REQ-EVAL-001\", \"source\": {\"path\": \".ios-workflow/sources/requirements.md\", \"section\": \"恢复\"}, \"status\": \"pending\", \"implementation\": [], \"evidence\": [], \"criterion\": \"退出后再次打开，计数恢复。\"}]}\n",
+        ".ios-workflow/requirements/REQ-EVAL-001.md": "---\nid: REQ-EVAL-001\nproject: .\nsequence: 1\nstatus: in_progress\ncurrent_step: STEP-002\n---\n\n# 计数恢复\n下一步：补充存档恢复实现。\n",
+        ".ios-workflow/sources/requirements.md": "# 恢复\n退出后再次打开，计数应恢复。\n",
+        ".ios-workflow/history.jsonc": "{\"version\": 3, \"project\": \".\", \"next_sequence\": 2, \"execution_order\": [{\"id\": \"REQ-EVAL-001\", \"file\": \".ios-workflow/requirements/REQ-EVAL-001.md\", \"sequence\": 1, \"status\": \"in_progress\"}]}\n"
+      },
+      "expected_modules": [
+        "SKILL.md",
+        "references/standards/tracking-resume.md",
+        "references/standards/tracking-sync.md"
+      ],
+      "optional_modules": [],
+      "forbidden_modules": [
+        "references/standards/project-configuration.md",
+        "references/standards/project-generation.md",
+        "references/standards/tracking-evidence.md",
+        "references/standards/code-core.md",
+        "scripts/resume_context.py",
+        "scripts/progress_validation.py"
+      ],
+      "max_reads_per_module": 1
+    },
+    {
+      "id": "save-stage-with-failure",
+      "prompt": "这是 iOS 项目。测试已失败但今天先保存阶段进度，不宣布需求完成。请做保存前的只读检查，明确保留失败状态；不要重新跑测试。",
+      "files": {
+        "README.md": "iOS 阶段保存，存在已知测试失败；仅检查进度保存条件。\n",
+        ".ios-workflow/evidence/latest-test.txt": "fixture: CounterRestoreTests failed; no success claimed\n"
+      },
+      "expected_modules": [
+        "SKILL.md",
+        "references/checklists/pre-commit-review.md"
+      ],
+      "optional_modules": [
+        "references/checklists/core.md",
+        "references/checklists/requirement-traceability.md",
+        "references/standards/tracking-resume.md",
+        "references/standards/tracking-sync.md"
+      ],
+      "forbidden_modules": [
+        "references/standards/project-generation.md",
+        "references/standards/project-configuration.md",
+        "references/standards/release-distribution.md"
+      ],
+      "max_reads_per_module": 1
+    },
+    {
+      "id": "push-only",
+      "prompt": "这个已有 iOS 项目的提交已经完成，测试证据没变。现在只推送既有提交；本轮先做只读的增量核对，不创建提交、不重新运行测试。",
+      "files": {
+        "README.md": "既有 iOS 项目，本轮只检查已有提交的推送条件。\n"
+      },
+      "expected_modules": [
+        "SKILL.md",
+        "references/checklists/pre-commit-review.md"
+      ],
+      "optional_modules": [
+        "references/checklists/core.md"
+      ],
+      "forbidden_modules": [
+        "references/standards/project-generation.md",
+        "references/standards/project-configuration.md",
+        "references/standards/code-core.md",
+        "references/standards/testing.md"
+      ],
+      "max_reads_per_module": 1
+    },
+    {
+      "id": "workflow-release",
+      "prompt": "这是 iOS Workflow 工具仓库，准备发布工作流 ZIP，不是发布 iOS App。请只读核对当前工作流发布入口和适用规则，不打 tag、不推送、不运行发布。",
+      "files": {
+        "README.md": "iOS Workflow 规则工具仓库；分发 Skill ZIP，不含业务 App。\n",
+        ".github/workflows/release.yml": "name: Workflow ZIP Release\non: workflow_dispatch\njobs: {}\n",
+        "scripts/build_distribution.py": "# Isolated evaluation fixture: distribution entry point only.\n"
+      },
+      "expected_modules": [
+        "SKILL.md",
+        "references/checklists/workflow-release.md"
+      ],
+      "optional_modules": [
+        "references/checklists/pre-commit-review.md",
+        "references/checklists/core.md"
+      ],
+      "forbidden_modules": [
+        "references/standards/release-distribution.md",
+        "references/standards/project-configuration.md",
+        "references/standards/project-generation.md",
+        "references/checklists/subscription.md",
+        "references/checklists/release-distribution.md",
+        "references/checklists/testing.md"
+      ],
+      "max_reads_per_module": 1
+    },
+    {
+      "id": "non-ios-docs",
+      "prompt": "这是普通文档仓库，没有 iOS 项目。请只读取 README.md，告诉我一句话概括。只读文件，不修改文件、不联网、不操作外部应用。",
+      "files": {
+        "README.md": "A plain documentation repository. No iOS application or Xcode project.\n"
+      },
+      "expected_modules": [],
+      "optional_modules": [],
+      "forbidden_modules": [
+        "**"
+      ],
+      "max_reads_per_module": 1
+    }
+  ],
+  "rubric_version": 1
+}
