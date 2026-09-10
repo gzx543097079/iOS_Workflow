@@ -480,11 +480,13 @@ def _swift_uikit_appearance_policy(level: int) -> str:
 
     static let storageKey = "app.appearance"
 
+    @MainActor
     static func apply(to window: UIWindow) {{
         let value = UserDefaults.standard.string(forKey: storageKey)
         window.overrideUserInterfaceStyle = Mode(rawValue: value ?? "")?.interfaceStyle ?? .unspecified
     }}
 
+    @MainActor
     static func set(_ mode: Mode, for window: UIWindow) {{
         UserDefaults.standard.set(mode.rawValue, forKey: storageKey)
         window.overrideUserInterfaceStyle = mode.interfaceStyle

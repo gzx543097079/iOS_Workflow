@@ -51,7 +51,7 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`，包含 YAML `name
 维护者先按[生成工程编译检查](docs/generated-project-checks.md)验证生成源码及测试 target，再本地生成并检查分发包：
 
 ```bash
-python3 scripts/build_distribution.py --version 6.3.0 --output dist
+python3 scripts/build_distribution.py --version 6.3.1 --output dist
 ```
 
 ## 按任务加载，减少 Token
