@@ -119,8 +119,17 @@ class WorkflowStructureTests(unittest.TestCase):
     def test_generator_consumes_configuration_without_model_context(self):
         skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
         generation = (SKILL_ROOT / "references/standards/project-generation.md").read_text(encoding="utf-8")
-        self.assertIn("配置和 DesignTokens 由生成器直接读取", skill)
+        self.assertIn("生成器读取已保存实例并校验", skill)
+        self.assertIn("references/standards/project-configuration.md", skill)
+        self.assertIn("load_project_instance", generation)
         self.assertIn("不把完整配置输出到模型上下文", generation)
+
+    def test_existing_projects_do_not_check_generation_configuration(self):
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        gate = (SKILL_ROOT / "references/checklists/pre-commit-review.md").read_text(encoding="utf-8")
+        self.assertIn("不读取、不核对初始生成配置", skill)
+        self.assertIn("历史生成配置不构成提交或推送门禁", gate)
+        self.assertFalse((SKILL_ROOT / "assets/config/project.example.jsonc").exists())
 
     def test_documentation_changes_do_not_invalidate_test_evidence(self):
         skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")

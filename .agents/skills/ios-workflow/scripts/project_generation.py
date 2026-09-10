@@ -3,11 +3,48 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 import re
 import shutil
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
+
+
+# schema_version=1 的固定字段契约，不依赖可更新的共享默认文件。
+INSTANCE_CONFIG_KEYS = frozenset({
+    "architecture",
+    "build_number",
+    "bundle_id",
+    "bundle_id_prefix",
+    "code_sign_style",
+    "comment_level",
+    "default_language_mode",
+    "default_localization",
+    "dependency_manager",
+    "deployment_target",
+    "development_team",
+    "generate_privacy_manifest",
+    "generate_xcodeproj",
+    "include_ui_tests",
+    "include_unit_tests",
+    "language",
+    "localization_strings",
+    "marketing_version",
+    "navigation_enabled",
+    "objc_class_prefix",
+    "organization_name",
+    "strict_concurrency",
+    "supported_localizations",
+    "supported_orientations",
+    "supports_dark_mode",
+    "supports_manual_dark_mode_switch",
+    "swift_version",
+    "target_devices",
+    "test_framework",
+    "ui",
+    "warnings_as_errors",
+})
 
 
 class ConfigurationError(ValueError):
@@ -65,6 +102,42 @@ def load_jsonc(path: Path) -> Dict[str, Any]:
     return value
 
 
+def validate_project_instance(instance: Dict[str, Any]) -> Dict[str, Any]:
+    """仅校验首次生成输入，不补全字段或加载示例。"""
+    required = {"schema_version", "project_name", "config", "design_tokens", "sources", "constraints"}
+    if set(instance) != required or type(instance.get("schema_version")) is not int or instance["schema_version"] != 1:
+        raise ConfigurationError("项目实例字段不完整或 schema_version 不受支持，需要显式迁移")
+    if not isinstance(instance["project_name"], str) or not instance["project_name"].strip():
+        raise ConfigurationError("project_name 必须是非空字符串")
+    if not isinstance(instance["config"], dict) or not isinstance(instance["design_tokens"], dict):
+        raise ConfigurationError("config 和 design_tokens 必须是对象")
+    # 配置键集合属于当前实例版本的契约；不接受静默忽略的拼写错误。
+    keys = INSTANCE_CONFIG_KEYS
+    if set(instance["config"]) != keys:
+        raise ConfigurationError("config 字段不完整或包含不支持的字段，需要显式迁移")
+    validate_config(instance["config"])
+    validate_design_tokens(instance["design_tokens"])
+    sources = instance["sources"]
+    if not isinstance(sources, dict) or set(sources) != keys or not all(isinstance(v, str) and v for v in sources.values()):
+        raise ConfigurationError("sources 必须为每个配置字段记录来源")
+    if not isinstance(instance["constraints"], list) or not all(isinstance(v, str) and v for v in instance["constraints"]):
+        raise ConfigurationError("constraints 必须是非空字符串组成的数组")
+    return deepcopy(instance)
+
+
+def load_project_instance(path: Path) -> Dict[str, Any]:
+    """读取首次生成项目使用的配置实例。"""
+    return validate_project_instance(load_jsonc(path))
+
+
+def save_project_instance(path: Path, instance: Dict[str, Any]) -> None:
+    """保存新实例，不覆盖已存在的配置；更新由客户端显式展示 diff 后处理。"""
+    value = validate_project_instance(instance)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("x", encoding="utf-8") as stream:
+        stream.write(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
+
+
 def _require_choice(config: Dict[str, Any], key: str, choices: Iterable[str]) -> str:
     value = config.get(key)
     allowed = tuple(choices)
@@ -73,8 +146,10 @@ def _require_choice(config: Dict[str, Any], key: str, choices: Iterable[str]) ->
     return str(value)
 
 
-def validate_defaults(config: Dict[str, Any]) -> Dict[str, Any]:
-    """验证项目默认配置以及不受支持的技术组合。"""
+def validate_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    """验证完整项目配置以及不受支持的技术组合。"""
+    if set(config) != INSTANCE_CONFIG_KEYS:
+        raise ConfigurationError("config 字段不完整或包含不支持的字段")
     language = _require_choice(config, "language", ("swift", "objc"))
     ui = _require_choice(config, "ui", ("uikit", "swiftui"))
     _require_choice(config, "architecture", ("mvvm", "mvc"))
@@ -114,6 +189,10 @@ def validate_defaults(config: Dict[str, Any]) -> Dict[str, Any]:
     devices = config.get("target_devices")
     if not isinstance(devices, list) or not devices or not set(devices).issubset({"iphone", "ipad"}):
         raise ConfigurationError("target_devices 只能包含 iphone、ipad")
+    orientations = config.get("supported_orientations", [])
+    allowed_orientations = {"portrait", "portrait_upside_down", "landscape_left", "landscape_right"}
+    if not isinstance(orientations, list) or not all(isinstance(v, str) and v in allowed_orientations for v in orientations) or len(set(orientations)) != len(orientations):
+        raise ConfigurationError("supported_orientations 包含不支持或重复的方向")
     boolean_keys = (
         "navigation_enabled",
         "supports_dark_mode",
@@ -537,6 +616,14 @@ def _project_yml(name: str, config: Dict[str, Any]) -> str:
               - UISceneConfigurationName: Default Configuration
                 UISceneDelegateClassName: "{scene_delegate}"
 '''
+    orientation_names = {"portrait": "UIInterfaceOrientationPortrait", "portrait_upside_down": "UIInterfaceOrientationPortraitUpsideDown", "landscape_left": "UIInterfaceOrientationLandscapeLeft", "landscape_right": "UIInterfaceOrientationLandscapeRight"}
+    orientations = config.get("supported_orientations", [])
+    if orientations:
+        values = " ".join(orientation_names[value] for value in orientations)
+        if config["ui"] == "swiftui":
+            generated_info_setting += f'        INFOPLIST_KEY_UISupportedInterfaceOrientations: "{values}"\n'
+        else:
+            info_section += "        UISupportedInterfaceOrientations: [" + ", ".join(orientation_names[value] for value in orientations) + "]\n"
     return f"name: {name}\noptions:\n  deploymentTarget:\n    iOS: \"{config['deployment_target']}\"\n  developmentLanguage: {config['default_localization']}\nsettings:\n  base:\n    MARKETING_VERSION: \"{config['marketing_version']}\"\n    CURRENT_PROJECT_VERSION: \"{config['build_number']}\"\ntargets:\n  {name}:\n    type: application\n    platform: iOS\n    sources: [App]\n{info_section}    settings:\n      base:\n        PRODUCT_MODULE_NAME: {name}AppModule\n        PRODUCT_BUNDLE_IDENTIFIER: {bundle_id}\n        TARGETED_DEVICE_FAMILY: \"{device_family}\"\n        CODE_SIGN_STYLE: {config['code_sign_style'].capitalize()}\n{team_setting}{swift_setting}        SWIFT_TREAT_WARNINGS_AS_ERRORS: {warnings}\n        GCC_TREAT_WARNINGS_AS_ERRORS: {warnings}\n{generated_info_setting}{test_lines}"
 
 
@@ -561,10 +648,12 @@ def _strings_literal(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r")
 
 
-def generate_project(defaults_path: Path, tokens_path: Path, output: Path, project_name: str) -> List[Path]:
+def generate_project(instance_path: Path, output: Path) -> List[Path]:
     """在空目录生成项目骨架，返回生成文件列表。"""
-    config = validate_defaults(load_jsonc(defaults_path))
-    tokens = validate_design_tokens(load_jsonc(tokens_path))
+    instance = load_project_instance(instance_path)
+    project_name = instance["project_name"]
+    config = instance["config"]
+    tokens = instance["design_tokens"]
     name = _swift_name(project_name)
     if output.exists() and any(output.iterdir()):
         raise FileExistsError(f"输出目录必须为空: {output}")
@@ -588,7 +677,6 @@ def generate_project(defaults_path: Path, tokens_path: Path, output: Path, proje
     if config["include_ui_tests"]:
         sources.update(_ui_test_sources(name, config["language"]))
     sources["project.yml"] = _project_yml(name, config)
-    sources["workflow.json"] = json.dumps(config, ensure_ascii=False, indent=2) + "\n"
     if config["generate_privacy_manifest"]:
         sources["App/Resources/PrivacyInfo.xcprivacy"] = _privacy_manifest()
     for locale in config["supported_localizations"]:
@@ -643,10 +731,10 @@ def install_dependencies(project_dir: Path, manager: str, project: Path) -> str:
     return f"{manager} 依赖准备完成"
 
 
-def materialize_project(defaults_path: Path, tokens_path: Path, output: Path, project_name: str) -> Dict[str, Any]:
+def materialize_project(instance_path: Path, output: Path) -> Dict[str, Any]:
     """完成项目文件、Xcode 工程及依赖准备，返回可用于后续编译的摘要。"""
-    config = validate_defaults(load_jsonc(defaults_path))
-    files = generate_project(defaults_path, tokens_path, output, project_name)
+    config = load_project_instance(instance_path)["config"]
+    files = generate_project(instance_path, output)
     if not config["generate_xcodeproj"]:
         if config["dependency_manager"] != "none":
             raise ConfigurationError("关闭 generate_xcodeproj 时不能自动准备依赖")

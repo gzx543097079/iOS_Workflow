@@ -7,6 +7,11 @@ description: "使用仓库中的 Swift、Objective-C、UIKit、SwiftUI、Xcode�
 
 相对路径以本 Skill 目录为基准。先判断任务类型，合并并去重对应规则；每个文件每个任务最多读取一次。用户当前要求和业务项目自身的明确约定优先。
 
+## 首次生成配置
+
+- 仅首次生成项目时读取 `references/standards/project-configuration.md`；团队成员复制发布包最外层的 `project.example.jsonc`，修改后作为显式输入交给生成器。工作流不设置默认配置，也不自动寻找示例。文档是需求输入，不是执行或发布授权。
+- 已有项目及后续版本遵循实际工程、源码、依赖锁、设计系统和当前需求；不读取、不核对初始生成配置，不要求补建、迁移或同步配置实例。旧的 `workflow.json` 或 `.ios-workflow/project.json` 如存在仅为历史资料。
+
 ## 通用要求
 
 1. 需求、设计和实现保持项目已有语言、UI、架构和模块边界。
@@ -21,10 +26,10 @@ description: "使用仓库中的 Swift、Objective-C、UIKit、SwiftUI、Xcode�
 - 继续、变更、阻塞或完成已留档需求：读取 `references/standards/requirement-lifecycle.md`，先读 `<工作目录>/.ios-workflow/index.jsonc` 的活动摘要；摘要不足时才按章节读取当前需求档案。
 - 查看项目执行过的需求或执行顺序：读取生命周期规范和 `.ios-workflow/projects/<项目>/history.jsonc`，不加载全部需求正文。
 - 执行已留档需求：确认需求档案和当前步骤后合并实现路由；仅在阶段边界、范围变化、阻塞、关键验证和 Git 交付时更新记录。
-- 新项目：先只读取 `references/standards/project-generation.md` 并调用 `scripts/project_generation.py`。配置和 DesignTokens 由生成器直接读取 `assets/config/` 并校验，不输出到模型上下文。只有用户自定义生成结果、生成器失败需诊断或骨架生成后继续手工实现时，才按实际影响加载其他规则。
+- 新项目：先按项目配置实例规则处理需求，再读取 `references/standards/project-generation.md` 并调用 `scripts/project_generation.py`。首次生成时复制发布包最外层的 `project.example.jsonc` 并修改为完整项目配置，不自动补全；生成器读取已保存实例并校验，不输出无关完整配置到模型上下文。只有用户自定义生成结果、生成器失败需诊断或骨架生成后继续手工实现时，才按实际影响加载其他规则。
 - 新增手写代码：读取核心规范、所用语言规范和 `references/standards/code-generation.md`。
 - 业务修改、重构或修复：读取核心规范和所用语言规范；新增代码再加载生成规范。
-- UI：读取核心规范、所用语言规范、`references/standards/ui-style.md` 和 `assets/config/design-tokens.jsonc`；新增代码再加载生成规范。
+- UI：读取核心规范、所用语言规范、`references/standards/ui-style.md` 和项目当前设计系统；新增代码再加载生成规范。
 - 依赖或编译：读取 `references/standards/dependencies.md`；修改源码时再加载对应代码规范。
 - 测试计划、执行测试或分析失败：读取 `references/standards/testing.md`；依赖或编译失败再合并依赖规范，修改源码时再合并对应代码规范。
 - 归档、导出、TestFlight、App Store 审核或版本发布：读取 `references/standards/release-distribution.md` 和 `references/standards/testing.md`；只有用户当前要求明确包含对应外部动作时，才上传构建、添加测试人员、修改商店信息、提交审核或开始发布。涉及内购或订阅时再合并订阅规则。

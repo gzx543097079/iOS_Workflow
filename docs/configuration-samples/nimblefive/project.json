@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "project_name": "NimbleFive",
+  "config": {
+    "language": "swift",
+    "ui": "swiftui",
+    "architecture": "mvvm",
+    "navigation_enabled": true,
+    "dependency_manager": "pod",
+    "bundle_id_prefix": "com.yourcompany",
+    "bundle_id": "com.gengzhixiang.nimblefive",
+    "deployment_target": "16.0",
+    "swift_version": "5.10",
+    "marketing_version": "1.0.0",
+    "build_number": "1",
+    "organization_name": "Test Team",
+    "objc_class_prefix": "APP",
+    "development_team": "",
+    "code_sign_style": "automatic",
+    "supported_orientations": [
+      "portrait"
+    ],
+    "target_devices": [
+      "iphone"
+    ],
+    "supports_dark_mode": true,
+    "supports_manual_dark_mode_switch": false,
+    "default_language_mode": "system",
+    "default_localization": "en",
+    "supported_localizations": [
+      "en"
+    ],
+    "localization_strings": {
+      "home.title": {
+        "en": "Home"
+      }
+    },
+    "include_unit_tests": true,
+    "include_ui_tests": true,
+    "test_framework": "xctest",
+    "comment_level": 3,
+    "strict_concurrency": "complete",
+    "warnings_as_errors": false,
+    "generate_privacy_manifest": true,
+    "generate_xcodeproj": true
+  },
+  "design_tokens": {
+    "version": 2,
+    "spacing": {
+      "xs": 4,
+      "sm": 8,
+      "md": 12,
+      "lg": 16,
+      "xl": 24,
+      "xxl": 32
+    },
+    "radius": {
+      "sm": 8,
+      "md": 12,
+      "lg": 16
+    },
+    "content_margin": 16,
+    "content_max_width": 680,
+    "minimum_tap_target": 44,
+    "control_height": {
+      "sm": 32,
+      "md": 44,
+      "lg": 52
+    },
+    "icon_size": {
+      "sm": 16,
+      "md": 24,
+      "lg": 32
+    },
+    "border_width": {
+      "hairline": 0.5,
+      "regular": 1
+    },
+    "opacity": {
+      "disabled": 0.38,
+      "secondary": 0.68,
+      "overlay": 0.45
+    },
+    "animation_duration": {
+      "quick": 0.2,
+      "normal": 0.3
+    },
+    "typography": {
+      "title": "title2",
+      "headline": "headline",
+      "body": "body",
+      "caption": "caption"
+    },
+    "colors": {
+      "accent": "systemBlue",
+      "background": "systemBackground",
+      "secondary_background": "secondarySystemBackground",
+      "primary_text": "label",
+      "secondary_text": "secondaryLabel",
+      "separator": "separator",
+      "destructive": "systemRed"
+    }
+  },
+  "sources": {
+    "language": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "ui": "NimbleFive PRD §1.1 / §14：平台、标识、本地化及测试要求",
+    "architecture": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "navigation_enabled": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "dependency_manager": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "bundle_id_prefix": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "bundle_id": "NimbleFive PRD §1.1 / §14：平台、标识、本地化及测试要求",
+    "deployment_target": "NimbleFive PRD §1.1 / §14：平台、标识、本地化及测试要求",
+    "swift_version": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "marketing_version": "NimbleFive PRD §1.1 / §14：平台、标识、本地化及测试要求",
+    "build_number": "NimbleFive PRD §1.1 / §14：平台、标识、本地化及测试要求",
+    "organization_name": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "objc_class_prefix": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "development_team": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "code_sign_style": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "supported_orientations": "NimbleFive PRD §1.1 / §14：平台、标识、本地化及测试要求",
+    "target_devices": "NimbleFive PRD §1.1 / §14：平台、标识、本地化及测试要求",
+    "supports_dark_mode": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "supports_manual_dark_mode_switch": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "default_language_mode": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "default_localization": "NimbleFive PRD §1.1 / §14：平台、标识、本地化及测试要求",
+    "supported_localizations": "NimbleFive PRD §1.1 / §14：平台、标识、本地化及测试要求",
+    "localization_strings": "客户端骨架占位：首页英文 Home；完整文案尚未实现",
+    "include_unit_tests": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "include_ui_tests": "客户端选择：以 UI 测试 target 承载 PRD §14.2 流程验证",
+    "test_framework": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "comment_level": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "strict_concurrency": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "warnings_as_errors": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "generate_privacy_manifest": "示例项目选择：沿用示例值，不代表 PRD 明确要求",
+    "generate_xcodeproj": "示例项目选择：沿用示例值，不代表 PRD 明确要求"
+  },
+  "constraints": [
+    "来源：NimbleFive-MVP-PRD.md v1.0，2026-09-10；本示例仅验证配置流程，不授权开发或发布 App。",
+    "PRD §1、§2：Swift + SwiftUI；iPhone 竖屏、英语首发、美国市场；不做 iPad、西班牙语、账号、云同步、后端、订阅或 Firebase Analytics。",
+    "PRD §10：UserDefaults/AppStorage 保存小型状态，Codable JSON 保存历史；Bundle JSON 保存固定资源；不用 SwiftData，存档含 schemaVersion，损坏文件保留并恢复。",
+    "PRD §13：Features、Games、Core、Services 分层；规则使用纯 Swift，不直接依赖 SwiftUI View；生成器仅生成基础骨架，目录调整仍待实现。",
+    "PRD §3、§5、§14、§15：明确种子的确定性随机数；相同输入相同关卡，生成器至少 10,000 个种子验证；暂停恢复、计分和每日奖励幂等。",
+    "PRD §8、§9：AdMob Rewarded/Interstitial 与 UMP；广告失败不阻断游戏，奖励回调去重、插屏间隔至少 120 秒；SDK 及精确版本待技术方案确定，当前未接入。",
+    "PRD §8、§19：TestFlight 使用测试广告，正式发行使用正式广告；按分发渠道区分配置，正式包重新验证，不仅按 Debug/Release 判断。",
+    "PRD §4、§12：四套可解锁主题待业务实现，示例 DesignTokens 仅为基础视觉占位；普通页面支持动态字号，棋盘允许固定字号且保持可读性。",
+    "客户端假设：架构 MVVM、依赖管理 CocoaPods、支持系统深浅色在此示例中显式选择，不是 PRD 明确要求；接入 SDK 前再评估管理器和精确版本。",
+    "待澄清：离线提示与广告提示的边界；Memory Grid 免费重开扣分口径；跨版本挑战恢复策略。这些不阻断配置验证，但影响业务实现。"
+  ]
+}

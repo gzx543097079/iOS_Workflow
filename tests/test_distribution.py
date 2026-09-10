@@ -12,7 +12,7 @@ from build_distribution import build_distribution
 
 
 class DistributionTests(unittest.TestCase):
-    def test_builds_skill_only_archive_with_checksum(self):
+    def test_builds_archive_with_top_level_generation_example(self):
         with tempfile.TemporaryDirectory() as value:
             archive, checksum = build_distribution("5.0.0", Path(value))
             self.assertTrue(archive.is_file())
@@ -23,6 +23,9 @@ class DistributionTests(unittest.TestCase):
             self.assertIn(".agents/skills/ios-workflow/SKILL.md", names)
             self.assertIn("AGENTS.ios-workflow.example.md", names)
             self.assertIn("IOS_WORKFLOW_INSTALL.md", names)
+            self.assertIn("project.example.jsonc", names)
+            self.assertIn("PROJECT_CONFIGURATION.md", names)
+            self.assertFalse(any(name.startswith(".agents/") and name.endswith("project.example.jsonc") for name in names))
             self.assertEqual(version, b"5.0.0\n")
             self.assertFalse(any(name.startswith(".ios-workflow/") for name in names))
             self.assertFalse(any(".DS_Store" in name or "__pycache__" in name or name.endswith(".pyc") for name in names))

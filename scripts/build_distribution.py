@@ -13,6 +13,8 @@ from typing import Iterable, Tuple
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = ROOT / ".agents/skills/ios-workflow"
 SUPPORT_FILES = {
+    ROOT / "distribution/project.example.jsonc": "project.example.jsonc",
+    ROOT / "distribution/PROJECT_CONFIGURATION.md": "PROJECT_CONFIGURATION.md",
     ROOT / "distribution/AGENTS.example.md": "AGENTS.ios-workflow.example.md",
     ROOT / "distribution/INSTALL.md": "IOS_WORKFLOW_INSTALL.md",
 }

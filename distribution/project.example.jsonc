@@ -1,0 +1,162 @@
+// 配置示例，不会被生成器自动加载。复制后按项目要求修改。
+{
+  "schema_version": 1,
+  "project_name": "MyProject",
+  "config": {
+    "language": "swift",
+    "ui": "uikit",
+    "architecture": "mvvm",
+    "navigation_enabled": true,
+    "dependency_manager": "pod",
+    "bundle_id_prefix": "com.yourcompany",
+    "bundle_id": "",
+    "deployment_target": "14.0",
+    "swift_version": "5.10",
+    "marketing_version": "1.0",
+    "build_number": "1",
+    "organization_name": "Test Team",
+    "objc_class_prefix": "APP",
+    "development_team": "",
+    "code_sign_style": "automatic",
+    "supported_orientations": [],
+    "target_devices": [
+      "iphone",
+      "ipad"
+    ],
+    "supports_dark_mode": true,
+    "supports_manual_dark_mode_switch": false,
+    "default_language_mode": "system",
+    "default_localization": "en",
+    "supported_localizations": [
+      "zh-Hans",
+      "zh-Hant",
+      "en",
+      "es",
+      "fr",
+      "de",
+      "ja",
+      "ko",
+      "pt-BR",
+      "it",
+      "ar",
+      "ru"
+    ],
+    "localization_strings": {
+      "home.title": {
+        "zh-Hans": "首页",
+        "zh-Hant": "首頁",
+        "en": "Home",
+        "es": "Inicio",
+        "fr": "Accueil",
+        "de": "Startseite",
+        "ja": "ホーム",
+        "ko": "홈",
+        "pt-BR": "Início",
+        "it": "Pagina iniziale",
+        "ar": "الرئيسية",
+        "ru": "Главная"
+      }
+    },
+    "include_unit_tests": true,
+    "include_ui_tests": false,
+    "test_framework": "xctest",
+    "comment_level": 3,
+    "strict_concurrency": "complete",
+    "warnings_as_errors": false,
+    "generate_privacy_manifest": true,
+    "generate_xcodeproj": true
+  },
+  "design_tokens": {
+    "version": 2,
+    "spacing": {
+      "xs": 4,
+      "sm": 8,
+      "md": 12,
+      "lg": 16,
+      "xl": 24,
+      "xxl": 32
+    },
+    "radius": {
+      "sm": 8,
+      "md": 12,
+      "lg": 16
+    },
+    "content_margin": 16,
+    "content_max_width": 680,
+    "minimum_tap_target": 44,
+    "control_height": {
+      "sm": 32,
+      "md": 44,
+      "lg": 52
+    },
+    "icon_size": {
+      "sm": 16,
+      "md": 24,
+      "lg": 32
+    },
+    "border_width": {
+      "hairline": 0.5,
+      "regular": 1
+    },
+    "opacity": {
+      "disabled": 0.38,
+      "secondary": 0.68,
+      "overlay": 0.45
+    },
+    "animation_duration": {
+      "quick": 0.2,
+      "normal": 0.3
+    },
+    "typography": {
+      "title": "title2",
+      "headline": "headline",
+      "body": "body",
+      "caption": "caption"
+    },
+    "colors": {
+      "accent": "systemBlue",
+      "background": "systemBackground",
+      "secondary_background": "secondarySystemBackground",
+      "primary_text": "label",
+      "secondary_text": "secondaryLabel",
+      "separator": "separator",
+      "destructive": "systemRed"
+    }
+  },
+  "sources": {
+    "language": "example：接入时核对并修改",
+    "ui": "example：接入时核对并修改",
+    "architecture": "example：接入时核对并修改",
+    "navigation_enabled": "example：接入时核对并修改",
+    "dependency_manager": "example：接入时核对并修改",
+    "bundle_id_prefix": "example：接入时核对并修改",
+    "bundle_id": "example：接入时核对并修改",
+    "deployment_target": "example：接入时核对并修改",
+    "swift_version": "example：接入时核对并修改",
+    "marketing_version": "example：接入时核对并修改",
+    "build_number": "example：接入时核对并修改",
+    "organization_name": "example：接入时核对并修改",
+    "objc_class_prefix": "example：接入时核对并修改",
+    "development_team": "example：接入时核对并修改",
+    "code_sign_style": "example：接入时核对并修改",
+    "supported_orientations": "example：接入时核对并修改",
+    "target_devices": "example：接入时核对并修改",
+    "supports_dark_mode": "example：接入时核对并修改",
+    "supports_manual_dark_mode_switch": "example：接入时核对并修改",
+    "default_language_mode": "example：接入时核对并修改",
+    "default_localization": "example：接入时核对并修改",
+    "supported_localizations": "example：接入时核对并修改",
+    "localization_strings": "example：接入时核对并修改",
+    "include_unit_tests": "example：接入时核对并修改",
+    "include_ui_tests": "example：接入时核对并修改",
+    "test_framework": "example：接入时核对并修改",
+    "comment_level": "example：接入时核对并修改",
+    "strict_concurrency": "example：接入时核对并修改",
+    "warnings_as_errors": "example：接入时核对并修改",
+    "generate_privacy_manifest": "example：接入时核对并修改",
+    "generate_xcodeproj": "example：接入时核对并修改"
+  },
+  "constraints": [
+    "配置示例：接入时逐项核对并修改，示例值不代表项目需求。"
+  ]
+}

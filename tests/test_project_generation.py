@@ -10,25 +10,27 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = ROOT / ".agents/skills/ios-workflow"
 sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
-from project_generation import ConfigurationError, generate_project, generate_xcodeproj, install_dependencies, load_jsonc, strip_jsonc, validate_defaults
+from project_generation import ConfigurationError, generate_project, generate_xcodeproj, install_dependencies, load_jsonc, strip_jsonc, validate_config
 
 
 class ProjectGenerationTests(unittest.TestCase):
-    def defaults(self):
-        return load_jsonc(SKILL_ROOT / "assets/config/defaults.jsonc")
+    def example_config(self):
+        return load_jsonc(ROOT / "distribution/project.example.jsonc")["config"]
 
-    def write_defaults(self, directory: Path, changes):
-        value = self.defaults()
+    def write_example_config(self, directory: Path, changes):
+        instance = load_jsonc(ROOT / "distribution/project.example.jsonc")
+        instance["project_name"] = "Demo App"
+        value = instance["config"]
         value.update(changes)
-        path = directory / "defaults.jsonc"
-        path.write_text(json.dumps(value), encoding="utf-8")
+        path = directory / "example_config.jsonc"
+        path.write_text(json.dumps(instance), encoding="utf-8")
         return path
 
     def generate(self, changes):
         temporary = tempfile.TemporaryDirectory()
         root = Path(temporary.name)
-        defaults = self.write_defaults(root, changes)
-        files = generate_project(defaults, SKILL_ROOT / "assets/config/design-tokens.jsonc", root / "Output", "Demo App")
+        example_config = self.write_example_config(root, changes)
+        files = generate_project(example_config, root / "Output")
         return temporary, root / "Output", files
 
     def test_jsonc_preserves_comment_tokens_inside_strings(self):
@@ -36,7 +38,7 @@ class ProjectGenerationTests(unittest.TestCase):
         self.assertEqual(value["url"], "https://example.com/a/*b*/")
 
     def test_default_config_is_valid(self):
-        validated = validate_defaults(self.defaults())
+        validated = validate_config(self.example_config())
         self.assertEqual(validated["default_language_mode"], "system")
         self.assertEqual(validated["comment_level"], 3)
         self.assertTrue(validated["supports_dark_mode"])
@@ -44,10 +46,10 @@ class ProjectGenerationTests(unittest.TestCase):
         self.assertEqual(validated["localization_strings"]["home.title"]["ja"], "ホーム")
 
     def test_rejects_localization_key_missing_a_configured_language(self):
-        config = self.defaults()
+        config = self.example_config()
         config["localization_strings"]["home.title"].pop("ru")
         with self.assertRaisesRegex(ConfigurationError, "home.title 缺少语言: ru"):
-            validate_defaults(config)
+            validate_config(config)
 
     def test_generates_configured_translation_for_each_language(self):
         temporary, output, _ = self.generate({
@@ -67,19 +69,19 @@ class ProjectGenerationTests(unittest.TestCase):
                 self.assertEqual(strings.read_text().strip(), localized_line)
 
     def test_rejects_manual_dark_mode_switch_when_dark_mode_is_disabled(self):
-        config = self.defaults()
+        config = self.example_config()
         config.update({
             "supports_dark_mode": False,
             "supports_manual_dark_mode_switch": True,
         })
         with self.assertRaisesRegex(ConfigurationError, "只能在 supports_dark_mode 为 true 时开启"):
-            validate_defaults(config)
+            validate_config(config)
 
     def test_rejects_objective_c_swiftui(self):
-        config = self.defaults()
+        config = self.example_config()
         config.update({"language": "objc", "ui": "swiftui"})
         with self.assertRaisesRegex(ConfigurationError, "不支持 SwiftUI"):
-            validate_defaults(config)
+            validate_config(config)
 
     def test_generates_swift_uikit_project(self):
         temporary, output, files = self.generate({"language": "swift", "ui": "uikit", "dependency_manager": "pod"})
@@ -218,12 +220,12 @@ class ProjectGenerationTests(unittest.TestCase):
     def test_refuses_nonempty_output_directory(self):
         with tempfile.TemporaryDirectory() as value:
             root = Path(value)
-            defaults = self.write_defaults(root, {})
+            example_config = self.write_example_config(root, {})
             output = root / "Output"
             output.mkdir()
             (output / "keep.txt").write_text("user data")
             with self.assertRaises(FileExistsError):
-                generate_project(defaults, SKILL_ROOT / "assets/config/design-tokens.jsonc", output, "Demo")
+                generate_project(example_config, output)
 
 
 if __name__ == "__main__":

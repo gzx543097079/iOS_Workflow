@@ -4,7 +4,7 @@
 
 ## 生成顺序
 
-1. 由 `scripts/project_generation.py` 直接读取并校验 `assets/config/defaults.jsonc` 和 `assets/config/design-tokens.jsonc`，调用方不把完整配置输出到模型上下文；字段、版本、Bundle ID、本地化或技术组合非法时，在写入项目文件前停止。
+1. 先按 `project-configuration.md` 保存需求对应的项目实例，再向 `scripts/project_generation.py` 传入 `instance_path`；生成器通过 `load_project_instance` 读取并校验实例，调用方不把完整配置输出到模型上下文；字段、版本、Bundle ID、本地化或技术组合非法时，在写入项目文件前停止。
 2. 目标目录必须不存在或为空，不覆盖已有项目。项目名转换为合法标识符，产品模块名与系统框架隔离。
 3. 按语言、UI、架构、导航、外观、本地化策略、测试、签名和设备配置生成源码与 `project.yml`。
 4. 生成 Swift 或 Objective-C DesignTokens；注释只在生成阶段按 `comment_level` 写入。

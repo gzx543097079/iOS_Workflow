@@ -58,14 +58,14 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`。该文件包含�
 
 ## 团队分发
 
-版本 Tag 推送后，GitHub Actions 会先运行完整测试，再生成 `ios-workflow-<版本>.zip` 和 SHA-256 校验文件并创建 GitHub Release。分发包只包含 `.agents/skills/ios-workflow/`、`AGENTS.md` 示例、版本标记和接入说明，不包含本仓库的 `.ios-workflow/` 运行历史。
+版本 Tag 推送后，GitHub Actions 会先运行完整测试，再生成 `ios-workflow-<版本>.zip` 和 SHA-256 校验文件并创建 GitHub Release。分发包包含 `.agents/skills/ios-workflow/`、最外层配置示例与字段说明、`AGENTS.md` 示例、版本标记和接入说明，不包含本仓库的 `.ios-workflow/` 运行历史。
 
 团队成员在临时目录解压发布包，将 `.agents/skills/ios-workflow/` 放入业务仓库的相同路径；没有 `AGENTS.md` 时使用包内示例，已有该文件时只合并适用规则。业务仓库应提交这些文件，使全体成员使用同一版本。详细步骤见 [`distribution/INSTALL.md`](distribution/INSTALL.md)。
 
 维护者可在发布前本地生成并检查分发包：
 
 ```bash
-python3 scripts/build_distribution.py --version 5.1.0 --output dist
+python3 scripts/build_distribution.py --version 6.0.0 --output dist
 ```
 
 ## 按任务加载，减少 Token
@@ -81,16 +81,22 @@ python3 scripts/build_distribution.py --version 5.1.0 --output dist
 - 三方库或编译任务加载依赖规范。
 - 测试计划、执行或失败分析加载测试规范；证据键未变化时复用结果，flaky 确认最多额外复跑一次。
 - Archive、TestFlight、App Store 审核或版本发布加载发布分发规范；上传、加测试人员、送审和开始发布只在用户明确要求时执行。
-- 新项目才加载默认配置和全部生成所需规则。
+- 新项目先整理项目配置实例；项目复制示例并修改，不自动补值，仅加载相关生成规则。
 - 提交、推送或 review 先加载轻量门禁；订阅、打点和发布分发模块只在 diff 涉及时加载。
 - README、架构说明和历史记录不属于日常任务的必读上下文。
 - 已经进入当前上下文的入口或规则文件不会重复读取；组合任务先对文件路径去重。
 
 组合任务加载对应规则的并集。不要为了“可能有用”预读其他文件；命令成功时仅保留摘要，失败时仅保留相关日志。当前 diff、配置和依赖未变化时，可以复用本任务已经成功的安装、构建、测试和静态检查证据。
 
-## 默认配置
+## 首次生成项目配置
 
-新项目默认配置位于 [`defaults.jsonc`](.agents/skills/ios-workflow/assets/config/defaults.jsonc)：Swift、UIKit、MVVM、支持暗黑模式但不生成手动切换入口、语言跟随系统、英语本地化、中文注释等级 3、CocoaPods。生成的用户可见文案必须覆盖其中 `supported_localizations` 配置的全部语言；用户当前明确指定的选项优先。
+工作流不设置默认配置。解压发布包后，最外层直接提供 `project.example.jsonc` 和 `PROJECT_CONFIGURATION.md`，团队成员无需进入 Skill 目录寻找。
+
+1. 复制最外层示例，按项目需求修改，保存为自己的配置文件。
+2. 将配置路径交给生成器，首次生成工程；配置缺项或非法时明确报错，不自动补值。
+3. 生成完成后以实际工程为准，配置可以归档或删除。后续版本不再读取、核对或同步生成配置。
+
+已有项目接入不需要生成配置。仓库中的 [配置示例](distribution/project.example.jsonc) 和 [字段说明](distribution/PROJECT_CONFIGURATION.md) 位于 `distribution/`，打包时放到最外层。详见 [首次生成规范](.agents/skills/ios-workflow/references/standards/project-configuration.md)。
 
 新生成手写代码的注释规则见 [`code-generation.md`](.agents/skills/ios-workflow/references/standards/code-generation.md)。系统方法、继承方法、生命周期和代理/数据源回调不生成解释性注释，也不生成文件元数据或模板化职责标签。
 
@@ -110,7 +116,7 @@ python3 scripts/build_distribution.py --version 5.1.0 --output dist
 - [`code-objc.md`](.agents/skills/ios-workflow/references/standards/code-objc.md)：仅 Objective-C 或混编项目按需加载的语言规则。
 - [`code-generation.md`](.agents/skills/ios-workflow/references/standards/code-generation.md)：生成代码和中文注释等级。
 - [`dependencies.md`](.agents/skills/ios-workflow/references/standards/dependencies.md)：依赖管理、精确版本、安装、更新和编译。
-- [`ui-style.md`](.agents/skills/ios-workflow/references/standards/ui-style.md) 与 [`design-tokens.jsonc`](.agents/skills/ios-workflow/assets/config/design-tokens.jsonc)：UI、可访问性、本地化和设计参数。
+- [`ui-style.md`](.agents/skills/ios-workflow/references/standards/ui-style.md) 与 [配置示例中的 DesignTokens](distribution/project.example.jsonc)：UI、可访问性、本地化和设计参数。
 - [`checklists/`](.agents/skills/ios-workflow/references/checklists)：提交、推送、review 和条件专项门禁。
 - [`project_generation.py`](.agents/skills/ios-workflow/scripts/project_generation.py)：Codex 内部调用的配置校验、项目骨架、DesignTokens、XcodeGen 和依赖准备模块，不提供面向团队成员的 CLI。
 - [`test_project_generation.py`](tests/test_project_generation.py)：覆盖支持组合、失败场景和工程生成的自动化测试。
@@ -142,7 +148,7 @@ python3 scripts/build_distribution.py --version 5.1.0 --output dist
 
 第一条适合已有项目功能开发；第二条用于明确覆盖默认选项；第三条会自动执行提交和推送门禁。
 
-新建项目时 Codex 调用内部生成器，由生成器直接读取并校验默认配置和 DesignTokens，再创建源码、本地化、测试、隐私清单和 XcodeGen 配置；完整配置不会先进入模型上下文。团队成员仍然只需使用自然语言，不需要直接运行 Python 或工作流命令。若配置非法、目标目录非空、XcodeGen 或依赖工具缺失，流程会停止并说明原因，不会继续编译。
+新建项目时 Codex 调用内部生成器，先由客户端提取需求并保存独立配置实例，生成器读取并校验实例，再创建源码、本地化、测试、隐私清单和 XcodeGen 配置；完整配置不会先进入模型上下文。团队成员仍然只需使用自然语言，不需要直接运行 Python 或工作流命令。若配置非法、目标目录非空、XcodeGen 或依赖工具缺失，流程会停止并说明原因，不会继续编译。
 
 测试任务会先把 Requirement 验收项映射到单元、集成、UI 或专项验证，再选择最小充分的设备和系统矩阵。低风险结果可记录在需求档案；跨模块、高风险或跨会话任务使用 `.ios-workflow/tests/` 中的计划和报告。环境阻塞、真实失败和 flaky test 会分别报告，不会通过无限重试或跳过测试制造通过结果。
 
