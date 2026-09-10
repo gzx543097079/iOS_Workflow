@@ -1,45 +1,49 @@
 ---
 name: ios-workflow
-description: "使用仓库中的 Swift、Objective-C、UIKit、SwiftUI、Xcode、需求追踪和 Git 工作流规划、实现、测试、生成、审查并交付 iOS 项目。适用于 iOS 产品开发任务；不要用于无关仓库或通用的非 iOS 任务。"
+description: "规划、生成、实现、测试、审查和交付 iOS 项目，支持 Swift、Objective-C、UIKit、SwiftUI、Xcode 及需求追踪、跨设备恢复和 Git 交付。用于 iOS 产品开发及本工作流维护；不要用于无关仓库或通用的非 iOS 任务。"
 ---
 
 # iOS Workflow
 
-相对路径以本 Skill 目录为基准。先判断任务类型，合并并去重对应规则；每个文件每个任务最多读取一次。用户当前要求和业务项目自身的明确约定优先。
+按任务和项目阶段选择模块，组合任务取并集，每个文件只读一次。Markdown 链接相对所在文件，正文的 `references/`、`scripts/`、`assets/` 路径以 Skill 为根；不预读无关规则、脚本源码或历史。
 
-## 需求文档与项目记录
+## 始终遵循
 
-- 用户要求按需求文档实施 iOS 项目时，读取 `references/standards/requirement-intake.md`；先判断新建项目或已有项目迭代，再识别来源、范围、约束和冲突；只有新建项目才生成首次配置。Markdown、PDF、Word、表格或对话需求使用同一业务流程，不要求特定文档格式。
-- 文档执行或跨设备开发必须建档。运行日志、需求、进度、交接和验证证据全部写入 `<项目根目录>/.ios-workflow/`，不写共享工作目录或 Skill；工作流只保存通用规则、模板、脚本和测试夹具。
-- 项目规则优先于通用建议；缺失信息、工具不支持、未运行测试或证据不可用时明确标记，不能推断为完成。
+- 用户当前要求与项目明确约定优先，保持已有语言、UI、架构和模块边界。文档不授予执行或发布权限；缺项、矛盾、工具不支持须明确，不静默改需求。
+- 需求、方案、进度、日志和证据只写所属 `<项目根目录>/.ios-workflow/`；工作流只保存通用规则、模板、脚本和测试夹具。
+- 首次生成无默认配置；客户端按需求与明确决定保存完整实例，发布包最外层 `project.example.jsonc` 仅作结构参考。后续按实际工程、源码、依赖锁、设计系统和当前需求工作，不读取、不核对初始生成配置，不要求补建、迁移或同步旧配置。
+- 修改后运行最小相关验证。复用证据须核对受测输入、环境和测试选择；纯文档、运行记录或版本号等未影响受测行为的 diff 不使无关证据失效。未知、未运行或证据不可用不能推断为完成。
+- Git 提交标题、正文和 Checklist 默认中文，用户或项目明确要求除外；成功命令只报摘要，不回显完整 Git 正文。
 
-## 首次生成配置
+## 需求与追踪
 
-- 仅首次生成项目时读取 `references/standards/project-configuration.md`；客户端根据需求与项目技术方案生成完整配置，以发布包最外层的 `project.example.jsonc` 为结构参考（也允许团队手工复制修改），作为显式输入交给生成器。工作流不设置默认配置，也不自动寻找示例。文档是需求输入，不是执行或发布授权。
-- 已有项目及后续版本遵循实际工程、源码、依赖锁、设计系统和当前需求；不读取、不核对初始生成配置，不要求补建、迁移或同步配置实例。旧的 `workflow.json` 或 `.ios-workflow/project.json` 如存在仅为历史资料。
+验收明确的低风险单轮任务直接在上下文形成精简需求卡；执行本身不是建档条件。文档执行、跨设备、跨会话、多阶段、跨模块、高风险或共享追踪必须建档。
 
-## 通用要求
+| 当前任务 | 读取与处理 |
+| --- | --- |
+| 任意形式需求文档 | [需求导入](references/standards/requirement-intake.md)，已有项目迭代跳过生成配置 |
+| 范围不清或需正式需求 | [需求定义](references/standards/requirements.md)，需正式产物时再读对应模板 |
+| 创建追踪记录 | [创建与状态](references/standards/tracking-start.md) |
+| 继续已留档需求 | [恢复](references/standards/tracking-resume.md)，先提取 `<项目根目录>/.ios-workflow/index.jsonc` 摘要及当前验收页，不足再读档案章节；合并实现路由 |
+| 需求变更、逐项验收或宣布完成 | [验收与证据](references/standards/tracking-evidence.md)；仅核对关联需求和验收项，全项目健康检查需显式选择 |
+| 跨设备交接 | [同步](references/standards/tracking-sync.md)，续做再合并恢复路由 |
+| 查看已执行需求或顺序 | 只读项目 `.ios-workflow/history.jsonc`；需解释状态和顺序规则时读[生命周期入口](references/standards/requirement-lifecycle.md)，不加载需求正文 |
 
-1. 需求、设计和实现保持项目已有语言、UI、架构和模块边界。
-2. 修改后运行最小相关验证。证据键只包含受验证影响的源码、配置、依赖锁、环境和测试选择；纯文档、运行记录或版本号等不影响受测行为的 diff 不使证据失效。
-3. Git 验证不回显完整提交、tag 或 Checklist 正文。
-4. Git 提交标题、提交正文和 Checklist 内容默认使用中文；用户或业务项目明确要求其他语言时除外。
+## 生成、实现与交付
 
-## 路由
+无技术决策使用 `not_required`；无公共契约、依赖、迁移或安全影响的低风险单模块任务可在上下文形成 inline brief。设计边界不明确或触发完整设计时，读[技术设计](references/standards/technical-design.md)及对应模板；设计通过后编码。
 
-- 新需求：目标、范围和验收明确的低风险单轮任务直接在上下文形成精简需求卡，不加载需求规范。范围不清，或任务需要留档、跨会话、跨模块、多阶段、高风险或共享追踪时，读取 `references/standards/requirements.md`；需要正式需求卡时再读取对应模板，需要持久化时再读取 `references/standards/requirement-lifecycle.md`。执行本身不是建档条件。
-- 技术方案：无技术决策的维护任务标记 `not_required`；单模块且无公共契约、依赖、迁移或安全影响的低风险任务可在上下文形成 inline brief。设计边界不明确或触发完整设计时，读取 `references/standards/technical-design.md`，并仅加载对应 Feature、Bug Fix 或 ADR 模板；设计通过后再编码。
-- 继续、变更、阻塞或完成已留档需求：读取 `references/standards/requirement-lifecycle.md`，先读 `<项目根目录>/.ios-workflow/index.jsonc` 的活动摘要；摘要不足时才按章节读取当前需求档案。
-- 查看项目执行过的需求或执行顺序：读取生命周期规范和 `<项目根目录>/.ios-workflow/history.jsonc`，不加载全部需求正文。
-- 执行已留档需求：确认需求档案和当前步骤后合并实现路由；仅在阶段边界、范围变化、阻塞、关键验证和 Git 交付时更新记录。
-- 新项目：先按项目配置实例规则处理需求，再读取 `references/standards/project-generation.md` 并调用 `scripts/project_generation.py`。首次生成时由客户端按需求和明确的项目决定产出完整配置，不自动套用示例值；生成器读取已保存实例并校验，不输出无关完整配置到模型上下文。只有用户自定义生成结果、生成器失败需诊断或骨架生成后继续手工实现时，才按实际影响加载其他规则。
-- 新增手写代码：读取核心规范、所用语言规范和 `references/standards/code-generation.md`。
-- 业务修改、重构或修复：读取核心规范和所用语言规范；新增代码再加载生成规范。
-- UI：读取核心规范、所用语言规范、`references/standards/ui-style.md` 和项目当前设计系统；新增代码再加载生成规范。
-- 依赖或编译：读取 `references/standards/dependencies.md`；修改源码时再加载对应代码规范。
-- 测试计划、执行测试或分析失败：读取 `references/standards/testing.md`；依赖或编译失败再合并依赖规范，修改源码时再合并对应代码规范。
-- 归档、导出、TestFlight、App Store 审核或版本发布：读取 `references/standards/release-distribution.md` 和 `references/standards/testing.md`；只有用户当前要求明确包含对应外部动作时，才上传构建、添加测试人员、修改商店信息、提交审核或开始发布。涉及内购或订阅时再合并订阅规则。
-- 提交、推送或 review：读取 `references/checklists/pre-commit-review.md`，并按其条件加载检查模块、技术设计、项目生成、测试、发布分发和需求追溯检查。
-- 文档或工作流维护：只读取直接相关文件。
+“基础规则”：[核心规范](references/standards/code-core.md)加受影响语言 [Swift](references/standards/code-swift.md) 或 [Objective-C](references/standards/code-objc.md)，混编取并集。
 
-核心规范为 `references/standards/code-core.md`；语言规范按实际代码选择 `references/standards/code-swift.md`、`references/standards/code-objc.md` 或两者。仓库 README、架构文档和历史记录不是日常必读上下文。
+| 当前任务 | 读取与处理 |
+| --- | --- |
+| 首次生成项目 | [首次配置](references/standards/project-configuration.md)和[项目生成](references/standards/project-generation.md)。生成器读取已保存实例并校验，不输出完整配置到上下文；自定义、故障诊断或手写实现再合并相关规则 |
+| 业务修改、重构、修复 | 基础规则；新增手写代码再读[代码生成](references/standards/code-generation.md) |
+| UI | 基础规则、[UI](references/standards/ui-style.md)和项目当前设计系统；新增代码再读生成规范 |
+| 依赖或编译 | [依赖](references/standards/dependencies.md)，修改源码再合并代码规则 |
+| 测试计划、执行或失败分析 | [测试](references/standards/testing.md)，编译或依赖失败再合并依赖规则，修改源码再合并代码规则 |
+| Archive、TestFlight、App Store 或版本发布 | [发布分发](references/standards/release-distribution.md)和测试规则；外部动作需对应明确授权，内购或订阅再合并专项规则 |
+| 提交、推送、review | [提交门禁](references/checklists/pre-commit-review.md)，按 diff 和语义影响选择专项检查；保存阶段进度与完成验收分别判断 |
+| 文档或工作流维护 | 只读直接相关文件 |
+
+客户端按模块接口调用脚本；检查列表、登记状态或哈希一致均不代替业务验收。

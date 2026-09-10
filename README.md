@@ -40,7 +40,7 @@
 
 4. 直接提出项目需求，或使用 `$ios-workflow` 显式调用。
 
-Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`。该文件包含官方要求的 `name` 和 `description` 元数据；详细规则、模板和脚本只在任务需要时加载。
+Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`，包含 YAML `name` 和 `description`；`agents/openai.yaml` 提供界面元数据。仓库只有一个可发现的 Skill，内部 `references/` 是按需规则与检查表，`assets/templates/` 是产物模板，不需要各自增加 `SKILL.md` 或伪装成独立 Skill。
 
 ## 团队分发
 
@@ -58,9 +58,9 @@ python3 scripts/build_distribution.py --version 6.1.0 --output dist
 
 完整入口只负责路由，不再要求每次任务读取所有配置和规范：
 
-- 新功能和缺陷修复先加载精简需求规范；只有需要正式需求卡或补齐信息时才加载对应模板。
+- 明确的低风险任务在上下文形成需求卡和简要方案；范围不清或需要正式产物时才加载需求、设计规范和对应模板。
 - 需求可执行后按风险加载技术设计规范；小改动写精简方案，高风险或跨模块改动才加载完整模板。
-- 继续任务时先读取 `.ios-workflow/index.jsonc`，再只读取当前需求档案，不扫描全部历史。
+- 追踪按创建、恢复、验收、同步分模块。恢复脚本只输出当前需求的分页摘要；摘要不足再按章节读取档案，不扫描全部历史。
 - 普通业务修改只加载核心规范和当前使用的 Swift 或 Objective-C 规范。
 - 新生成代码额外加载生成与注释规范。
 - UI 任务额外加载 UI 规范和 DesignTokens。
@@ -79,8 +79,8 @@ python3 scripts/build_distribution.py --version 6.1.0 --output dist
 你可以直接说：“按这份需求文档创建 iOS 项目，并支持跨设备继续开发。”不要求文档使用固定格式；客户端读取 Markdown、文本、PDF、Word 或表格，提取业务需求和 iOS 约束。无法读取的内容明确列为缺失。
 
 1. 记录文档来源和版本，逐项判断与通用规则或工具能力的差异。项目明确需求优先于示例和通用建议；内部矛盾或不可实现的要求单独处理，不静默改需求。
-2. 客户端根据明确需求和项目技术决定产出完整配置，保存在业务项目 `.ios-workflow/generation/`。发布包最外层 `project.example.jsonc` 仅作结构参考，不要求用户先填表，也不自动补入示例值。
-3. 建立需求及验收追踪，再生成工程。首次配置只用于生成，后续开发依据实际工程及当前需求，不重新核对初始配置。
+2. 先确认项目阶段。首次建项才由客户端按需求和项目技术决定保存完整配置到 `.ios-workflow/generation/`；最外层 `project.example.jsonc` 仅作结构参考，不自动补值。已有工程收到新版本需求时直接迭代，跳过配置与生成。
+3. 建立需求及验收追踪，首次建项再生成工程。后续开发依据实际工程及当前需求，不重新核对初始配置。
 4. 每个验收项保存来源、实现、测试和证据。编写代码不等于验证通过；缺失证据标记待验证，不推断完成。
 
 详见 [需求导入规范](.agents/skills/ios-workflow/references/standards/requirement-intake.md)、[首次配置规范](.agents/skills/ios-workflow/references/standards/project-configuration.md) 和 [NimbleFive 对照示例](docs/configuration-samples/nimblefive/README.md)。本仓库修改和测试工作流，不因此开发该 App。
@@ -88,7 +88,7 @@ python3 scripts/build_distribution.py --version 6.1.0 --output dist
 ## 规则与检查文件
 
 - [`requirements.md`](.agents/skills/ios-workflow/references/standards/requirements.md)：编码前的目标、范围、验收标准、影响和完成定义。
-- [`requirement-lifecycle.md`](.agents/skills/ios-workflow/references/standards/requirement-lifecycle.md)：需求状态、步骤、恢复、Git 关联和完成规则。
+- [`requirement-lifecycle.md`](.agents/skills/ios-workflow/references/standards/requirement-lifecycle.md)：需求状态和模块索引；创建、恢复、验收、同步分别按需读取。
 - [`technical-design.md`](.agents/skills/ios-workflow/references/standards/technical-design.md)：编码前的设计分级、方案内容、ADR 和变更规则。
 - [`project-generation.md`](.agents/skills/ios-workflow/references/standards/project-generation.md)：配置校验、项目生成顺序、支持组合和验证要求。
 - [`testing.md`](.agents/skills/ios-workflow/references/standards/testing.md)：测试分层、最小矩阵、证据复用、失败分类和 flaky test 处理。
@@ -115,7 +115,7 @@ python3 scripts/build_distribution.py --version 6.1.0 --output dist
 
 ## 提交与推送门禁
 
-提交代码、推送到远端或 review 会自动触发 Checklist：`✅` 表示通过，`❌` 表示失败，`➖` 表示本次未影响或不适用。任何 `❌` 都会阻止提交或推送并向用户列出处理建议；通过后，提交操作把结果写入提交备注，仅推送操作在结果中报告且不改写已有提交。
+提交、推送或 review 按当前 diff 和语义影响选择 Checklist：`✅` 通过，`❌` 当前门禁失败，`➖` 未影响或不适用。阶段保存可如实记录未完成和测试失败，提交成功不等于验收通过；宣布完成或发布才要求对应范围全部通过。适用门禁失败时停止并给出处理建议；提交将结果写入正文，仅推送不改写已有提交。账本存在本身不触发全项目核验。
 
 提交后立即推送时，如果受测源码、配置、依赖和测试选择没有变化，推送阶段复用提交时的 Checklist，只检查远端、上游和工作区状态。Git 成功验证只显示必要摘要，不重复回显完整提交正文或 Checklist。
 
@@ -145,7 +145,17 @@ python3 scripts/build_distribution.py --version 6.1.0 --output dist
 
 跨设备时同步业务项目 Git 中的源码、需求、进度、交接及轻量证据。切换前保存当前步骤、下一动作、阻塞、受测输入和环境。新设备核对远端/分支/HEAD、工作区、文件和哈希后恢复；未推送、未同步、冲突、丢失证据或环境不可用均明确报告，不猜测旧对话内容。
 
-`progress_validation.py` 只读检查验收项的路径、文件和证据哈希。结构验证不证明业务正确，也不保证永不产生 AI 错误；它帮助发现缺失、过期或错误引用的证据，实际验收仍必须运行或人工执行。
+客户端可调用以下内部模块，团队成员仍使用自然语言：
+
+| 模块 | 作用 |
+| --- | --- |
+| `resume_context.py` | 只输出当前需求的有界摘要、登记状态和必要文件引用；明确分页、缺项与截断 |
+| `change_scope.py` | 按路径线索和已确认语义影响选择相关检查，不直接判断通过 |
+| `progress_validation.py` | 按相关需求/验收项核对路径、成功证据、实际哈希、环境与时间；全项目检查需显式选择 |
+| `evidence_tools.py` | 采集实际证据和输入哈希、iOS 测试环境指纹；复用比较返回 matched/stale/unknown |
+| `project_generation.py` | 首次配置诊断一次汇总独立问题，不自动填值 |
+
+结构验证和哈希一致不证明业务正确，也不保证永不产生 AI 错误；当前证据必须实际覆盖验收条件。未知环境、缺失证据、失败结果或变更输入不能充当可复用的成功结果。
 
 用户授权的 Git 提交/推送用于同步；仅本地完成不等于其他设备已可继续。大型日志和构建产物存项目内 `artifacts/` 并忽略，需要另行共享或重新验证。不要忽略整个 `.ios-workflow/`，不要用另一台设备的绝对路径充当可用证据。
 
