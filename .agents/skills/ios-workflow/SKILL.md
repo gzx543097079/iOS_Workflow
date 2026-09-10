@@ -27,7 +27,8 @@ description: "使用仓库中的 Swift、Objective-C、UIKit、SwiftUI、Xcode�
 - UI：读取核心规范、所用语言规范、`references/standards/ui-style.md` 和 `assets/config/design-tokens.jsonc`；新增代码再加载生成规范。
 - 依赖或编译：读取 `references/standards/dependencies.md`；修改源码时再加载对应代码规范。
 - 测试计划、执行测试或分析失败：读取 `references/standards/testing.md`；依赖或编译失败再合并依赖规范，修改源码时再合并对应代码规范。
-- 提交、推送或 review：读取 `references/checklists/pre-commit-review.md`，并按其条件加载检查模块、技术设计、项目生成、测试和需求追溯检查。
+- 归档、导出、TestFlight、App Store 审核或版本发布：读取 `references/standards/release-distribution.md` 和 `references/standards/testing.md`；只有用户当前要求明确包含对应外部动作时，才上传构建、添加测试人员、修改商店信息、提交审核或开始发布。涉及内购或订阅时再合并订阅规则。
+- 提交、推送或 review：读取 `references/checklists/pre-commit-review.md`，并按其条件加载检查模块、技术设计、项目生成、测试、发布分发和需求追溯检查。
 - 文档或工作流维护：只读取直接相关文件。
 
 核心规范为 `references/standards/code-core.md`；语言规范按实际代码选择 `references/standards/code-swift.md`、`references/standards/code-objc.md` 或两者。仓库 README、架构文档和历史记录不是日常必读上下文。

@@ -65,7 +65,7 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`。该文件包含�
 维护者可在发布前本地生成并检查分发包：
 
 ```bash
-python3 scripts/build_distribution.py --version 5.0.0 --output dist
+python3 scripts/build_distribution.py --version 5.1.0 --output dist
 ```
 
 ## 按任务加载，减少 Token
@@ -80,8 +80,9 @@ python3 scripts/build_distribution.py --version 5.0.0 --output dist
 - UI 任务额外加载 UI 规范和 DesignTokens。
 - 三方库或编译任务加载依赖规范。
 - 测试计划、执行或失败分析加载测试规范；证据键未变化时复用结果，flaky 确认最多额外复跑一次。
+- Archive、TestFlight、App Store 审核或版本发布加载发布分发规范；上传、加测试人员、送审和开始发布只在用户明确要求时执行。
 - 新项目才加载默认配置和全部生成所需规则。
-- 提交、推送或 review 先加载轻量门禁；订阅和打点模块只在 diff 涉及时加载。
+- 提交、推送或 review 先加载轻量门禁；订阅、打点和发布分发模块只在 diff 涉及时加载。
 - README、架构说明和历史记录不属于日常任务的必读上下文。
 - 已经进入当前上下文的入口或规则文件不会重复读取；组合任务先对文件路径去重。
 
@@ -102,7 +103,8 @@ python3 scripts/build_distribution.py --version 5.0.0 --output dist
 - [`technical-design.md`](.agents/skills/ios-workflow/references/standards/technical-design.md)：编码前的设计分级、方案内容、ADR 和变更规则。
 - [`project-generation.md`](.agents/skills/ios-workflow/references/standards/project-generation.md)：配置校验、项目生成顺序、支持组合和验证要求。
 - [`testing.md`](.agents/skills/ios-workflow/references/standards/testing.md)：测试分层、最小矩阵、证据复用、失败分类和 flaky test 处理。
-- [`templates/`](.agents/skills/ios-workflow/assets/templates)：需求、设计、追踪与测试产物模板。
+- [`release-distribution.md`](.agents/skills/ios-workflow/references/standards/release-distribution.md)：Archive、签名、TestFlight、App Store 审核、发布监控和热修复规则。
+- [`templates/`](.agents/skills/ios-workflow/assets/templates)：需求、设计、追踪、测试与发布产物模板。
 - [`code-core.md`](.agents/skills/ios-workflow/references/standards/code-core.md)：通用命名、架构、日志、隐私和测试基线。
 - [`code-swift.md`](.agents/skills/ios-workflow/references/standards/code-swift.md)：仅 Swift 项目加载的语言规则。
 - [`code-objc.md`](.agents/skills/ios-workflow/references/standards/code-objc.md)：仅 Objective-C 或混编项目按需加载的语言规则。
@@ -143,6 +145,8 @@ python3 scripts/build_distribution.py --version 5.0.0 --output dist
 新建项目时 Codex 调用内部生成器，由生成器直接读取并校验默认配置和 DesignTokens，再创建源码、本地化、测试、隐私清单和 XcodeGen 配置；完整配置不会先进入模型上下文。团队成员仍然只需使用自然语言，不需要直接运行 Python 或工作流命令。若配置非法、目标目录非空、XcodeGen 或依赖工具缺失，流程会停止并说明原因，不会继续编译。
 
 测试任务会先把 Requirement 验收项映射到单元、集成、UI 或专项验证，再选择最小充分的设备和系统矩阵。低风险结果可记录在需求档案；跨模块、高风险或跨会话任务使用 `.ios-workflow/tests/` 中的计划和报告。环境阻塞、真实失败和 flaky test 会分别报告，不会通过无限重试或跳过测试制造通过结果。
+
+发布任务按“预检 → Release 验证 → Archive 与校验 → 导出或上传 → TestFlight → App Store 审核与发布 → 监控和止损”推进。上传成功、构建处理完成、可供测试、审核通过和用户可用分别记录；证书、私钥和 API Key 不进入仓库或日志。没有明确外部动作授权时，工作流停在本地准备或报告阶段。
 
 收到目标明确的低风险任务后，Codex 直接在上下文中整理精简需求卡和 inline brief；范围不清、需要留档或触发完整设计时才加载对应规范。只有关键信息会改变方案或验收结果时才询问，不会为了填写模板重复追问；除非用户要求，否则不会在业务仓库创建需求文档。
 

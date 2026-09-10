@@ -17,7 +17,8 @@
 5. 活动需求需要技术设计，或 diff 涉及架构、公共接口、数据结构、依赖、并发、迁移、隐私安全时读取 `references/checklists/technical-design.md`；否则整组 `➖`。
 6. 新建项目，或 diff 涉及 `scripts/project_generation.py`、默认配置和 DesignTokens 生成时读取 `references/checklists/project-generation.md`；否则整组 `➖`。
 7. diff 涉及源码、测试、工程配置、依赖、生成器或 Requirement 验收行为时读取 `references/checklists/testing.md`；纯文档且不影响执行行为时整组 `➖`。
-8. UI、依赖等规范按 `SKILL.md` 路由，不加载无关规则。
+8. diff 涉及版本号、签名、Capability、Entitlement、ExportOptions、Archive、TestFlight、App Store 元数据或发布自动化时读取 `references/checklists/release-distribution.md`；否则整组 `➖`。
+9. UI、依赖等规范按 `SKILL.md` 路由，不加载无关规则。
 
 ## 门禁输出
 

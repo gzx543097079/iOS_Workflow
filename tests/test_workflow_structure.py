@@ -47,6 +47,32 @@ class WorkflowStructureTests(unittest.TestCase):
         self.assertIn("禁止无上限重试", standard)
         self.assertIn("证据键", standard)
 
+    def test_release_route_and_gate_reference_existing_files(self):
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        gate = (SKILL_ROOT / "references/checklists/pre-commit-review.md").read_text(encoding="utf-8")
+        self.assertIn("references/standards/release-distribution.md", skill)
+        self.assertIn("references/checklists/release-distribution.md", gate)
+        self.assertTrue((SKILL_ROOT / "references/standards/release-distribution.md").is_file())
+        self.assertTrue((SKILL_ROOT / "references/checklists/release-distribution.md").is_file())
+
+    def test_release_standard_separates_external_actions_and_states(self):
+        standard = (SKILL_ROOT / "references/standards/release-distribution.md").read_text(encoding="utf-8")
+        self.assertIn("只有用户当前要求已经明确包含对应动作时才执行", standard)
+        self.assertIn("上传命令成功不等于构建已可测试、可送审或已发布", standard)
+        self.assertIn("更高 Build", standard)
+        self.assertIn("已安装的 App Store 二进制不能直接降级", standard)
+
+    def test_release_templates_contain_traceability_and_recovery_fields(self):
+        plan = (SKILL_ROOT / "assets/templates/release/release-plan.md").read_text(encoding="utf-8")
+        report = (SKILL_ROOT / "assets/templates/release/release-report.md").read_text(encoding="utf-8")
+        self.assertIn("源提交或 Tag", plan)
+        self.assertIn("目标渠道", plan)
+        self.assertIn("Archive", plan)
+        self.assertIn("监控与回退", plan)
+        self.assertIn("处理状态", report)
+        self.assertIn("下一状态与负责人", report)
+        self.assertIn("不记录证书私钥", report)
+
     def test_low_risk_execution_does_not_require_persistence(self):
         requirements = (SKILL_ROOT / "references/standards/requirements.md").read_text(encoding="utf-8")
         lifecycle = (SKILL_ROOT / "references/standards/requirement-lifecycle.md").read_text(encoding="utf-8")
