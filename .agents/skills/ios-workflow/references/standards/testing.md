@@ -5,7 +5,7 @@
 ## 测试计划
 
 1. 从 Requirement 的验收标准和本次 diff 建立“验收项 → 测试层级 → 证据”映射，先覆盖变化、边界和高风险路径。
-2. 单模块低风险任务可把精简计划写入需求档案；跨模块、高风险或需要跨会话执行时，使用 `assets/templates/testing/test-plan.md` 保存到 `iOSFlowRecords/tests/<项目>/<Requirement-ID>-plan.md`。
+2. 单模块低风险任务可把精简计划写入需求档案；跨模块、高风险或需要跨会话执行时，使用 `assets/templates/testing/test-plan.md` 保存到 `.ios-workflow/tests/<项目>/<Requirement-ID>-plan.md`。
 3. 测试层级按需选择：
    - 静态检查与编译：验证格式、配置、资源、警告和所有受影响 target。
    - 单元测试：业务规则、状态转换、格式化、错误和边界条件。

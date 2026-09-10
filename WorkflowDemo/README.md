@@ -24,4 +24,4 @@ xcodegen generate
 xcodebuild -project WorkflowDemo.xcodeproj -scheme WorkflowDemo -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO build
 ```
 
-需求、设计和执行证据记录在工作目录的 `iOSFlowRecords/requirements/WorkflowDemo/REQ-20260903-006.md`。
+需求、设计和执行证据记录在工作目录的 `.ios-workflow/requirements/WorkflowDemo/REQ-20260903-006.md`。

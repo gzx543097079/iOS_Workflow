@@ -20,7 +20,7 @@
 │           │   └── templates/
 │           └── scripts/
 ├── MyProject/
-├── iOSFlowRecords/
+├── .ios-workflow/
 │   ├── index.jsonc            活动需求索引
 │   ├── requirements/          单个需求档案
 │   ├── projects/              各项目的需求执行顺序
@@ -35,7 +35,7 @@
 - `<工作目录>/AGENTS.md`：Codex 自动读取的精简、永久项目规则。
 - `<工作目录>/.agents/skills/ios-workflow/`：Codex 自动发现并按需加载的 iOS 工作流 Skill。
 - `<工作目录>/MyProject/`：团队成员自己的业务项目和 Git 仓库。
-- `<工作目录>/iOSFlowRecords/`：可见的需求台账目录，按项目保存索引、执行顺序、状态和提交记录，由工作流按需创建。
+- `<工作目录>/.ios-workflow/`：工作流自定义的隐藏需求台账目录，按项目保存索引、执行顺序、状态和提交记录，由工作流按需创建；它不是 Codex 官方 Skill 结构的一部分。
 
 `<工作目录>` 只是路径占位符，可以是团队成员已有的任意目录，不要求命名为 `Workspace`。
 
@@ -62,7 +62,7 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`。该文件包含�
 
 - 新功能和缺陷修复先加载精简需求规范；只有需要正式需求卡或补齐信息时才加载对应模板。
 - 需求可执行后按风险加载技术设计规范；小改动写精简方案，高风险或跨模块改动才加载完整模板。
-- 继续任务时先读取 `iOSFlowRecords/index.jsonc`，再只读取当前需求档案，不扫描全部历史。
+- 继续任务时先读取 `.ios-workflow/index.jsonc`，再只读取当前需求档案，不扫描全部历史。
 - 普通业务修改只加载核心规范和当前使用的 Swift 或 Objective-C 规范。
 - 新生成代码额外加载生成与注释规范。
 - UI 任务额外加载 UI 规范和 DesignTokens。
@@ -77,7 +77,7 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`。该文件包含�
 
 ## 默认配置
 
-新项目默认配置位于 [`defaults.jsonc`](.agents/skills/ios-workflow/assets/config/defaults.jsonc)：Swift、UIKit、MVVM、语言跟随系统、英语本地化、中文注释等级 3、CocoaPods。用户当前明确指定的选项优先。
+新项目默认配置位于 [`defaults.jsonc`](.agents/skills/ios-workflow/assets/config/defaults.jsonc)：Swift、UIKit、MVVM、支持暗黑模式但不生成手动切换入口、语言跟随系统、英语本地化、中文注释等级 3、CocoaPods。生成的用户可见文案必须覆盖其中 `supported_localizations` 配置的全部语言；用户当前明确指定的选项优先。
 
 新生成手写代码的注释规则见 [`code-generation.md`](.agents/skills/ios-workflow/references/standards/code-generation.md)。系统方法、继承方法、生命周期和代理/数据源回调不生成解释性注释，也不生成文件元数据或模板化职责标签。
 
@@ -129,13 +129,13 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`。该文件包含�
 
 新建项目时 Codex 调用内部生成器，由生成器直接读取并校验默认配置和 DesignTokens，再创建源码、本地化、测试、隐私清单和 XcodeGen 配置；完整配置不会先进入模型上下文。团队成员仍然只需使用自然语言，不需要直接运行 Python 或工作流命令。若配置非法、目标目录非空、XcodeGen 或依赖工具缺失，流程会停止并说明原因，不会继续编译。
 
-测试任务会先把 Requirement 验收项映射到单元、集成、UI 或专项验证，再选择最小充分的设备和系统矩阵。低风险结果可记录在需求档案；跨模块、高风险或跨会话任务使用 `iOSFlowRecords/tests/` 中的计划和报告。环境阻塞、真实失败和 flaky test 会分别报告，不会通过无限重试或跳过测试制造通过结果。
+测试任务会先把 Requirement 验收项映射到单元、集成、UI 或专项验证，再选择最小充分的设备和系统矩阵。低风险结果可记录在需求档案；跨模块、高风险或跨会话任务使用 `.ios-workflow/tests/` 中的计划和报告。环境阻塞、真实失败和 flaky test 会分别报告，不会通过无限重试或跳过测试制造通过结果。
 
 收到目标明确的低风险任务后，Codex 直接在上下文中整理精简需求卡和 inline brief；范围不清、需要留档或触发完整设计时才加载对应规范。只有关键信息会改变方案或验收结果时才询问，不会为了填写模板重复追问；除非用户要求，否则不会在业务仓库创建需求文档。
 
 ## 需求执行与恢复
 
-只有用户明确要求留档，或任务跨会话、跨模块、多阶段、高风险、需要共享追踪时，Codex 才在工作目录的 `iOSFlowRecords/` 中创建索引和单文件需求档案；低风险、可在单轮完成的改动只在当前上下文保留精简需求卡，开始执行本身不会触发建档。需求首次开始执行时取得不可变的项目顺序号，并写入 `iOSFlowRecords/projects/<项目>/history.jsonc`；完成、阻塞或取消都保留原顺序。步骤使用 `STEP-NNN`，同一阶段内连续步骤合并记录，不保存完整命令、日志或 diff。
+只有用户明确要求留档，或任务跨会话、跨模块、多阶段、高风险、需要共享追踪时，Codex 才在工作目录的 `.ios-workflow/` 中创建索引和单文件需求档案；低风险、可在单轮完成的改动只在当前上下文保留精简需求卡，开始执行本身不会触发建档。需求首次开始执行时取得不可变的项目顺序号，并写入 `.ios-workflow/projects/<项目>/history.jsonc`；完成、阻塞或取消都保留原顺序。步骤使用 `STEP-NNN`，同一阶段内连续步骤合并记录，不保存完整命令、日志或 diff。
 
 活动索引只保存一个完整恢复摘要和最后使用的 Requirement ID，不再随历史增长。用户说“继续上次需求”时，Codex 先读取索引，摘要足够即可继续；只有范围、步骤、设计或历史信息不足时才按章节读取需求档案。需求完成或取消后从活动索引移除，历史仍保留在项目台账和需求档案中。
 
@@ -149,4 +149,4 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`。该文件包含�
 
 设计状态只有 `pending`、`approved`、`not_required`。只有设计通过或明确不需要设计时才能进入实现。影响长期维护的关键选择使用 ADR，普通实现细节不建 ADR；实现偏离已确认设计时，先更新方案和执行步骤。
 
-`iOSFlowRecords/` 是工作目录中可直接查看的运行状态，不属于可更新的 `.agents/skills/ios-workflow/` 规则目录。是否纳入版本控制由团队自行决定；本示例仓库选择跟踪该目录，以便共享需求、项目顺序和测试证据，接入其他工作目录时可按团队策略忽略。
+`.ios-workflow/` 是工作目录中的隐藏运行状态，不属于可更新的 `.agents/skills/ios-workflow/` 官方 Skill 目录。是否纳入版本控制由团队自行决定；本示例仓库选择跟踪该目录，以便共享需求、项目顺序和测试证据，接入其他工作目录时可按团队策略忽略。需要查看时可在 Finder 中按 `Command + Shift + .` 显示隐藏文件。

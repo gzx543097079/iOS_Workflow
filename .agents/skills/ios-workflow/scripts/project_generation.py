@@ -102,12 +102,33 @@ def validate_defaults(config: Dict[str, Any]) -> Dict[str, Any]:
         raise ConfigurationError("supported_localizations 必须是非空字符串数组")
     if config.get("default_localization") not in localizations:
         raise ConfigurationError("default_localization 必须包含在 supported_localizations 中")
+    localization_strings = config.get("localization_strings")
+    if not isinstance(localization_strings, dict) or not localization_strings:
+        raise ConfigurationError("localization_strings 必须是非空对象")
+    for key, translations in localization_strings.items():
+        if not isinstance(key, str) or not key or not isinstance(translations, dict):
+            raise ConfigurationError("localization_strings 必须使用非空字符串键和语言映射")
+        missing = [locale for locale in localizations if not isinstance(translations.get(locale), str) or not translations[locale]]
+        if missing:
+            raise ConfigurationError(f"localization_strings.{key} 缺少语言: {', '.join(missing)}")
     devices = config.get("target_devices")
     if not isinstance(devices, list) or not devices or not set(devices).issubset({"iphone", "ipad"}):
         raise ConfigurationError("target_devices 只能包含 iphone、ipad")
-    for key in ("navigation_enabled", "include_unit_tests", "include_ui_tests", "warnings_as_errors", "generate_privacy_manifest", "generate_xcodeproj"):
+    boolean_keys = (
+        "navigation_enabled",
+        "supports_dark_mode",
+        "supports_manual_dark_mode_switch",
+        "include_unit_tests",
+        "include_ui_tests",
+        "warnings_as_errors",
+        "generate_privacy_manifest",
+        "generate_xcodeproj",
+    )
+    for key in boolean_keys:
         if not isinstance(config.get(key), bool):
             raise ConfigurationError(f"{key} 必须是布尔值")
+    if config["supports_manual_dark_mode_switch"] and not config["supports_dark_mode"]:
+        raise ConfigurationError("supports_manual_dark_mode_switch 只能在 supports_dark_mode 为 true 时开启")
     prefix = str(config.get("bundle_id_prefix", ""))
     bundle_id = str(config.get("bundle_id", ""))
     identifier_pattern = r"[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+"
@@ -279,23 +300,84 @@ def _swift_view_model(level: int) -> str:
 '''
 
 
-def _swift_uikit_sources(name: str, level: int, architecture: str, navigation_enabled: bool) -> Dict[str, str]:
+def _swift_uikit_appearance_policy(level: int) -> str:
+    comment = _comment(level, "保存用户选择的外观模式，并把跟随系统、浅色或深色应用到当前窗口。")
+    return f'''import UIKit
+
+{comment}enum AppearancePolicy {{
+    enum Mode: String {{
+        case system
+        case light
+        case dark
+
+        var interfaceStyle: UIUserInterfaceStyle {{
+            switch self {{
+            case .system: return .unspecified
+            case .light: return .light
+            case .dark: return .dark
+            }}
+        }}
+    }}
+
+    static let storageKey = "app.appearance"
+
+    static func apply(to window: UIWindow) {{
+        let value = UserDefaults.standard.string(forKey: storageKey)
+        window.overrideUserInterfaceStyle = Mode(rawValue: value ?? "")?.interfaceStyle ?? .unspecified
+    }}
+
+    static func set(_ mode: Mode, for window: UIWindow) {{
+        UserDefaults.standard.set(mode.rawValue, forKey: storageKey)
+        window.overrideUserInterfaceStyle = mode.interfaceStyle
+    }}
+}}
+'''
+
+
+def _swiftui_appearance_policy(level: int) -> str:
+    comment = _comment(level, "定义可持久化的外观选项；设置页面可使用相同 storageKey 写入用户选择。")
+    return f'''import SwiftUI
+
+{comment}enum AppAppearance: String {{
+    case system
+    case light
+    case dark
+
+    var colorScheme: ColorScheme? {{
+        switch self {{
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }}
+    }}
+}}
+
+enum AppearancePolicy {{
+    static let storageKey = "app.appearance"
+}}
+'''
+
+
+def _swift_uikit_sources(name: str, level: int, architecture: str, navigation_enabled: bool, manual_appearance: bool) -> Dict[str, str]:
     page_comment = _comment(level, "首页展示应用的基础内容，并作为后续业务模块的入口。")
     method_comment = _comment(level, "集中创建视图层级和约束，避免初始化流程散落在生命周期方法中。", "    ") if level >= 3 else ""
     root = "UINavigationController(rootViewController: HomeViewController())" if navigation_enabled else "HomeViewController()"
     view_model_property = "    private let viewModel = HomeViewModel()\n" if architecture == "mvvm" else ""
     title_key = "viewModel.titleKey" if architecture == "mvvm" else '"home.title"'
+    appearance_apply = "        AppearancePolicy.apply(to: window)\n" if manual_appearance else ""
     sources = {
         "App/AppDelegate.swift": "import UIKit\n\n@main\nfinal class AppDelegate: UIResponder, UIApplicationDelegate {\n    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {\n        UISceneConfiguration(name: \"Default Configuration\", sessionRole: connectingSceneSession.role)\n    }\n}\n",
-        "App/SceneDelegate.swift": f"import UIKit\n\nfinal class SceneDelegate: UIResponder, UIWindowSceneDelegate {{\n    var window: UIWindow?\n\n    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {{\n        guard let windowScene = scene as? UIWindowScene else {{ return }}\n        let window = UIWindow(windowScene: windowScene)\n        window.rootViewController = {root}\n        window.makeKeyAndVisible()\n        self.window = window\n    }}\n}}\n",
+        "App/SceneDelegate.swift": f"import UIKit\n\nfinal class SceneDelegate: UIResponder, UIWindowSceneDelegate {{\n    var window: UIWindow?\n\n    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {{\n        guard let windowScene = scene as? UIWindowScene else {{ return }}\n        let window = UIWindow(windowScene: windowScene)\n        window.rootViewController = {root}\n{appearance_apply}        window.makeKeyAndVisible()\n        self.window = window\n    }}\n}}\n",
         "App/Features/Home/HomeViewController.swift": f"import UIKit\n\n{page_comment}final class HomeViewController: UIViewController {{\n{view_model_property}    private let titleLabel = UILabel()\n\n    override func viewDidLoad() {{\n        super.viewDidLoad()\n        configureHierarchy()\n    }}\n\n{method_comment}    private func configureHierarchy() {{\n        view.backgroundColor = DesignTokens.Colors.background\n        titleLabel.text = LocalizationPolicy.localized({title_key})\n        titleLabel.font = .preferredFont(forTextStyle: .title2)\n        titleLabel.translatesAutoresizingMaskIntoConstraints = false\n        view.addSubview(titleLabel)\n        NSLayoutConstraint.activate([\n            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),\n            titleLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)\n        ])\n    }}\n}}\n",
     }
     if architecture == "mvvm":
         sources["App/Features/Home/HomeViewModel.swift"] = _swift_view_model(level)
+    if manual_appearance:
+        sources["App/Core/Appearance/AppearancePolicy.swift"] = _swift_uikit_appearance_policy(level)
     return sources
 
 
-def _swiftui_sources(name: str, level: int, architecture: str, navigation_enabled: bool) -> Dict[str, str]:
+def _swiftui_sources(name: str, level: int, architecture: str, navigation_enabled: bool, manual_appearance: bool) -> Dict[str, str]:
     comment = _comment(level, "首页展示应用的基础内容，并作为后续业务模块的入口。")
     view_model_property = "    private let viewModel = HomeViewModel()\n" if architecture == "mvvm" else ""
     title_key = "viewModel.titleKey" if architecture == "mvvm" else '"home.title"'
@@ -307,16 +389,64 @@ def _swiftui_sources(name: str, level: int, architecture: str, navigation_enable
             {content}
                 .navigationTitle(LocalizationPolicy.localized({title_key}))
         }}'''
+    appearance_state = "    @AppStorage(AppearancePolicy.storageKey) private var appearance = AppAppearance.system.rawValue\n\n" if manual_appearance else ""
+    appearance_modifier = "\n                .preferredColorScheme(AppAppearance(rawValue: appearance)?.colorScheme)" if manual_appearance else ""
     sources = {
-        f"App/{name}App.swift": f"import SwiftUI\n\n@main\nstruct {name}App: App {{\n    var body: some Scene {{\n        WindowGroup {{\n            HomeView()\n        }}\n    }}\n}}\n",
+        f"App/{name}App.swift": f"import SwiftUI\n\n@main\nstruct {name}App: App {{\n{appearance_state}    var body: some Scene {{\n        WindowGroup {{\n            HomeView(){appearance_modifier}\n        }}\n    }}\n}}\n",
         "App/Features/Home/HomeView.swift": f"import SwiftUI\n\n{comment}struct HomeView: View {{\n{view_model_property}    var body: some View {{\n        {content}\n    }}\n}}\n",
     }
     if architecture == "mvvm":
         sources["App/Features/Home/HomeViewModel.swift"] = _swift_view_model(level)
+    if manual_appearance:
+        sources["App/Core/Appearance/AppearancePolicy.swift"] = _swiftui_appearance_policy(level)
     return sources
 
 
-def _objc_sources(prefix: str, level: int, architecture: str, navigation_enabled: bool) -> Dict[str, str]:
+def _objc_appearance_policy(prefix: str, level: int) -> Dict[str, str]:
+    name = f"{prefix}AppearancePolicy"
+    comment = "// 保存用户选择的外观模式，并把跟随系统、浅色或深色应用到当前窗口。\n" if level >= 2 else ""
+    return {
+        f"App/Core/Appearance/{name}.h": f'''#import <UIKit/UIKit.h>
+
+typedef NS_ENUM(NSInteger, {prefix}AppearanceMode) {{
+    {prefix}AppearanceModeSystem,
+    {prefix}AppearanceModeLight,
+    {prefix}AppearanceModeDark,
+}};
+
+{comment}@interface {name} : NSObject
++ (void)applyToWindow:(UIWindow *)window;
++ (void)setMode:({prefix}AppearanceMode)mode forWindow:(UIWindow *)window;
+@end
+''',
+        f"App/Core/Appearance/{name}.m": f'''#import "{name}.h"
+
+static NSString * const {prefix}AppearanceStorageKey = @"app.appearance";
+
+@implementation {name}
++ (UIUserInterfaceStyle)interfaceStyleForMode:({prefix}AppearanceMode)mode {{
+    switch (mode) {{
+        case {prefix}AppearanceModeLight: return UIUserInterfaceStyleLight;
+        case {prefix}AppearanceModeDark: return UIUserInterfaceStyleDark;
+        default: return UIUserInterfaceStyleUnspecified;
+    }}
+}}
+
++ (void)applyToWindow:(UIWindow *)window {{
+    NSInteger mode = [NSUserDefaults.standardUserDefaults integerForKey:{prefix}AppearanceStorageKey];
+    window.overrideUserInterfaceStyle = [self interfaceStyleForMode:mode];
+}}
+
++ (void)setMode:({prefix}AppearanceMode)mode forWindow:(UIWindow *)window {{
+    [NSUserDefaults.standardUserDefaults setInteger:mode forKey:{prefix}AppearanceStorageKey];
+    window.overrideUserInterfaceStyle = [self interfaceStyleForMode:mode];
+}}
+@end
+''',
+    }
+
+
+def _objc_sources(prefix: str, level: int, architecture: str, navigation_enabled: bool, manual_appearance: bool) -> Dict[str, str]:
     page_comment = "// 首页展示应用的基础内容，并作为后续业务模块的入口。\n" if level >= 2 else ""
     method_comment = "// 集中创建视图层级和约束，避免初始化流程散落在生命周期方法中。\n" if level >= 3 else ""
     app_delegate = f"{prefix}AppDelegate"
@@ -327,12 +457,14 @@ def _objc_sources(prefix: str, level: int, architecture: str, navigation_enabled
     model_property = f"@property (nonatomic, strong) {prefix}HomeViewModel *viewModel;\n" if architecture == "mvvm" else ""
     model_setup = f"    self.viewModel = [{prefix}HomeViewModel new];\n" if architecture == "mvvm" else ""
     title_key = "self.viewModel.titleKey" if architecture == "mvvm" else '@"home.title"'
+    appearance_import = f'#import "{prefix}AppearancePolicy.h"\n' if manual_appearance else ""
+    appearance_apply = f"    [{prefix}AppearancePolicy applyToWindow:self.window];\n" if manual_appearance else ""
     sources = {
         "App/main.m": f"#import <UIKit/UIKit.h>\n#import \"{app_delegate}.h\"\n\nint main(int argc, char * argv[]) {{\n    @autoreleasepool {{\n        return UIApplicationMain(argc, argv, nil, NSStringFromClass({app_delegate}.class));\n    }}\n}}\n",
         f"App/{app_delegate}.h": f"#import <UIKit/UIKit.h>\n\n@interface {app_delegate} : UIResponder <UIApplicationDelegate>\n@end\n",
         f"App/{app_delegate}.m": f"#import \"{app_delegate}.h\"\n\n@implementation {app_delegate}\n- (UISceneConfiguration *)application:(UIApplication *)application configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession options:(UISceneConnectionOptions *)options {{\n    return [[UISceneConfiguration alloc] initWithName:@\"Default Configuration\" sessionRole:connectingSceneSession.role];\n}}\n@end\n",
         f"App/{scene_delegate}.h": f"#import <UIKit/UIKit.h>\n\n@interface {scene_delegate} : UIResponder <UIWindowSceneDelegate>\n@property (nonatomic, strong) UIWindow *window;\n@end\n",
-        f"App/{scene_delegate}.m": f"#import \"{scene_delegate}.h\"\n#import \"{home}.h\"\n\n@implementation {scene_delegate}\n- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {{\n    if (![scene isKindOfClass:UIWindowScene.class]) {{ return; }}\n    self.window = [[UIWindow alloc] initWithWindowScene:(UIWindowScene *)scene];\n    self.window.rootViewController = {root};\n    [self.window makeKeyAndVisible];\n}}\n@end\n",
+        f"App/{scene_delegate}.m": f"#import \"{scene_delegate}.h\"\n#import \"{home}.h\"\n{appearance_import}\n@implementation {scene_delegate}\n- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {{\n    if (![scene isKindOfClass:UIWindowScene.class]) {{ return; }}\n    self.window = [[UIWindow alloc] initWithWindowScene:(UIWindowScene *)scene];\n    self.window.rootViewController = {root};\n{appearance_apply}    [self.window makeKeyAndVisible];\n}}\n@end\n",
         f"App/Features/Home/{home}.h": f"#import <UIKit/UIKit.h>\n\n{page_comment}@interface {home} : UIViewController\n@end\n",
         f"App/Features/Home/{home}.m": f"#import \"{home}.h\"\n#import \"DesignTokens.h\"\n#import \"{prefix}LocalizationPolicy.h\"\n{model_header}\n@interface {home} ()\n{model_property}@property (nonatomic, strong) UILabel *titleLabel;\n@end\n\n@implementation {home}\n- (void)viewDidLoad {{\n    [super viewDidLoad];\n{model_setup}    [self configureHierarchy];\n}}\n\n{method_comment}- (void)configureHierarchy {{\n    self.view.backgroundColor = [DesignTokens colorBackground];\n    self.titleLabel = [UILabel new];\n    self.titleLabel.text = [{prefix}LocalizationPolicy localizedStringForKey:{title_key}];\n    self.titleLabel.translatesAutoresizingMaskIntoConstraints = NO;\n    [self.view addSubview:self.titleLabel];\n    [NSLayoutConstraint activateConstraints:@[[self.titleLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor], [self.titleLabel.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor]]];\n}}\n@end\n",
     }
@@ -340,6 +472,8 @@ def _objc_sources(prefix: str, level: int, architecture: str, navigation_enabled
         model_comment = page_comment.replace("首页展示应用的基础内容，并作为后续业务模块的入口。", "首页 Model 保存展示所需的本地化键，避免视图直接持有业务文案。")
         sources[f"App/Features/Home/{prefix}HomeViewModel.h"] = f"#import <Foundation/Foundation.h>\n\n{model_comment}@interface {prefix}HomeViewModel : NSObject\n@property (nonatomic, copy, readonly) NSString *titleKey;\n@end\n"
         sources[f"App/Features/Home/{prefix}HomeViewModel.m"] = f"#import \"{prefix}HomeViewModel.h\"\n\n@implementation {prefix}HomeViewModel\n- (NSString *)titleKey {{ return @\"home.title\"; }}\n@end\n"
+    if manual_appearance:
+        sources.update(_objc_appearance_policy(prefix, level))
     return sources
 
 
@@ -383,15 +517,20 @@ def _project_yml(name: str, config: Dict[str, Any]) -> str:
     warnings = "YES" if config["warnings_as_errors"] else "NO"
     device_family = ",".join("1" if item == "iphone" else "2" for item in config["target_devices"])
     team_setting = f"        DEVELOPMENT_TEAM: {config['development_team']}\n" if config["development_team"] else ""
-    generated_info_setting = "        GENERATE_INFOPLIST_FILE: YES\n        INFOPLIST_KEY_UILaunchScreen_Generation: YES\n" if config["ui"] == "swiftui" else ""
+    generated_info_setting = ""
+    if config["ui"] == "swiftui":
+        generated_info_setting = "        GENERATE_INFOPLIST_FILE: YES\n        INFOPLIST_KEY_UILaunchScreen_Generation: YES\n"
+        if not config["supports_dark_mode"]:
+            generated_info_setting += "        INFOPLIST_KEY_UIUserInterfaceStyle: Light\n"
     info_section = ""
     if config["ui"] == "uikit":
         scene_delegate = "$(PRODUCT_MODULE_NAME).SceneDelegate" if config["language"] == "swift" else f"{config['objc_class_prefix']}SceneDelegate"
+        appearance_property = "        UIUserInterfaceStyle: Light\n" if not config["supports_dark_mode"] else ""
         info_section = f'''    info:
       path: App/Resources/Info.plist
       properties:
         UILaunchScreen: {{}}
-        UIApplicationSceneManifest:
+{appearance_property}        UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
           UISceneConfigurations:
             UIWindowSceneSessionRoleApplication:
@@ -417,6 +556,11 @@ def _ui_test_sources(name: str, language: str) -> Dict[str, str]:
     return {f"UITests/{name}UITests.swift": "import XCTest\n\nfinal class AppUITests: XCTestCase {\n    // TODO: 根据真实用户路径补充启动和首页 UI 测试。\n}\n"}
 
 
+def _strings_literal(value: str) -> str:
+    """转义 Apple .strings 文件中的键和值。"""
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r")
+
+
 def generate_project(defaults_path: Path, tokens_path: Path, output: Path, project_name: str) -> List[Path]:
     """在空目录生成项目骨架，返回生成文件列表。"""
     config = validate_defaults(load_jsonc(defaults_path))
@@ -425,7 +569,8 @@ def generate_project(defaults_path: Path, tokens_path: Path, output: Path, proje
     if output.exists() and any(output.iterdir()):
         raise FileExistsError(f"输出目录必须为空: {output}")
     output.mkdir(parents=True, exist_ok=True)
-    sources = _swiftui_sources(name, config["comment_level"], config["architecture"], config["navigation_enabled"]) if config["ui"] == "swiftui" else (_swift_uikit_sources(name, config["comment_level"], config["architecture"], config["navigation_enabled"]) if config["language"] == "swift" else _objc_sources(config["objc_class_prefix"], config["comment_level"], config["architecture"], config["navigation_enabled"]))
+    manual_appearance = config["supports_manual_dark_mode_switch"]
+    sources = _swiftui_sources(name, config["comment_level"], config["architecture"], config["navigation_enabled"], manual_appearance) if config["ui"] == "swiftui" else (_swift_uikit_sources(name, config["comment_level"], config["architecture"], config["navigation_enabled"], manual_appearance) if config["language"] == "swift" else _objc_sources(config["objc_class_prefix"], config["comment_level"], config["architecture"], config["navigation_enabled"], manual_appearance))
     if config["language"] == "swift":
         sources["App/Core/Localization/LocalizationPolicy.swift"] = _swift_localization_policy(config["comment_level"])
     else:
@@ -447,8 +592,11 @@ def generate_project(defaults_path: Path, tokens_path: Path, output: Path, proje
     if config["generate_privacy_manifest"]:
         sources["App/Resources/PrivacyInfo.xcprivacy"] = _privacy_manifest()
     for locale in config["supported_localizations"]:
-        title = "首页" if locale.startswith("zh") else "Home"
-        sources[f"App/Resources/{locale}.lproj/Localizable.strings"] = f'"home.title" = "{title}";\n'
+        lines = [
+            f'"{_strings_literal(key)}" = "{_strings_literal(translations[locale])}";'
+            for key, translations in config["localization_strings"].items()
+        ]
+        sources[f"App/Resources/{locale}.lproj/Localizable.strings"] = "\n".join(lines) + "\n"
     manager = config["dependency_manager"]
     if manager == "pod":
         sources["Podfile"] = f"platform :ios, '{config['deployment_target']}'\n\ntarget '{name}' do\n  # 按需添加使用精确版本的依赖。\nend\n"

@@ -39,6 +39,41 @@ class ProjectGenerationTests(unittest.TestCase):
         validated = validate_defaults(self.defaults())
         self.assertEqual(validated["default_language_mode"], "system")
         self.assertEqual(validated["comment_level"], 3)
+        self.assertTrue(validated["supports_dark_mode"])
+        self.assertFalse(validated["supports_manual_dark_mode_switch"])
+        self.assertEqual(validated["localization_strings"]["home.title"]["ja"], "ホーム")
+
+    def test_rejects_localization_key_missing_a_configured_language(self):
+        config = self.defaults()
+        config["localization_strings"]["home.title"].pop("ru")
+        with self.assertRaisesRegex(ConfigurationError, "home.title 缺少语言: ru"):
+            validate_defaults(config)
+
+    def test_generates_configured_translation_for_each_language(self):
+        temporary, output, _ = self.generate({
+            "supported_localizations": ["zh-Hant", "es", "ja", "ar"],
+            "default_localization": "es",
+        })
+        self.addCleanup(temporary.cleanup)
+        expected = {
+            "zh-Hant": '"home.title" = "首頁";',
+            "es": '"home.title" = "Inicio";',
+            "ja": '"home.title" = "ホーム";',
+            "ar": '"home.title" = "الرئيسية";',
+        }
+        for locale, localized_line in expected.items():
+            with self.subTest(locale=locale):
+                strings = output / f"App/Resources/{locale}.lproj/Localizable.strings"
+                self.assertEqual(strings.read_text().strip(), localized_line)
+
+    def test_rejects_manual_dark_mode_switch_when_dark_mode_is_disabled(self):
+        config = self.defaults()
+        config.update({
+            "supports_dark_mode": False,
+            "supports_manual_dark_mode_switch": True,
+        })
+        with self.assertRaisesRegex(ConfigurationError, "只能在 supports_dark_mode 为 true 时开启"):
+            validate_defaults(config)
 
     def test_rejects_objective_c_swiftui(self):
         config = self.defaults()
@@ -100,6 +135,59 @@ class ProjectGenerationTests(unittest.TestCase):
         self.assertIn('defaultLocalization = "zh-Hans"', (output / "App/Core/Localization/LocalizationPolicy.swift").read_text())
         self.assertTrue((output / "UITests/DemoAppUITests.swift").is_file())
 
+    def test_disabling_dark_mode_forces_light_appearance(self):
+        for changes, expected in (
+            ({"language": "swift", "ui": "uikit"}, "UIUserInterfaceStyle: Light"),
+            ({"language": "swift", "ui": "swiftui"}, "INFOPLIST_KEY_UIUserInterfaceStyle: Light"),
+            ({"language": "objc", "ui": "uikit"}, "UIUserInterfaceStyle: Light"),
+        ):
+            with self.subTest(changes=changes):
+                temporary, output, _ = self.generate({
+                    **changes,
+                    "supports_dark_mode": False,
+                    "supports_manual_dark_mode_switch": False,
+                })
+                self.addCleanup(temporary.cleanup)
+                self.assertIn(expected, (output / "project.yml").read_text())
+
+    def test_generates_manual_appearance_policy_for_swift_uikit(self):
+        temporary, output, _ = self.generate({"supports_manual_dark_mode_switch": True})
+        self.addCleanup(temporary.cleanup)
+        policy = (output / "App/Core/Appearance/AppearancePolicy.swift").read_text()
+        scene = (output / "App/SceneDelegate.swift").read_text()
+        self.assertIn("case system", policy)
+        self.assertIn("case light", policy)
+        self.assertIn("case dark", policy)
+        self.assertIn("UserDefaults.standard.set", policy)
+        self.assertIn("AppearancePolicy.apply(to: window)", scene)
+
+    def test_generates_manual_appearance_policy_for_swiftui(self):
+        temporary, output, _ = self.generate({
+            "ui": "swiftui",
+            "dependency_manager": "spm",
+            "supports_manual_dark_mode_switch": True,
+        })
+        self.addCleanup(temporary.cleanup)
+        policy = (output / "App/Core/Appearance/AppearancePolicy.swift").read_text()
+        app = (output / "App/DemoAppApp.swift").read_text()
+        self.assertIn("var colorScheme: ColorScheme?", policy)
+        self.assertIn("@AppStorage(AppearancePolicy.storageKey)", app)
+        self.assertIn(".preferredColorScheme", app)
+
+    def test_generates_manual_appearance_policy_for_objective_c_uikit(self):
+        temporary, output, _ = self.generate({
+            "language": "objc",
+            "dependency_manager": "carthage",
+            "supports_manual_dark_mode_switch": True,
+        })
+        self.addCleanup(temporary.cleanup)
+        policy = (output / "App/Core/Appearance/APPAppearancePolicy.m").read_text()
+        scene = (output / "App/APPSceneDelegate.m").read_text()
+        self.assertIn("APPAppearanceModeLight", policy)
+        self.assertIn("APPAppearanceModeDark", policy)
+        self.assertIn("setInteger:mode", policy)
+        self.assertIn("[APPAppearancePolicy applyToWindow:self.window]", scene)
+
     def test_comment_level_one_omits_explanatory_comments(self):
         temporary, output, _ = self.generate({"comment_level": 1})
         self.addCleanup(temporary.cleanup)
@@ -109,9 +197,9 @@ class ProjectGenerationTests(unittest.TestCase):
     @unittest.skipUnless(shutil.which("xcodegen"), "需要 XcodeGen")
     def test_xcodegen_accepts_all_supported_project_shapes(self):
         for changes in (
-            {"language": "swift", "ui": "uikit"},
-            {"language": "swift", "ui": "swiftui"},
-            {"language": "objc", "ui": "uikit"},
+            {"language": "swift", "ui": "uikit", "supports_manual_dark_mode_switch": True},
+            {"language": "swift", "ui": "swiftui", "supports_manual_dark_mode_switch": True},
+            {"language": "objc", "ui": "uikit", "supports_manual_dark_mode_switch": True},
         ):
             with self.subTest(changes=changes):
                 temporary, output, _ = self.generate(changes)

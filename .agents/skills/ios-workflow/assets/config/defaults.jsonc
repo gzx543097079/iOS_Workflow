@@ -15,9 +15,27 @@
   "development_team": "", // Apple Developer Team ID；留空时由本机或 CI 决定
   "code_sign_style": "automatic", // 签名方式：automatic 或 manual
   "target_devices": ["iphone", "ipad"], // 支持设备：iphone、ipad
+  "supports_dark_mode": true, // 是否支持暗黑模式；关闭时应用固定使用浅色模式
+  "supports_manual_dark_mode_switch": false, // 是否支持手动切换跟随系统、浅色和深色；仅在 supports_dark_mode 为 true 时可开启，不自动生成设置页面
   "default_language_mode": "system", // 首次启动语言策略：system（跟随系统）或 fixed（强制使用 default_localization）
   "default_localization": "en", // 默认本地化语言：en（英语）；必须包含在 supported_localizations 中
   "supported_localizations": ["zh-Hans", "zh-Hant", "en", "es", "fr", "de", "ja", "ko", "pt-BR", "it", "ar", "ru"], // 预创建语言：简中、繁中、英语、西语、法语、德语、日语、韩语、巴西葡语、意语、阿语、俄语；可按市场增删
+  "localization_strings": { // 项目骨架的用户可见文案；每个键必须覆盖 supported_localizations 中的全部语言
+    "home.title": {
+      "zh-Hans": "首页",
+      "zh-Hant": "首頁",
+      "en": "Home",
+      "es": "Inicio",
+      "fr": "Accueil",
+      "de": "Startseite",
+      "ja": "ホーム",
+      "ko": "홈",
+      "pt-BR": "Início",
+      "it": "Pagina iniziale",
+      "ar": "الرئيسية",
+      "ru": "Главная"
+    }
+  },
   "include_unit_tests": true, // 是否生成单元测试 target
   "include_ui_tests": false, // 是否生成 UI 测试 target
   "test_framework": "xctest", // 测试框架；当前支持 xctest

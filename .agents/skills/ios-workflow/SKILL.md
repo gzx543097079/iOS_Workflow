@@ -18,8 +18,8 @@ description: "使用仓库中的 Swift、Objective-C、UIKit、SwiftUI、Xcode�
 
 - 新需求：目标、范围和验收明确的低风险单轮任务直接在上下文形成精简需求卡，不加载需求规范。范围不清，或任务需要留档、跨会话、跨模块、多阶段、高风险或共享追踪时，读取 `references/standards/requirements.md`；需要正式需求卡时再读取对应模板，需要持久化时再读取 `references/standards/requirement-lifecycle.md`。执行本身不是建档条件。
 - 技术方案：无技术决策的维护任务标记 `not_required`；单模块且无公共契约、依赖、迁移或安全影响的低风险任务可在上下文形成 inline brief。设计边界不明确或触发完整设计时，读取 `references/standards/technical-design.md`，并仅加载对应 Feature、Bug Fix 或 ADR 模板；设计通过后再编码。
-- 继续、变更、阻塞或完成已留档需求：读取 `references/standards/requirement-lifecycle.md`，先读 `<工作目录>/iOSFlowRecords/index.jsonc` 的活动摘要；摘要不足时才按章节读取当前需求档案。
-- 查看项目执行过的需求或执行顺序：读取生命周期规范和 `iOSFlowRecords/projects/<项目>/history.jsonc`，不加载全部需求正文。
+- 继续、变更、阻塞或完成已留档需求：读取 `references/standards/requirement-lifecycle.md`，先读 `<工作目录>/.ios-workflow/index.jsonc` 的活动摘要；摘要不足时才按章节读取当前需求档案。
+- 查看项目执行过的需求或执行顺序：读取生命周期规范和 `.ios-workflow/projects/<项目>/history.jsonc`，不加载全部需求正文。
 - 执行已留档需求：确认需求档案和当前步骤后合并实现路由；仅在阶段边界、范围变化、阻塞、关键验证和 Git 交付时更新记录。
 - 新项目：先只读取 `references/standards/project-generation.md` 并调用 `scripts/project_generation.py`。配置和 DesignTokens 由生成器直接读取 `assets/config/` 并校验，不输出到模型上下文。只有用户自定义生成结果、生成器失败需诊断或骨架生成后继续手工实现时，才按实际影响加载其他规则。
 - 新增手写代码：读取核心规范、所用语言规范和 `references/standards/code-generation.md`。

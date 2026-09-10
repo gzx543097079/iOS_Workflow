@@ -24,7 +24,7 @@
 │           └── scripts/
 │               └── project_generation.py
 ├── MyProject/                        业务项目及其 Git 仓库
-├── iOSFlowRecords/
+├── .ios-workflow/
 │   ├── index.jsonc                   单个活动需求摘要与最后使用 ID
 │   ├── requirements/                 单个需求档案
 │   ├── projects/                     项目需求执行顺序
@@ -53,4 +53,4 @@ README、`docs/` 和 `CHANGELOG.md` 供接入、维护与追溯使用，不自�
 
 ## Git 边界
 
-`.agents/skills/ios-workflow/` 随 Git 仓库提交，可直接在团队间同步。若只把 Skill 安装到另一个业务仓库，复制该目录并在目标仓库的 `AGENTS.md` 中保留必要的项目约束；`iOSFlowRecords/` 仍位于工作目录根部，是否跟踪由团队决定。
+`.agents/skills/ios-workflow/` 随 Git 仓库提交，可直接在团队间同步。若只把 Skill 安装到另一个业务仓库，复制该目录并在目标仓库的 `AGENTS.md` 中保留必要的项目约束；`.ios-workflow/` 是位于工作目录根部的工作流自定义隐藏状态目录，不属于官方 Skill 目录，是否跟踪由团队决定。

@@ -1,6 +1,6 @@
 # 需求生命周期与执行记录
 
-运行状态保存在可见目录 `<工作目录>/iOSFlowRecords/`，不写入 Skill 目录。一个工作目录包含多个项目时，以项目相对路径分组；每个项目在 `projects/<项目>/history.jsonc` 保存需求执行顺序。
+运行状态保存在隐藏目录 `<工作目录>/.ios-workflow/`，不写入 Skill 目录。该目录是本工作流约定，不属于 Codex 官方 Skill 结构；一个工作目录包含多个项目时，以项目相对路径分组，每个项目在 `projects/<项目>/history.jsonc` 保存需求执行顺序。
 
 高风险、跨模块或跨会话测试按 `references/standards/testing.md` 保存到 `tests/<项目>/`；需求档案只记录计划/报告路径和结论。恢复普通实现任务时不扫描测试目录，进入测试步骤后才读取当前 Requirement 对应文件。
 

@@ -16,6 +16,15 @@ class WorkflowStructureTests(unittest.TestCase):
         self.assertIn("description:", skill)
         self.assertNotIn("[TODO", skill)
 
+    def test_runtime_records_use_hidden_workflow_directory(self):
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        lifecycle = (SKILL_ROOT / "references/standards/requirement-lifecycle.md").read_text(encoding="utf-8")
+        self.assertTrue((ROOT / ".ios-workflow/index.jsonc").is_file())
+        self.assertFalse((ROOT / "iOSFlowRecords").exists())
+        self.assertFalse((ROOT / ".iOSFlowRecords").exists())
+        self.assertIn("<工作目录>/.ios-workflow/index.jsonc", skill)
+        self.assertIn("本工作流约定，不属于 Codex 官方 Skill 结构", lifecycle)
+
     def test_testing_route_references_existing_files(self):
         skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
         gate = (SKILL_ROOT / "references/checklists/pre-commit-review.md").read_text(encoding="utf-8")
