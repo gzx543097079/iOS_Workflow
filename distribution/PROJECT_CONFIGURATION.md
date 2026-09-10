@@ -13,7 +13,7 @@
 | `config.marketing_version` / `build_number` | 产品版本和构建号 |
 | `config.target_devices` | `iphone`、`ipad` 的非空数组 |
 | `config.supported_orientations` | `portrait`、`portrait_upside_down`、`landscape_left`、`landscape_right`；空数组表示选择平台方向行为 |
-| `config.supported_localizations` / `default_localization` | 支持的语言与默认本地化语言，后者必须包含在前者中 |
+| `config.supported_localizations` / `default_localization` | `en`、`zh-Hans` 等连字符语言标识，不允许路径或大小写重复；默认语言必须包含在支持列表中 |
 | `config.default_language_mode` | `system` 跟随系统或 `fixed` 固定读取默认本地化语言 |
 | `config.localization_strings` | 每个文案键提供全部支持语言的译文 |
 | `config.supports_dark_mode` / `supports_manual_dark_mode_switch` | 深色适配与手动外观策略；不支持深色时不能启用手动切换 |

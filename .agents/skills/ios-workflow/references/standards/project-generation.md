@@ -16,6 +16,7 @@
 - 支持 Swift + UIKit、Swift + SwiftUI、Objective-C + UIKit；Objective-C + SwiftUI 必须提前拒绝。
 - `system` 跟随系统本地化；`fixed` 从 `default_localization` 对应资源读取，资源缺失时安全回退系统语言。
 - `localization_strings` 中每个用户可见文案键必须覆盖 `supported_localizations` 的全部语言；生成器按配置写入对应 `.lproj/Localizable.strings`，缺少译文时在写文件前拒绝生成。
+- 本地化标识使用 `en`、`zh-Hans`、`pt-BR` 等连字符形式，拒绝路径和大小写重复项。生成前检查全部输出路径；写入以项目目录为边界，拒绝符号链接重定向并只创建新文件，遇到并发产生的已有文件也不覆盖。
 - UIKit 与 SwiftUI 生成结果必须兼容 `deployment_target`，不可使用高于最低版本且无降级路径的 API。
 - MVVM 生成最小 ViewModel，MVC 不生成 ViewModel；`navigation_enabled` 必须真实决定根导航容器。
 - `supports_dark_mode` 为 `false` 时在工程配置中固定浅色外观；`supports_manual_dark_mode_switch` 为 `true` 时生成持久化的跟随系统、浅色和深色切换策略，但不自动生成设置页面。手动切换不能在暗黑模式关闭时启用。

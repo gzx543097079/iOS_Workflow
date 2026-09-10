@@ -5,10 +5,11 @@ from __future__ import annotations
 import json
 from copy import deepcopy
 import math
+import os
 import re
 import shutil
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Dict, Iterable, List, Tuple
 
 
@@ -209,6 +210,15 @@ def _diagnose_config(config: Any) -> List[str]:
     valid_localizations = isinstance(localizations, list) and bool(localizations) and all(isinstance(x, str) and x.strip() for x in localizations)
     if "supported_localizations" in config and not valid_localizations:
         errors.append("config.supported_localizations 必须是非空字符串数组")
+    if valid_localizations:
+        seen_localizations = set()
+        for index, locale in enumerate(localizations):
+            # Accept portable hyphenated language tags, never filesystem paths.
+            if not re.fullmatch(r"[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*", locale):
+                errors.append(f"config.supported_localizations[{index}] 必须是使用连字符的语言标识，不允许路径或特殊字符")
+            if locale.casefold() in seen_localizations:
+                errors.append(f"config.supported_localizations[{index}] 语言标识重复（不区分大小写）")
+            seen_localizations.add(locale.casefold())
     if valid_localizations and "default_localization" in config and config["default_localization"] not in localizations:
         errors.append("config.default_localization 必须包含在 config.supported_localizations 中")
     localization_strings = config.get("localization_strings")
@@ -718,6 +728,57 @@ def _strings_literal(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r")
 
 
+def _validate_output_paths(output: Path, sources: Dict[str, str]) -> None:
+    """Validate the entire render plan before creating files or directories."""
+    root = output.resolve()
+    seen = set()
+    reserved = {".ios-workflow", ".agents", ".git", "AGENTS.md", ".gitignore"}
+    for relative in sources:
+        path = PurePosixPath(relative)
+        if (not path.parts or path.is_absolute() or PureWindowsPath(relative).drive
+                or ".." in path.parts or "\\" in relative or "\x00" in relative
+                or path.as_posix() != relative or path.parts[0] in reserved):
+            raise ConfigurationError(f"生成路径必须位于项目内且不得覆盖接入记录: {relative!r}")
+        if relative.casefold() in seen:
+            raise ConfigurationError(f"生成路径重复（不区分大小写）: {relative!r}")
+        seen.add(relative.casefold())
+        destination = root / relative
+        if not destination.resolve().is_relative_to(root):
+            raise ConfigurationError(f"生成路径越过项目目录: {relative!r}")
+        if destination.exists() or destination.is_symlink():
+            raise FileExistsError(f"生成路径已存在，不覆盖: {relative!r}")
+
+
+def _write_generated_sources(output: Path, sources: Dict[str, str]) -> List[Path]:
+    """Create files exclusively, keeping traversal anchored to the project fd."""
+    _validate_output_paths(output, sources)
+    output.mkdir(parents=True, exist_ok=True)
+    directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    root_fd = os.open(output, directory_flags)
+    try:
+        for relative, content in sources.items():
+            parts = PurePosixPath(relative).parts
+            parent_fd = os.dup(root_fd)
+            try:
+                for component in parts[:-1]:
+                    try:
+                        os.mkdir(component, dir_fd=parent_fd)
+                    except FileExistsError:
+                        pass
+                    next_fd = os.open(component, directory_flags, dir_fd=parent_fd)
+                    os.close(parent_fd)
+                    parent_fd = next_fd
+                file_fd = os.open(parts[-1], os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                                  0o644, dir_fd=parent_fd)
+                with os.fdopen(file_fd, "w", encoding="utf-8") as stream:
+                    stream.write(content)
+            finally:
+                os.close(parent_fd)
+    finally:
+        os.close(root_fd)
+    return sorted(output / relative for relative in sources)
+
+
 def generate_project(instance_path: Path, output: Path, *, allow_project_records: bool = False) -> List[Path]:
     """生成骨架；显式允许项目内已有需求记录，但绝不覆盖业务文件。"""
     instance = load_project_instance(instance_path)
@@ -746,7 +807,6 @@ def generate_project(instance_path: Path, output: Path, *, allow_project_records
         records_only = allow_project_records and all(is_setup_metadata(path) for path in entries)
         if entries and not records_only:
             raise FileExistsError(f"输出目录必须为空或仅包含显式允许的项目记录: {output}")
-    output.mkdir(parents=True, exist_ok=True)
     manual_appearance = config["supports_manual_dark_mode_switch"]
     sources = _swiftui_sources(name, config["comment_level"], config["architecture"], config["navigation_enabled"], manual_appearance) if config["ui"] == "swiftui" else (_swift_uikit_sources(name, config["comment_level"], config["architecture"], config["navigation_enabled"], manual_appearance) if config["language"] == "swift" else _objc_sources(config["objc_class_prefix"], config["comment_level"], config["architecture"], config["navigation_enabled"], manual_appearance))
     if config["language"] == "swift":
@@ -779,13 +839,7 @@ def generate_project(instance_path: Path, output: Path, *, allow_project_records
         sources["Podfile"] = f"platform :ios, '{config['deployment_target']}'\n\ntarget '{name}' do\n  # 按需添加使用精确版本的依赖。\nend\n"
     elif manager == "carthage":
         sources["Cartfile"] = "# 按需添加使用 == 固定版本的依赖。\n"
-    generated: List[Path] = []
-    for relative, content in sources.items():
-        destination = output / relative
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_text(content, encoding="utf-8")
-        generated.append(destination)
-    return sorted(generated)
+    return _write_generated_sources(output, sources)
 
 
 def generate_xcodeproj(project_dir: Path) -> Path:
