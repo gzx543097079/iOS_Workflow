@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from datetime import datetime
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
@@ -15,6 +16,7 @@ from typing import Any
 STATUSES = frozenset({
     "pending", "in_progress", "implemented", "verified", "blocked", "deferred", "cancelled",
 })
+EVIDENCE_RESULTS = frozenset({"passed", "failed", "blocked", "skipped"})
 VALIDATION_SCOPE = "仅校验结构、路径、证据及已登记输入的完整性；通过不等于业务验收通过。"
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 
@@ -77,14 +79,41 @@ def _hash_matches(path: Path | None, expected: Any, label: str, errors: list[str
         errors.append(f"{label}: 文件无法读取，不能核验证据")
 
 
+def _valid_recorded_at(value: Any) -> bool:
+    """Accept ISO 8601 date-times with an explicit UTC or numeric offset."""
+    if not isinstance(value, str) or "T" not in value:
+        return False
+    # Check the offset separately: fromisoformat normalizes values such as
+    # +08:99 instead of rejecting their invalid minute component.
+    offset = re.search(r"(?:Z|[+-](?:[01]\d|2[0-3])(?::?[0-5]\d)?)$", value)
+    if offset is None:
+        return False
+    zone = offset.group()
+    if zone == "Z":
+        zone = "+00:00"
+    elif len(zone) == 3:
+        zone += ":00"
+    elif len(zone) == 5:
+        zone = zone[:3] + ":" + zone[3:]
+    try:
+        parsed = datetime.fromisoformat(value[:offset.start()] + zone)
+        return parsed.tzinfo is not None and parsed.utcoffset() is not None
+    except ValueError:
+        return False
+
+
 def validate_progress(project_root: Path, progress: dict) -> list[str]:
     """Return blocking integrity errors without writing files or updating statuses.
 
     ``progress`` uses schema_version=1 and an ``items`` list. Each item has a
-    stable id, source {path, section}, status, implementation [path], and
-    evidence [{path, sha256, inputs: [{path, sha256}], environment?}]. For a
-    verified item, evidence inputs collectively cover the requirement source
-    and all implementation files. Callers must also record affected build
+    stable id, requirement_id, criterion, source {path, section}, status,
+    implementation [path], and evidence [{path, sha256, inputs: [{path, sha256}],
+    environment, result, recorded_at}]. Each evidence result is passed, failed,
+    blocked or skipped, with an ISO 8601 timestamp including a timezone. For a
+    verified item, all current evidence must pass, and its inputs collectively
+    cover the requirement source and all implementation files. Incomplete
+    items may have no evidence. Historical missing fields produce errors;
+    this function does not migrate records. Callers must also record affected build
     settings, dependency locks and other inputs; this function cannot infer
     whether the recorded scope is complete or the local environment matches.
     Additional descriptive fields are allowed. Paths use forward slashes
@@ -121,6 +150,10 @@ def validate_progress(project_root: Path, progress: dict) -> list[str]:
             errors.append(f"{label}.id: 重复 ID {identifier}")
         else:
             identifiers.add(identifier)
+
+        for field, description in (("requirement_id", "关联需求 ID"), ("criterion", "可验证的验收条件")):
+            if not isinstance(item.get(field), str) or not item[field].strip():
+                errors.append(f"{label}.{field}: 待补充非空{description}；不自动迁移历史记录")
 
         status = item.get("status")
         if not isinstance(status, str) or status not in STATUSES:
@@ -161,9 +194,15 @@ def validate_progress(project_root: Path, progress: dict) -> list[str]:
                 continue
             path = _file(root, entry.get("path"), f"{entry_label}.path", errors, evidence=True)
             _hash_matches(path, entry.get("sha256"), entry_label, errors)
-            if "environment" in entry and (not isinstance(entry["environment"], str)
-                                            or not entry["environment"].strip()):
-                errors.append(f"{entry_label}.environment: 如提供，必须是非空环境说明")
+            if not isinstance(entry.get("environment"), str) or not entry["environment"].strip():
+                errors.append(f"{entry_label}.environment: 待补证，必须记录非空环境说明")
+            result = entry.get("result")
+            if not isinstance(result, str) or result not in EVIDENCE_RESULTS:
+                errors.append(f"{entry_label}.result: 待补证，必须记录 passed/failed/blocked/skipped")
+            elif status == "verified" and result != "passed":
+                errors.append(f"{entry_label}.result: verified 的当前证据必须为 passed，实际为 {result}")
+            if not _valid_recorded_at(entry.get("recorded_at")):
+                errors.append(f"{entry_label}.recorded_at: 待补证，必须记录含时区的有效 ISO 8601 时间")
             inputs = entry.get("inputs")
             if not isinstance(inputs, list) or not inputs:
                 errors.append(f"{entry_label}.inputs: 必须登记非空受测输入及其 SHA-256")

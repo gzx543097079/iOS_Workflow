@@ -34,6 +34,7 @@ class ProgressValidationTests(unittest.TestCase):
             "items": [{
                 "id": "REQ-001-AC-001",
                 "requirement_id": "REQ-001",
+                "criterion": "A completed round restores from local storage after relaunch.",
                 "source": {"path": ".ios-workflow/sources/PRD.md", "section": "Memory Grid"},
                 "status": "verified",
                 "implementation": ["App/MemoryGrid.swift"],
@@ -45,6 +46,8 @@ class ProgressValidationTests(unittest.TestCase):
                         for path in (".ios-workflow/sources/PRD.md", "App/MemoryGrid.swift", "project.yml")
                     ],
                     "environment": "fixture only; no simulator execution claimed",
+                    "result": "passed",
+                    "recorded_at": "2026-09-10T10:30:00+08:00",
                 }],
             }],
         }
@@ -106,6 +109,103 @@ class ProgressValidationTests(unittest.TestCase):
         item["implementation"] = []
         item["evidence"] = []
         self.assertEqual([], self.errors())
+
+    def test_every_status_requires_requirement_id_and_criterion(self):
+        for status in ("pending", "in_progress", "implemented", "verified", "blocked", "deferred", "cancelled"):
+            for field in ("requirement_id", "criterion"):
+                for value in (None, "", " \t\n", [], {}, 42):
+                    with self.subTest(status=status, field=field, value=value):
+                        progress = copy.deepcopy(self.progress)
+                        item = progress["items"][0]
+                        item["status"] = status
+                        if value is None:
+                            del item[field]
+                        else:
+                            item[field] = value
+                        errors = validate_progress(self.project, progress)
+                        self.assertTrue(any(f".{field}: 待补充" in error for error in errors))
+
+    def test_evidence_requires_nonempty_environment(self):
+        for value in (None, "", " \t\n", [], {}, 42):
+            with self.subTest(value=value):
+                progress = copy.deepcopy(self.progress)
+                evidence = progress["items"][0]["evidence"][0]
+                if value is None:
+                    del evidence["environment"]
+                else:
+                    evidence["environment"] = value
+                self.assertTrue(any(".environment: 待补证" in error
+                                    for error in validate_progress(self.project, progress)))
+
+    def test_evidence_result_is_required_and_has_a_fixed_vocabulary(self):
+        for value in (None, "", "success", "PASSED", " passed ", [], {}, True):
+            with self.subTest(value=value):
+                progress = copy.deepcopy(self.progress)
+                evidence = progress["items"][0]["evidence"][0]
+                if value is None:
+                    del evidence["result"]
+                else:
+                    evidence["result"] = value
+                self.assertTrue(any(".result: 待补证" in error
+                                    for error in validate_progress(self.project, progress)))
+
+    def test_verified_rejects_failed_blocked_or_skipped_current_evidence(self):
+        for result in ("failed", "blocked", "skipped"):
+            with self.subTest(result=result):
+                evidence = self.progress["items"][0]["evidence"][0]
+                evidence["result"] = result
+                self.assertTrue(any("verified 的当前证据必须为 passed" in error for error in self.errors()))
+
+    def test_verified_rejects_one_failed_record_even_with_another_passing_record(self):
+        failed = copy.deepcopy(self.progress["items"][0]["evidence"][0])
+        failed["result"] = "failed"
+        self.progress["items"][0]["evidence"].append(failed)
+        self.assertTrue(any("evidence[1].result" in error for error in self.errors()))
+
+    def test_incomplete_items_can_record_unsuccessful_evidence_without_becoming_verified(self):
+        for status in ("pending", "in_progress", "implemented", "blocked", "deferred", "cancelled"):
+            for result in ("passed", "failed", "blocked", "skipped"):
+                with self.subTest(status=status, result=result):
+                    item = self.progress["items"][0]
+                    item["status"] = status
+                    item["evidence"][0]["result"] = result
+                    self.assertEqual([], self.errors())
+                    self.assertEqual(status, item["status"])
+
+    def test_recorded_at_accepts_valid_iso8601_timezone_forms(self):
+        for timestamp in ("2026-09-10T02:30:00Z", "2026-09-10T10:30:00+08:00",
+                          "2026-09-09T22:30:00.123456-04:00", "2026-09-10T10:30+0800",
+                          "2024-02-29T10:30:00+08"):
+            with self.subTest(timestamp=timestamp):
+                self.progress["items"][0]["evidence"][0]["recorded_at"] = timestamp
+                self.assertEqual([], self.errors())
+
+    def test_recorded_at_rejects_missing_timezone_invalid_date_and_malformed_values(self):
+        for value in (None, "", " \t", [], {}, 42, "yesterday", "2026-09-10",
+                      "2026-09-10T10:30:00", "2026-09-10 10:30:00+08:00",
+                      "2026-02-29T10:30:00Z", "2026-09-10T24:00:00Z",
+                      "2026-09-10T10:30:00+24:00", "2026-09-10T10:30:00+08:99"):
+            with self.subTest(value=value):
+                progress = copy.deepcopy(self.progress)
+                evidence = progress["items"][0]["evidence"][0]
+                if value is None:
+                    del evidence["recorded_at"]
+                else:
+                    evidence["recorded_at"] = value
+                self.assertTrue(any(".recorded_at: 待补证" in error
+                                    for error in validate_progress(self.project, progress)))
+
+    def test_historical_missing_fields_report_all_errors_without_migration(self):
+        item = self.progress["items"][0]
+        del item["requirement_id"]
+        del item["criterion"]
+        for field in ("environment", "result", "recorded_at"):
+            del item["evidence"][0][field]
+        before = copy.deepcopy(self.progress)
+        errors = self.errors()
+        for field in ("requirement_id", "criterion", "environment", "result", "recorded_at"):
+            self.assertTrue(any(f".{field}:" in error for error in errors))
+        self.assertEqual(before, self.progress)
 
     def test_duplicate_ids_and_unknown_status_are_rejected(self):
         self.progress["items"].append(copy.deepcopy(self.progress["items"][0]))
