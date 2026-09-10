@@ -28,6 +28,8 @@
 4. 需求状态只使用 `draft`、`ready`、`in_progress`、`blocked`、`done`、`cancelled`。分析完成且实施所需信息充分时进入 `ready`；编码前按技术设计规范确定设计等级，设计状态须为 `approved` 或 `not_required`，开始实施时进入 `in_progress`。
 5. 需求首次进入 `in_progress` 时，按项目台账的 `next_sequence` 追加执行记录并递增序号。一个需求只登记一次，已共享的顺序号不得重排、复用或删除。并行分支出现未共享的序号碰撞时保留两条需求，结合实际首次执行时间协调新条目的序号，并记录调整原因；不得丢掉其中一条。
 
+初始化或首次执行时，四份关联记录通过[统一保存接口](tracking-resume.md#统一保存与中断恢复接口)校验候选后保存；旧文件不存在时显式提供 `None` 哈希，不从模板推断实际进度。
+
 ## 可机器核对的关联
 
 - `history.jsonc` 保持 `version: 3`、`project: "."`、`next_sequence` 和 `execution_order`。每条执行记录包含 `id`、`file`（档案项目相对路径）、正整数 `sequence`、当前需求 `status`；可增加时间和说明字段。全台账需求 ID 和序号不得重复，`next_sequence` 必须大于所有已登记序号。未开始的 `draft`/`ready` 需求允许档案 `sequence: null` 且尚无执行记录。

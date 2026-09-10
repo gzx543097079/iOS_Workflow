@@ -156,6 +156,7 @@ python3 scripts/build_distribution.py --version 6.3.1 --output dist
 | --- | --- |
 | `resume_context.py` | 输出当前需求的有界摘要并核对记录关联；明确分页、缺项与截断 |
 | `tracking_state.py` | 只读核对当前需求的索引、台账、验收状态及档案头部，发现终态未清、遗漏记录和状态矛盾；不读无关历史证据 |
+| `tracking_update.py` | 校验并保存一个需求的四份关联记录，检查旧版本和证据输入，支持中断恢复与显式放弃；保存成功不代表业务验收通过 |
 | `change_scope.py` | 按路径线索和已确认语义影响选择相关检查，不直接判断通过 |
 | `progress_validation.py` | 按相关需求/验收项核对路径、成功证据、实际哈希、环境与时间；全项目检查需显式选择 |
 | `evidence_tools.py` | 采集实际证据和输入哈希、iOS 测试环境指纹；复用比较返回 matched/stale/unknown |

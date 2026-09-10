@@ -14,4 +14,20 @@
 - 索引只保留一个 `active_requirement` 和 `last_requirement_id`；`done` 或 `cancelled` 后清空活动项。所有已执行需求仍在台账和档案中；查看顺序只读取台账。
 - 旧版共享目录及 `projects/<项目>/history.jsonc`、`requirements/<项目>/` 等记录保持只读兼容，无需批量改写，也不据旧记录自动认定当前完成。续做时把当前需求必要内容复制到所属业务项目目录，核对相对路径、实现和证据后继续；后续只写项目内记录，旧生成配置仍仅为历史资料。
 
+## 统一保存与中断恢复接口
+
+阶段边界需要一起更新索引、账本、台账和选定需求档案时，客户端使用 [tracking_update.py](../../scripts/tracking_update.py)：
+
+```python
+transaction_id = prepare_tracking_update(project_root, requirement_id, candidates, expected_hashes)
+result = apply_tracking_update(project_root, transaction_id)
+```
+
+- `candidates` 为项目相对路径到完整 UTF-8 文本的对象，必须恰好包含 `.ios-workflow/index.jsonc`、`.ios-workflow/progress.json`、`.ios-workflow/history.jsonc` 和本次 `requirement_id` 对应的 `.ios-workflow/requirements/*.md` 档案。`expected_hashes` 使用相同四个键，值为编辑前实际完整文件字节的 SHA-256；只有文件不存在时使用 `None`，允许初始化。不能用摘要、选中段落或旧会话中的哈希代替完整旧文件。
+- `prepare` 先核对旧哈希和记录保留关系，再用候选调用 `validate_tracking_state` 与本需求范围的 `validate_progress_scope`；核验的实际档案必须就是四个候选中的档案。已有验收 ID 不得删除或转属，其他需求的验收项和执行行不得修改或新增，已有执行序号、顺序与已分配的 `next_sequence` 不得倒退或复用。范围变化保留有依据的延期/取消项；跨分支序号协调仍按[同步规则](tracking-sync.md)处理。
+- 只复制四份候选及选定需求引用的必要文件用于校验，不加载无关历史证据或生成配置。准备成功后移除输入副本，仅保留 `.ios-workflow/transactions/<transaction_id>/` 下的四份候选、`journal.json` 和实际输入哈希。状态与证据结论由调用方根据实际执行提供；保存成功及 `metadata_only` 都不是业务验收，接口不运行测试、不自行提升完成状态。
+- `apply`/`recover` 在写入前一次核对全部目标只能处于记录的旧版本或新版本，并核对项目中实际输入哈希；逐文件替换前再次核对目标，写完后复查全部目标与输入才登记 `complete`。输入变化、外部编辑或写入中断时抛出错误并保留待恢复资料，不能报告保存完成；完成后的幂等调用只接受目标仍为记录的新版本。
+- 检测到冲突时先检查当前四份文件和输入，不直接覆盖外部内容。不能继续旧候选时显式 `abandon`：只添加放弃标记，保留 journal 和候选，不回滚、不改当前文件。部分写入仍可能存在，须先逐项核对并整理完整候选、重新读取当前哈希，再 `prepare` 新事务。不得删除待恢复目录作为解锁手段。完成或放弃的资料可在当前记录已核对并同步后，按团队保留约定归档；本接口不自动清理历史事务。
+- 锁使用 macOS/Linux 的 POSIX `flock`，进程退出后由系统释放，只协调本机遵守同一接口的写入者。四文件更新不是一次原子操作；编辑器不遵守此锁，仍可能在最后检查与替换之间修改文件，因此应用时停止并行编辑。此锁不解决跨设备 Git 冲突，恢复记录须随对应项目状态一起核对；不得因某设备有完成标记就跳过实际文件检查。
+
 复用证据、变更验收范围或判定完成时再读取[验收与证据](tracking-evidence.md)；切换设备或核对同步状态时读取[跨设备与 Git](tracking-sync.md)。
