@@ -9,7 +9,7 @@ description: "使用仓库中的 Swift、Objective-C、UIKit、SwiftUI、Xcode�
 
 ## 需求文档与项目记录
 
-- 用户要求按需求文档实施 iOS 项目时，读取 `references/standards/requirement-intake.md`；先识别来源、范围、约束和冲突，再由客户端生成首次项目配置。Markdown、PDF、Word、表格或对话需求使用同一业务流程，不要求特定文档格式。
+- 用户要求按需求文档实施 iOS 项目时，读取 `references/standards/requirement-intake.md`；先判断新建项目或已有项目迭代，再识别来源、范围、约束和冲突；只有新建项目才生成首次配置。Markdown、PDF、Word、表格或对话需求使用同一业务流程，不要求特定文档格式。
 - 文档执行或跨设备开发必须建档。运行日志、需求、进度、交接和验证证据全部写入 `<项目根目录>/.ios-workflow/`，不写共享工作目录或 Skill；工作流只保存通用规则、模板、脚本和测试夹具。
 - 项目规则优先于通用建议；缺失信息、工具不支持、未运行测试或证据不可用时明确标记，不能推断为完成。
 
