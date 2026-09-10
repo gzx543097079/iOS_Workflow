@@ -51,7 +51,7 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`，包含 YAML `name
 维护者可在发布前本地生成并检查分发包：
 
 ```bash
-python3 scripts/build_distribution.py --version 6.1.0 --output dist
+python3 scripts/build_distribution.py --version 6.2.0 --output dist
 ```
 
 ## 按任务加载，减少 Token
