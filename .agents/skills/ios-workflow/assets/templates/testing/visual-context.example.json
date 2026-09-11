@@ -1,0 +1,13 @@
+{
+  "xcode": "REPLACE_WITH_ACTUAL_VERSION_AND_BUILD",
+  "simulator_runtime": "REPLACE_WITH_ACTUAL_IOS_VERSION_AND_BUILD",
+  "device_model": "REPLACE_WITH_ACTUAL_SIMULATOR_MODEL",
+  "viewport_width_points": 393,
+  "viewport_height_points": 852,
+  "display_scale": 3,
+  "locale": "en_US",
+  "interface_style": "light",
+  "content_size_category": "UICTContentSizeCategoryL",
+  "orientation": "portrait",
+  "scenario": "REPLACE_WITH_REQUIREMENT_ACCEPTANCE_AND_FIXTURE_REVISION"
+}

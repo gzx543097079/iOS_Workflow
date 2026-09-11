@@ -15,6 +15,8 @@
 4. 缺陷修复必须先有可复现证据或回归测试；无法自动化时记录手工步骤和原因。
 5. 不强制统一覆盖率百分比。新增关键逻辑和错误路径必须覆盖；项目已有覆盖率门槛不得降低。
 
+关键页面需要布局或外观回归时，按需读取[视觉回归](visual-regression.md)，使用固定环境、经审阅基线与实际差异结果；首次采集截图本身不代表通过。
+
 ## 环境与矩阵
 
 - 编译或测试前按 `references/standards/dependencies.md` 确认依赖一致。记录 Xcode、scheme、configuration、destination 和测试范围。

@@ -56,6 +56,16 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: 准备 XcodeGen
         run: command -v xcodegen || brew install xcodegen
+      - name: 验证可选视觉比较工具
+        run: python3 -m unittest tests.test_visual_regression -v
+      - name: 校验 iOS 截图采集模板
+        run: >-
+          xcrun --sdk iphonesimulator swiftc -typecheck
+          -sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)"
+          -F "$(xcrun --sdk iphonesimulator --show-sdk-platform-path)/Developer/Library/Frameworks"
+          -I "$(xcrun --sdk iphonesimulator --show-sdk-platform-path)/Developer/usr/lib"
+          -target "$(uname -m)-apple-ios14.0-simulator"
+          .agents/skills/ios-workflow/assets/templates/testing/VisualCaptureTests.swift
       - name: 实际执行 Demo 单元和 UI 测试
         run: >-
           python3 scripts/check_demo_tests.py

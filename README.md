@@ -102,6 +102,7 @@ python3 scripts/build_distribution.py --version 6.4.0 --output dist
 - [`code-objc.md`](.agents/skills/ios-workflow/references/standards/code-objc.md)：仅 Objective-C 或混编项目按需加载的语言规则。
 - [`code-generation.md`](.agents/skills/ios-workflow/references/standards/code-generation.md)：生成代码和中文注释等级。
 - [`dependencies.md`](.agents/skills/ios-workflow/references/standards/dependencies.md)：依赖管理、精确版本、安装、更新和编译。
+- [关键页面视觉回归](.agents/skills/ios-workflow/references/standards/visual-regression.md)：按需使用固定环境、XCTest 采集模板和原生 PNG 比较助手；图片变化生成差异图，基线经审阅后保存于项目内。
 - [`ui-style.md`](.agents/skills/ios-workflow/references/standards/ui-style.md) 与 [配置示例中的 DesignTokens](distribution/project.example.jsonc)：UI、可访问性、本地化和设计参数。
 - [`checklists/`](.agents/skills/ios-workflow/references/checklists)：提交、推送、review 和条件专项门禁。
 - [`project_generation.py`](.agents/skills/ios-workflow/scripts/project_generation.py)：Codex 内部调用的配置校验、项目骨架、DesignTokens、XcodeGen 和依赖准备模块，不提供面向团队成员的 CLI。
