@@ -105,6 +105,7 @@ python3 scripts/build_distribution.py --version 6.4.0 --output dist
 - [`ui-style.md`](.agents/skills/ios-workflow/references/standards/ui-style.md) 与 [配置示例中的 DesignTokens](distribution/project.example.jsonc)：UI、可访问性、本地化和设计参数。
 - [`checklists/`](.agents/skills/ios-workflow/references/checklists)：提交、推送、review 和条件专项门禁。
 - [`project_generation.py`](.agents/skills/ios-workflow/scripts/project_generation.py)：Codex 内部调用的配置校验、项目骨架、DesignTokens、XcodeGen 和依赖准备模块，不提供面向团队成员的 CLI。
+- [`test_workflow_execution.py`](tests/test_workflow_execution.py)：通过真实客户端子进程验证首次生成、失败保存、换目录恢复及证据过期；覆盖边界与隔离演练见[执行回归](docs/workflow-execution.md)。
 - [`test_project_generation.py`](tests/test_project_generation.py)：覆盖支持组合、失败场景和工程生成的自动化测试。
 - [`skill-trigger-cases.json`](tests/fixtures/skill-trigger-cases.json)：覆盖应触发、不应触发、显式调用、跨平台边界及中英文提示的 Skill 前向评测语料。
 - [`CHANGELOG.md`](CHANGELOG.md)：工作流规则的集中变更历史。
