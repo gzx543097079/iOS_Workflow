@@ -96,11 +96,13 @@ class WorkflowStructureTests(unittest.TestCase):
         self.assertIn("下一状态与负责人", report)
         self.assertIn("不记录证书私钥", report)
 
-    def test_low_risk_execution_does_not_require_persistence(self):
+    def test_only_qualified_maintenance_can_skip_persistence(self):
         requirements = (SKILL_ROOT / "references/standards/requirements.md").read_text(encoding="utf-8")
         start = (SKILL_ROOT / "references/standards/tracking-start.md").read_text(encoding="utf-8")
-        self.assertIn("执行本身不是建档条件", requirements)
-        self.assertIn("执行本身不是建档条件", start)
+        self.assertIn("新增功能与缺陷默认轻量建档", requirements)
+        self.assertIn("低风险纯维护可免档", requirements)
+        self.assertIn("新增功能、缺陷", start)
+        self.assertIn("无关联需求及持续追踪要求", start)
 
     def test_compact_index_template_only_tracks_active_requirement(self):
         index = json.loads((SKILL_ROOT / "assets/templates/tracking/index.jsonc").read_text(encoding="utf-8"))
@@ -135,9 +137,10 @@ class WorkflowStructureTests(unittest.TestCase):
         self.assertIn("简单新增页面或内部模块也可使用 `brief`", standard)
         self.assertIn("“新增模块”本身不自动触发完整设计", standard)
 
-    def test_low_risk_routes_avoid_full_requirement_and_design_loading(self):
+    def test_maintenance_routes_stay_light_but_check_requirement_gate(self):
         skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("低风险单轮任务直接在上下文形成精简需求卡", skill)
+        self.assertIn("纯维护可按入口形成精简卡，不预读完整需求规范", skill)
+        self.assertIn("scripts/requirement_gate.py", skill)
         self.assertIn("可在上下文形成 inline brief", skill)
         self.assertIn("设计边界不明确或触发完整设计时", skill)
 

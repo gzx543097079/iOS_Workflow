@@ -199,6 +199,7 @@ def _check_tracking_state(root: Path, requirement_id: str | None, index: dict, p
     if fields.get("project") != ".":
         errors.append("requirement.project: 档案必须属于当前业务项目 .")
     status = fields.get("status")
+    result["recorded_status"] = status
     if not isinstance(status, str) or status not in REQUIREMENT_STATUSES:
         errors.append("requirement.status: 缺失或未知需求状态")
     sequence = fields.get("sequence")

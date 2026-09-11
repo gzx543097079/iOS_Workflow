@@ -237,6 +237,7 @@ def load_resume_context(project_root: Path, requirement_id: str | None = None,
     if not errors and requirement_id is not None and index is not None and progress is not None:
         state = _check_tracking_state(root, requirement_id, index, progress)
         result["tracking_state_checked"] = state["checked"]
+        result["recorded_status"] = state.get("recorded_status")
         for error in state["errors"]:
             errors.append(error)
         if state["requirement_file"] is not None:

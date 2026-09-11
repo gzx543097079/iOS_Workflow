@@ -44,12 +44,12 @@ class ModuleLoadingEvaluationTests(unittest.TestCase):
         path.write_text("\n".join(json.dumps(event) for event in events) + "\n", encoding="utf-8")
         return parse_trace(path, self.project)
 
-    def test_expected_cases_cover_nine_representative_contexts(self):
+    def test_expected_cases_cover_eleven_representative_contexts(self):
         corpus = json.loads((ROOT / "tests/fixtures/module-loading-cases.json").read_text())
         identifiers = [case["id"] for case in corpus["cases"]]
-        self.assertEqual({"existing-app-iteration", "low-risk-code-change", "first-generation", "resume-only", "cross-device-resume", "save-stage-with-failure",
+        self.assertEqual({"new-home-feature", "pure-maintenance-exemption", "existing-app-iteration", "low-risk-code-change", "first-generation", "resume-only", "cross-device-resume", "save-stage-with-failure",
                           "push-only", "workflow-release", "non-ios-docs"}, set(identifiers))
-        self.assertEqual(9, len(identifiers))
+        self.assertEqual(11, len(identifiers))
         for case in corpus["cases"]:
             self.assertTrue(case["prompt"])
             self.assertEqual(1, case["max_reads_per_module"])

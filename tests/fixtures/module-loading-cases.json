@@ -45,15 +45,20 @@
       "expected_modules": [
         "SKILL.md",
         "references/standards/code-core.md",
-        "references/standards/code-swift.md"
+        "references/standards/code-swift.md",
+        "references/standards/requirements.md",
+        "references/standards/tracking-start.md"
       ],
       "optional_modules": [
-        "references/standards/testing.md"
+        "references/standards/testing.md",
+        "references/standards/tracking-evidence.md",
+        "assets/templates/requirements/*",
+        "assets/templates/tracking/*",
+        "scripts/requirement_gate.py"
       ],
       "forbidden_modules": [
         "references/standards/project-configuration.md",
         "references/standards/project-generation.md",
-        "references/standards/tracking-start.md",
         "references/standards/existing-project.md"
       ],
       "max_reads_per_module": 1
@@ -219,6 +224,60 @@
       "optional_modules": [],
       "forbidden_modules": [
         "**"
+      ],
+      "max_reads_per_module": 1
+    },
+    {
+      "id": "new-home-feature",
+      "prompt": "Add a store-style interface to the existing iOS home screen. Earlier project agreement requires continuity across devices and new chats. Perform requirement analysis and tracking decisions before implementation; only load the required rules in this probe.",
+      "files": {
+        "README.md": "Existing Swift UIKit application.",
+        "App/Home.swift": "import UIKit\nfinal class Home: UIViewController {}\n"
+      },
+      "expected_modules": [
+        "SKILL.md",
+        "references/standards/requirements.md",
+        "references/standards/tracking-start.md"
+      ],
+      "optional_modules": [
+        "references/standards/code-core.md",
+        "references/standards/code-swift.md",
+        "references/standards/testing.md",
+        "references/standards/ui-style.md",
+        "references/standards/code-generation.md",
+        "scripts/requirement_gate.py",
+        "references/standards/tracking-evidence.md",
+        "assets/templates/requirements/*",
+        "assets/templates/tracking/*"
+      ],
+      "forbidden_modules": [
+        "references/standards/project-configuration.md",
+        "references/standards/project-generation.md"
+      ],
+      "max_reads_per_module": 1
+    },
+    {
+      "id": "pure-maintenance-exemption",
+      "prompt": "Rename a private local variable in an existing iOS method without changing behavior. No related requirement or continuing tracking agreement exists. Acceptance is unchanged behavior, low risk and one turn. Analyze and state the tracking decision; only load rules in this probe.",
+      "files": {
+        "README.md": "Existing Swift UIKit application.",
+        "App/Home.swift": "import UIKit\nfinal class Home: UIViewController {}\n"
+      },
+      "expected_modules": [
+        "SKILL.md"
+      ],
+      "optional_modules": [
+        "references/standards/code-core.md",
+        "references/standards/code-swift.md",
+        "references/standards/testing.md",
+        "references/standards/ui-style.md",
+        "references/standards/code-generation.md",
+        "scripts/requirement_gate.py"
+      ],
+      "forbidden_modules": [
+        "references/standards/project-configuration.md",
+        "references/standards/project-generation.md",
+        "references/standards/tracking-start.md"
       ],
       "max_reads_per_module": 1
     }
