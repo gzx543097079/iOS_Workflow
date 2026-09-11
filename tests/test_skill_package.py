@@ -15,7 +15,7 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ".agents/skills/ios-workflow"
-MODULES = ("project_generation", "progress_validation", "evidence_tools", "resume_context", "change_scope", "tracking_state", "tracking_update", "requirement_gate", "workflow_client")
+MODULES = ("project_generation", "progress_validation", "evidence_tools", "resume_context", "change_scope", "tracking_state", "tracking_update", "requirement_gate", "workflow_client", "tracking_patch")
 TRACKING_MODULES = ("tracking-start", "tracking-resume", "tracking-evidence", "tracking-sync")
 
 

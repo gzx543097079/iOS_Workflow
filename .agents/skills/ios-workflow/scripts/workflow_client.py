@@ -12,13 +12,14 @@ import sys
 from pathlib import Path
 
 import tracking_update
+from tracking_patch import read_tracking_snapshot, prepare_tracking_patch
 from evidence_tools import capture_evidence, compare_evidence
 from project_generation import strip_jsonc
 from requirement_gate import assess_requirement_gate
 from resume_context import load_resume_context
 
 
-REQUEST_COMMANDS = {"gate", "prepare", "capture", "compare"}
+REQUEST_COMMANDS = {"gate", "prepare", "prepare-update", "capture", "compare"}
 TRANSACTION_COMMANDS = {
     "apply": tracking_update.apply_tracking_update,
     "recover": tracking_update.recover_tracking_update,
@@ -100,6 +101,13 @@ def run_command(command, project_root, request=None, *, requirement_id=None,
             identifier = tracking_update.prepare_tracking_update(root, **request)
             result = {"transaction_id": identifier, "state": "prepared", "metadata_only": True}
             ok = True
+        elif command == "snapshot":
+            result = read_tracking_snapshot(root, requirement_id)
+            ok = True
+        elif command == "prepare-update":
+            _fields(request, ("requirement_id", "updates", "expected_hashes"))
+            result = prepare_tracking_patch(root, **request)
+            ok = True
         elif command in TRANSACTION_COMMANDS:
             result = TRANSACTION_COMMANDS[command](root, transaction_id)
             ok = True
@@ -139,7 +147,7 @@ class _Parser(argparse.ArgumentParser):
 def main(argv=None) -> int:
     parser = _Parser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for name in sorted(REQUEST_COMMANDS | set(TRANSACTION_COMMANDS) | {"resume"}):
+    for name in sorted(REQUEST_COMMANDS | set(TRANSACTION_COMMANDS) | {"resume", "snapshot"}):
         command = subparsers.add_parser(name)
         command.add_argument("--project-root", required=True, type=Path)
         if name in REQUEST_COMMANDS:
@@ -150,6 +158,8 @@ def main(argv=None) -> int:
             command.add_argument("--requirement-id")
             command.add_argument("--max-items", type=int, default=20)
             command.add_argument("--offset", type=int, default=0)
+        if name == "snapshot":
+            command.add_argument("--requirement-id", required=True)
         if name == "capture":
             command.add_argument("--output", required=True, help="新的 .ios-workflow/evidence-records/*.json 路径")
     command_name = None

@@ -153,10 +153,11 @@ python3 scripts/build_distribution.py --version 6.4.0 --output dist
 
 | 模块 | 作用 |
 | --- | --- |
-| `workflow_client.py` | 提供 gate、resume、prepare/apply/recover/abandon、capture/compare 的统一 JSON 命令入口 |
+| `workflow_client.py` | 提供 gate、resume、snapshot、prepare-update、prepare/apply/recover/abandon、capture/compare 的统一 JSON 命令入口 |
 | `requirement_gate.py` | 编码前、阶段保存与完成时核对需求卡、建档决定及关联记录；完整交付还检查本需求证据 |
 | `resume_context.py` | 输出当前需求的有界摘要并核对记录关联；明确分页、缺项与截断 |
 | `tracking_state.py` | 只读核对当前需求的索引、台账、验收状态及档案头部，发现终态未清、遗漏记录和状态矛盾；不读无关历史证据 |
+| `tracking_patch.py` | 本地合并已留档需求的变更字段，保留其他记录，按旧哈希准备既有事务；输出修改摘要 |
 | `tracking_update.py` | 校验并保存一个需求的四份关联记录，检查旧版本和证据输入，支持中断恢复与显式放弃；保存成功不代表业务验收通过 |
 | `change_scope.py` | 按路径线索和已确认语义影响选择相关检查，不直接判断通过 |
 | `progress_validation.py` | 按相关需求/验收项核对路径、成功证据、实际哈希、环境与时间；全项目检查需显式选择 |

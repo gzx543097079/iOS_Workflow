@@ -71,6 +71,21 @@ class WorkflowClientTests(unittest.TestCase):
                 self.assertFalse(result["ok"])
                 self.assertGreater(result["error_count"], 0)
 
+    def test_snapshot_and_field_update_run_without_sending_full_records(self):
+        snapshot = self.cli("snapshot", "--requirement-id", "REQ-001")
+        self.assertTrue(snapshot["ok"], snapshot)
+        request = self.request_file({"requirement_id": "REQ-001",
+                                     "expected_hashes": snapshot["result"]["expected_hashes"],
+                                     "updates": {"active_requirement": {"next_action": "Check updated snapshot"},
+                                                 "archive": {"append": "PRIVATE_APPEND_MARKER"}}})
+        prepared = self.cli("prepare-update", "--request", request)
+        self.assertTrue(prepared["ok"], prepared)
+        self.assertNotIn("PRIVATE_APPEND_MARKER", json.dumps(prepared))
+        self.assertEqual(2, len(prepared["result"]["changed_files"]))
+        self.assertTrue(self.cli("apply", "--transaction-id", prepared["result"]["transaction_id"])["ok"])
+        self.assertEqual("Check updated snapshot", self.cli("resume", "--requirement-id", "REQ-001")["result"]["next_action"])
+        self.assertFalse(self.cli("prepare-update", "--request", request)["ok"], "old request must not be rebased")
+
     def test_prepare_then_separate_process_apply_preserves_exact_candidates(self):
         request = self.request_file(self.prepare_request())
         prepared = self.cli("prepare", "--request", request)

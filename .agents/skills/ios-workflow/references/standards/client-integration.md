@@ -33,6 +33,8 @@ python3 "$WF_CLIENT" gate --project-root "$WF_PROJECT_ROOT" --request .ios-workf
 | `gate` | `--request`：`task_kind`、`phase`、`card`；可选 `requirement_id` 及任务事实标记 | 调用 `assess_requirement_gate`；失败先补卡、建档或修复一致性 |
 | `resume` | 可选 `--requirement-id`、`--max-items`（1～100，默认 20）、`--offset`（默认 0） | 调用 `load_resume_context`；省略 ID 只使用活动索引，不猜测最近任务 |
 | `prepare` | `--request`：`requirement_id`、`candidates`、`expected_hashes` | 验证四份完整候选，返回 `transaction_id`；此时尚未替换当前记录 |
+| `snapshot` | 必填 `--requirement-id` | 只读返回现有四份记录的 SHA-256 和登记状态；不返回完整记录 |
+| `prepare-update` | `--request`：`requirement_id`、`updates`、`expected_hashes` | 在本地合并已有字段，使用现有事务准备候选，返回事务 ID 和修改文件列表 |
 | `apply` | `--transaction-id` | 应用已准备事务；冲突或中断返回失败并保留恢复资料 |
 | `recover` | `--transaction-id` | 显式继续选定事务，重新核对全部目标和登记输入 |
 | `abandon` | `--transaction-id` | 放弃选定事务，不回滚当前文件；`requires_reconciliation=true` 时先协调部分写入 |
@@ -61,6 +63,24 @@ python3 "$WF_CLIENT" gate --project-root "$WF_PROJECT_ROOT" --request .ios-workf
 ID 必须来自实际建档，示例不能直接作为已存在记录。完整门禁要求见[需求定义](requirements.md)，四文件候选、旧哈希及冲突处理见[统一保存与恢复](tracking-resume.md#统一保存与中断恢复接口)。`prepare` 保持现有接口契约：客户端在本地保留未修改记录，提交完整候选文本与观察到的四个旧文件 SHA-256；文件确实缺失时才填 `null`。
 
 证据环境须记录实际 `xcode`、`sdk`、`scheme`、`configuration`、`destination`、`test_selection`；证据路径位于项目 `.ios-workflow/`，输入集合覆盖真实受影响文件。`capture` 不读取测试报告并判定通过，客户端须先核对实际执行结果；其输出文件中的对象可由客户端本地读取并放入关联验收项的 `evidence` 数组。`compare` 的当前环境和当前输入集合也须重新观察，不能把旧记录复制成“当前值”。详见[测试](testing.md)与[验收及证据](tracking-evidence.md)。
+
+## 本地合并已有记录
+
+编辑已有需求前先 `snapshot --requirement-id <实际ID>` 保存四份旧哈希。客户端在本地保留这些观察值，构造 `prepare-update` 请求；不要把完整账本和证据清单传入模型再重写。下面只展示请求的 `updates` 部分，实际请求同时包含需求 ID 和观察到的 `expected_hashes`：
+
+```json
+{
+  "items": [{"id": "实际验收ID", "set": {"status": "implemented"}}],
+  "active_requirement": {"next_action": "运行受影响测试"},
+  "archive": {"append": "本阶段已实现，尚未验证。"}
+}
+```
+
+- 省略的字段原样保留；提供的数组只替换对应字段。新证据由客户端从本地 `capture` 输出文件读取后合并，不能因省略旧失败结果而推断通过。
+- `items` 更新本需求已有验收 ID；`active_requirement` 更新本需求当前摘要；`history_entry` 更新已存在执行行；`archive.metadata` 仅更新平面标量元数据，`archive.append` 只追加正文。稳定 ID、归属、档案路径和执行序号不可变。未知新字段拒绝，扩展格式或新增验收项使用完整候选接口。
+- 终态由客户端根据真实验收显式提供：活动索引置 `null`，同时更新 `history_entry.status` 和 `archive.metadata.status`；脚本不会自行提升状态。缺失或矛盾的终态与证据仍被原校验拒绝。
+- `prepare-update` 只准备事务，随后显式 `apply`；中断使用相同 `recover`。旧版本已变时拒绝，先检查外部修改和实际事实，再重新观察版本；不能自动重新取哈希覆盖别人的更新。
+- 保持原账本和证据 schema，不迁移历史项目。首次建档及复杂文档改写沿用 `prepare`，完成事务的清理仍遵循项目保留约定。
 
 ## 阶段串联
 
