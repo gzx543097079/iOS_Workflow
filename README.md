@@ -149,10 +149,11 @@ python3 scripts/build_distribution.py --version 6.4.0 --output dist
 
 跨设备时同步业务项目 Git 中的源码、需求、进度、交接及轻量证据。切换前保存当前步骤、下一动作、阻塞、受测输入和环境。新设备核对远端/分支/HEAD、工作区、文件和哈希后恢复；未推送、未同步、冲突、丢失证据或环境不可用均明确报告，不猜测旧对话内容。
 
-客户端可调用以下内部模块，团队成员仍使用自然语言：
+客户端可通过[统一调用入口](.agents/skills/ios-workflow/references/standards/client-integration.md)执行需求检查、恢复和保存，处理结构化结果与非零退出状态。入口只复用已有接口，不自动拦截任意编辑器写入。团队成员仍使用自然语言：
 
 | 模块 | 作用 |
 | --- | --- |
+| `workflow_client.py` | 提供 gate、resume、prepare/apply/recover/abandon、capture/compare 的统一 JSON 命令入口 |
 | `requirement_gate.py` | 编码前、阶段保存与完成时核对需求卡、建档决定及关联记录；完整交付还检查本需求证据 |
 | `resume_context.py` | 输出当前需求的有界摘要并核对记录关联；明确分页、缺项与截断 |
 | `tracking_state.py` | 只读核对当前需求的索引、台账、验收状态及档案头部，发现终态未清、遗漏记录和状态矛盾；不读无关历史证据 |

@@ -53,4 +53,4 @@ description: "规划、生成、实现、测试、审查和交付 iOS 项目，�
 | 提交、推送、review | [提交门禁](references/checklists/pre-commit-review.md)，按 diff 和语义影响选择专项检查；保存阶段进度与完成验收分别判断 |
 | 文档或工作流维护 | 只读直接相关文件 |
 
-客户端按模块接口调用脚本；检查列表、登记状态或哈希一致均不代替业务验收。
+客户端接入、编排或诊断调用问题时读取[客户端接口](references/standards/client-integration.md)，复用现有检查与保存能力。客户端按模块接口调用脚本；检查列表、登记状态或哈希一致均不代替业务验收。
