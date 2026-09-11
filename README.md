@@ -44,7 +44,7 @@ Skill 入口固定为 `.agents/skills/ios-workflow/SKILL.md`，包含 YAML `name
 
 ## 团队分发
 
-版本 Tag 推送后，GitHub Actions 会先运行完整 Python 测试和五组 macOS 无签名编译检查（覆盖三种技术组合及 Swift 5/6），均通过后再生成 `ios-workflow-<版本>.zip` 和 SHA-256 校验文件并创建 GitHub Release。分发包包含 `.agents/skills/ios-workflow/`、最外层配置示例与字段说明、`AGENTS.md` 示例、版本标记和接入说明，不包含本仓库的 `.ios-workflow/` 运行历史。
+版本 Tag 推送后，GitHub Actions 会先运行完整 Python 测试和五组 macOS 无签名编译检查（覆盖三种技术组合及 Swift 5/6），以及 Demo 单元与 UI 模拟器测试，均通过后再生成 `ios-workflow-<版本>.zip` 和 SHA-256 校验文件并创建 GitHub Release。分发包包含 `.agents/skills/ios-workflow/`、最外层配置示例与字段说明、`AGENTS.md` 示例、版本标记和接入说明，不包含本仓库的 `.ios-workflow/` 运行历史。
 
 团队成员在临时目录解压发布包，将 `.agents/skills/ios-workflow/` 放入业务仓库的相同路径；没有 `AGENTS.md` 时使用包内示例，已有该文件时只合并适用规则。业务仓库应提交这些文件，使全体成员使用同一版本。详细步骤见 [`distribution/INSTALL.md`](distribution/INSTALL.md)。
 
@@ -108,6 +108,7 @@ python3 scripts/build_distribution.py --version 6.4.0 --output dist
 - [`test_project_generation.py`](tests/test_project_generation.py)：覆盖支持组合、失败场景和工程生成的自动化测试。
 - [`skill-trigger-cases.json`](tests/fixtures/skill-trigger-cases.json)：覆盖应触发、不应触发、显式调用、跨平台边界及中英文提示的 Skill 前向评测语料。
 - [`CHANGELOG.md`](CHANGELOG.md)：工作流规则的集中变更历史。
+- [`check_demo_tests.py`](scripts/check_demo_tests.py)：实际运行 Demo 单元和 UI 测试；环境、结果校验及产物见[说明](docs/demo-ci.md)。
 - [`build_distribution.py`](scripts/build_distribution.py)：生成不含项目运行记录的团队分发压缩包与 SHA-256 校验文件。
 
 修改规则时同步更新 `CHANGELOG.md`，通过 review 后再发布新版本。工作流 ZIP 使用[工作流发布清单](.agents/skills/ios-workflow/references/checklists/workflow-release.md)；业务 App 使用发布分发规范。客户端按实际仓库和任务明确发布对象，不从 CHANGELOG 文件名猜测，也不要求工作流包提供 App Store 或签名资料。

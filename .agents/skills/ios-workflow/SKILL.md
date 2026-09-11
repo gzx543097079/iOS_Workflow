@@ -49,7 +49,7 @@ description: "规划、生成、实现、测试、审查和交付 iOS 项目，�
 | 依赖或编译 | [依赖](references/standards/dependencies.md)，修改源码再合并代码规则 |
 | 测试计划、执行或失败分析 | [测试](references/standards/testing.md)，编译或依赖失败再合并依赖规则，修改源码再合并代码规则 |
 | iOS App 的 Archive、TestFlight、App Store 或版本发布 | 明确 `release_target=ios_app`，读取[发布分发](references/standards/release-distribution.md)和测试规则；外部动作需对应明确授权，内购或订阅再合并专项规则 |
-| 本工作流包的版本或 GitHub Release 发布 | 明确 `release_target=workflow`，读取[工作流发布清单](references/checklists/workflow-release.md)；核对测试、5 case 生成编译、ZIP 与远端引用，不加载 App Store 或业务验收模块。发布对象从实际仓库与任务识别，不按文件名猜测 |
+| 本工作流包的版本或 GitHub Release 发布 | 明确 `release_target=workflow`，读取[工作流发布清单](references/checklists/workflow-release.md)；核对 Python 测试、5 case 生成编译、Demo 实际测试、ZIP 与远端引用，不加载 App Store 或业务验收模块。发布对象从实际仓库与任务识别，不按文件名猜测 |
 | 提交、推送、review | [提交门禁](references/checklists/pre-commit-review.md)，按 diff 和语义影响选择专项检查；保存阶段进度与完成验收分别判断 |
 | 文档或工作流维护 | 只读直接相关文件 |
 
