@@ -43,6 +43,9 @@ description: "规划、生成、实现、测试、审查和交付 iOS 项目，�
 | 已有工程接入、工程结构或依赖变更、构建环境不明 | [已有工程维护](references/standards/existing-project.md)，按实际工程确认入口和持续维护的定义；普通方法修改不额外加载 |
 | 业务修改、重构、修复 | 基础规则；新增手写代码再读[代码生成](references/standards/code-generation.md) |
 | UI | 基础规则、[UI](references/standards/ui-style.md)和项目当前设计系统；新增代码再读生成规范 |
+| Swift 异步任务、隔离、跨域数据或相关诊断 | [并发诊断](references/standards/swift-concurrency.md)，先确认实际语言模式和隔离设置，再修受影响边界 |
+| UIKit 页面生命周期、状态或列表复用 | [UIKit 生命周期](references/standards/uikit-lifecycle.md)，沿用当前控制器、数据层和导航边界 |
+| SwiftUI 状态拥有关系、视图身份、导航或视图任务 | [SwiftUI 状态](references/standards/swiftui-state.md)，按现有观察机制与部署版本处理 |
 | 依赖或编译 | [依赖](references/standards/dependencies.md)，修改源码再合并代码规则 |
 | 测试计划、执行或失败分析 | [测试](references/standards/testing.md)，编译或依赖失败再合并依赖规则，修改源码再合并代码规则 |
 | iOS App 的 Archive、TestFlight、App Store 或版本发布 | 明确 `release_target=ios_app`，读取[发布分发](references/standards/release-distribution.md)和测试规则；外部动作需对应明确授权，内购或订阅再合并专项规则 |
