@@ -13,3 +13,18 @@
 "about.title" = "Informazioni su di noi";
 "about.description" = "Una demo del contatore locale per convalidare il flusso di lavoro iOS.";
 "about.version" = "Versione %@";
+
+"shop.search" = "Cerca prodotti";
+"shop.hero" = "Belle cose,\nogni giorno.";
+"shop.subtitle" = "Scoperte selezionate per la vita di ogni giorno.";
+"shop.featured" = "Selezionati per te";
+"shop.demo" = "Prodotti e prezzi dimostrativi. Gli acquisti non sono disponibili.";
+"shop.category.all" = "Tutti";
+"shop.category.digital" = "Tecnologia";
+"shop.category.living" = "Casa";
+"shop.product.headphones" = "Cuffie wireless";
+"shop.product.lamp" = "Lampada da comodino";
+"shop.product.speaker" = "Altoparlante portatile";
+"shop.product.mug" = "Tazza in ceramica";
+"shop.empty" = "Nessun prodotto trovato. Prova un’altra ricerca o categoria.";
+"shop.close" = "Chiudi";

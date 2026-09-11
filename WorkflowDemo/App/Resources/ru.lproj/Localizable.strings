@@ -13,3 +13,18 @@
 "about.title" = "О нас";
 "about.description" = "Локальная демонстрация счётчика для проверки рабочего процесса iOS.";
 "about.version" = "Версия %@";
+
+"shop.search" = "Поиск товаров";
+"shop.hero" = "Хорошие вещи\nна каждый день.";
+"shop.subtitle" = "Продуманные находки для повседневной жизни.";
+"shop.featured" = "Выбрано для вас";
+"shop.demo" = "Товары и цены приведены для примера. Покупки недоступны.";
+"shop.category.all" = "Все";
+"shop.category.digital" = "Техника";
+"shop.category.living" = "Для дома";
+"shop.product.headphones" = "Беспроводные наушники";
+"shop.product.lamp" = "Прикроватная лампа";
+"shop.product.speaker" = "Портативная колонка";
+"shop.product.mug" = "Керамическая кружка";
+"shop.empty" = "Подходящих товаров нет. Измените запрос или категорию.";
+"shop.close" = "Закрыть";

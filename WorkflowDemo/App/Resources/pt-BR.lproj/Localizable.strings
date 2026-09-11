@@ -13,3 +13,18 @@
 "about.title" = "Sobre nós";
 "about.description" = "Uma demonstração de contador local para validar o fluxo de trabalho do iOS.";
 "about.version" = "Versão %@";
+
+"shop.search" = "Buscar produtos";
+"shop.hero" = "Coisas boas,\ntodos os dias.";
+"shop.subtitle" = "Escolhas especiais para o seu dia a dia.";
+"shop.featured" = "Selecionados para você";
+"shop.demo" = "Produtos e preços de exemplo. Não é possível fazer compras.";
+"shop.category.all" = "Todos";
+"shop.category.digital" = "Tecnologia";
+"shop.category.living" = "Casa";
+"shop.product.headphones" = "Fones sem fio";
+"shop.product.lamp" = "Luminária de cabeceira";
+"shop.product.speaker" = "Caixa de som portátil";
+"shop.product.mug" = "Caneca de cerâmica";
+"shop.empty" = "Nenhum produto encontrado. Tente outra busca ou categoria.";
+"shop.close" = "Fechar";

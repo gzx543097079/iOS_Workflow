@@ -63,6 +63,14 @@ enum DesignTokens {
         static let caption: UIFont.TextStyle = UIFont.TextStyle.caption1
     }
 
+    enum Storefront {
+        static let artworkHeight: CGFloat = 112
+        static let artworkSize: CGFloat = 48
+        static let accent = UIColor { $0.userInterfaceStyle == .dark ? .systemTeal : UIColor(red: 0.12, green: 0.35, blue: 0.28, alpha: 1) }
+        static let canvas = UIColor { $0.userInterfaceStyle == .dark ? .systemBackground : UIColor(red: 0.97, green: 0.97, blue: 0.94, alpha: 1) }
+        static let artwork = UIColor { $0.userInterfaceStyle == .dark ? .secondarySystemBackground : UIColor(red: 0.90, green: 0.93, blue: 0.88, alpha: 1) }
+    }
+
     enum Colors {
         static let accent: UIColor = UIColor.systemBlue
         static let background: UIColor = UIColor.systemBackground

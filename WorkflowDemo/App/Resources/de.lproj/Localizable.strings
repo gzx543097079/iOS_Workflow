@@ -13,3 +13,18 @@
 "about.title" = "Über uns";
 "about.description" = "Eine lokale Zähler-Demo zur Validierung des iOS-Workflows.";
 "about.version" = "Version %@";
+
+"shop.search" = "Produkte suchen";
+"shop.hero" = "Schöne Dinge,\njeden Tag.";
+"shop.subtitle" = "Ausgewählte Fundstücke für Ihren Alltag.";
+"shop.featured" = "Für Sie ausgewählt";
+"shop.demo" = "Beispielprodukte und -preise. Einkäufe sind nicht möglich.";
+"shop.category.all" = "Alle";
+"shop.category.digital" = "Technik";
+"shop.category.living" = "Wohnen";
+"shop.product.headphones" = "Kabellose Kopfhörer";
+"shop.product.lamp" = "Nachttischlampe";
+"shop.product.speaker" = "Tragbarer Lautsprecher";
+"shop.product.mug" = "Keramikbecher";
+"shop.empty" = "Keine passenden Produkte. Versuchen Sie eine andere Suche oder Kategorie.";
+"shop.close" = "Schließen";

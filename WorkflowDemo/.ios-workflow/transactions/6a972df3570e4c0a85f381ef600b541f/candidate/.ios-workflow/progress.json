@@ -1,0 +1,785 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "REQ-20260911-002-1f4d57d2-AC-001",
+      "requirement_id": "REQ-20260911-002-1f4d57d2",
+      "criterion": "打开首页可看到推荐横幅、商品卡片及示例价格；点击商品显示简介弹窗。",
+      "source": {
+        "path": ".ios-workflow/sources/home-storefront.md",
+        "section": "可核对验收"
+      },
+      "status": "verified",
+      "implementation": [
+        "App/AppDelegate.swift",
+        "App/Core/Localization/AppLanguage.swift",
+        "App/Core/Localization/LanguagePreferenceStore.swift",
+        "App/Core/Localization/LocalizationPolicy.swift",
+        "App/DesignSystem/DesignTokens.swift",
+        "App/Features/About/AboutViewController.swift",
+        "App/Features/Home/HomeViewController.swift",
+        "App/Features/Home/HomeViewModel.swift",
+        "App/Features/Language/LanguageViewController.swift",
+        "App/Features/Settings/SettingsViewController.swift",
+        "App/Resources/ar.lproj/Localizable.strings",
+        "App/Resources/de.lproj/Localizable.strings",
+        "App/Resources/en.lproj/Localizable.strings",
+        "App/Resources/es.lproj/Localizable.strings",
+        "App/Resources/fr.lproj/Localizable.strings",
+        "App/Resources/it.lproj/Localizable.strings",
+        "App/Resources/ja.lproj/Localizable.strings",
+        "App/Resources/ko.lproj/Localizable.strings",
+        "App/Resources/pt-BR.lproj/Localizable.strings",
+        "App/Resources/ru.lproj/Localizable.strings",
+        "App/Resources/zh-Hans.lproj/Localizable.strings",
+        "App/Resources/zh-Hant.lproj/Localizable.strings",
+        "App/SceneDelegate.swift"
+      ],
+      "evidence": [
+        {
+          "path": ".ios-workflow/tests/home-storefront.md",
+          "sha256": "cd4db7ed91dbf1c1be6607ab9b2acd5cdfe8dfa4978ba32ed7d9a43e86dd79df",
+          "inputs": [
+            {
+              "path": "App/AppDelegate.swift",
+              "sha256": "b647a374b04d6247134570b98e9632f99c6ebfb62c4d87330474179c38e710b3"
+            },
+            {
+              "path": "App/Core/Localization/AppLanguage.swift",
+              "sha256": "3a1f84d3f34ff4b0239c9a808e3df9c19c20cd10999f26739a5c059c9c1fe103"
+            },
+            {
+              "path": "App/Core/Localization/LanguagePreferenceStore.swift",
+              "sha256": "9441c99db42119f425133b6b07fd6711c65c313a65e855a8fe4afa56a8ae6426"
+            },
+            {
+              "path": "App/Core/Localization/LocalizationPolicy.swift",
+              "sha256": "526955b9e32fb0d39fad31337c9960b981e9559b4823f9954512bd59befd7cc7"
+            },
+            {
+              "path": "App/DesignSystem/DesignTokens.swift",
+              "sha256": "c8e943aa749d76d25b5d427c1ba9ea5d150ff3b28f2bc04ea9bd3666f1273374"
+            },
+            {
+              "path": "App/Features/About/AboutViewController.swift",
+              "sha256": "43c677d0349cb0b35cf990adcc86c4e780c75e9e3b84e04cd383f2fa4bb986d1"
+            },
+            {
+              "path": "App/Features/Home/HomeViewController.swift",
+              "sha256": "9fd98d5058acbe6ebb4fcff239533a065f7cd6face424323321c27ceba49c63d"
+            },
+            {
+              "path": "App/Features/Home/HomeViewModel.swift",
+              "sha256": "32dfa1b6cd838d32ae4d9d040820860ca44bc3491b405ee42dea6ca3c127f3c9"
+            },
+            {
+              "path": "App/Features/Language/LanguageViewController.swift",
+              "sha256": "5e281bc7b266f41c00a58ec437e45b06f989fbb2b49dc64065a9c3e1ef8747c7"
+            },
+            {
+              "path": "App/Features/Settings/SettingsViewController.swift",
+              "sha256": "28913bc0afebb58c4265800e7c2d539b3f643791ead7b17bbb71b38d00e6a74b"
+            },
+            {
+              "path": "App/Resources/ar.lproj/Localizable.strings",
+              "sha256": "f8320341e7409190287969656c580f4b0126bd82438088b963128bedd41c6b11"
+            },
+            {
+              "path": "App/Resources/de.lproj/Localizable.strings",
+              "sha256": "ab27b5b9ebaa9891bed2e83c220c8bfc39e02f90547fd6a4f7b4dc57d6663896"
+            },
+            {
+              "path": "App/Resources/en.lproj/Localizable.strings",
+              "sha256": "57c3c75bd497ce5608ed808e4d211b2fd9e5b3329e0d852ab775eb4f151dbbcd"
+            },
+            {
+              "path": "App/Resources/es.lproj/Localizable.strings",
+              "sha256": "24986e0f62030110cf608cc36d2480e00ff9478df45101a9945ca90ecca6bdac"
+            },
+            {
+              "path": "App/Resources/fr.lproj/Localizable.strings",
+              "sha256": "f39c53c66268b49d0cd2002c5055fb41b921ddfd9601d3663311ddcf5c62833e"
+            },
+            {
+              "path": "App/Resources/it.lproj/Localizable.strings",
+              "sha256": "4a98470e9d26c47435be0544bd2c14ec164c8c3d57d7f5957ae74f7568722bed"
+            },
+            {
+              "path": "App/Resources/ja.lproj/Localizable.strings",
+              "sha256": "3095b5467292039da8c7a3b7a77c47c6f0637bfffcfc123a0ca3cba7832c3805"
+            },
+            {
+              "path": "App/Resources/ko.lproj/Localizable.strings",
+              "sha256": "f7b48cac1d29af1b58c257ff94840433dde21d058c84d1b093d57881b7821bc7"
+            },
+            {
+              "path": "App/Resources/pt-BR.lproj/Localizable.strings",
+              "sha256": "d84f60cfaef00691e084d1f58b835a3183ca496b2924549eaa42598c5450b1ea"
+            },
+            {
+              "path": "App/Resources/ru.lproj/Localizable.strings",
+              "sha256": "c5cbedcf3818e55e4087a2f9b8600f8808f05f84bb437491d0a46493130e58de"
+            },
+            {
+              "path": "App/Resources/zh-Hans.lproj/Localizable.strings",
+              "sha256": "290de65164f78cdfbd16037766786118bdd626ee1fe72659e499139239b90bc7"
+            },
+            {
+              "path": "App/Resources/zh-Hant.lproj/Localizable.strings",
+              "sha256": "b6a078825218f24dd24e57f5b0e07a2f9fc77c109f52bcc649bdff95ddcfd392"
+            },
+            {
+              "path": "App/SceneDelegate.swift",
+              "sha256": "14f084d3ecb42a89fcffbd7b51a9efcf28d79f78b3a3b2bc598360018adc1eb9"
+            },
+            {
+              "path": "Tests/WorkflowDemoTests.swift",
+              "sha256": "493af311a3bb2acd08080d6632000e2d78b23085160c9d5bd4a34ed576981fee"
+            },
+            {
+              "path": "UITests/WorkflowDemoUITests.swift",
+              "sha256": "5f88db85abf2af601c607078c6daba96d1214c007393791ab0afee85f44d2398"
+            },
+            {
+              "path": "WorkflowDemo.xcodeproj/project.pbxproj",
+              "sha256": "dafa7772caa8505b443b4ead7a18c5efa401325a0623fa32ae541676aea494fe"
+            },
+            {
+              "path": ".ios-workflow/sources/home-storefront.md",
+              "sha256": "54a3b2fe4916fcf1b5d24ea849df4f21a3d6e37b93e53ad9408c365511bbc868"
+            }
+          ],
+          "environment": "Xcode 26.6 (17F113); iPhone 17 Pro / iOS 26.5; WorkflowDemo Debug; 11 unit + 5 UI tests; resource lint and documented screenshot review",
+          "result": "passed",
+          "recorded_at": "2026-09-11T09:38:53+08:00",
+          "executed_at": "2026-09-11T09:25:11+08:00",
+          "retrospective": true
+        }
+      ]
+    },
+    {
+      "id": "REQ-20260911-002-1f4d57d2-AC-002",
+      "requirement_id": "REQ-20260911-002-1f4d57d2",
+      "criterion": "输入商品名称可筛选；无匹配时显示空状态；搜索与分类共同生效。",
+      "source": {
+        "path": ".ios-workflow/sources/home-storefront.md",
+        "section": "可核对验收"
+      },
+      "status": "verified",
+      "implementation": [
+        "App/AppDelegate.swift",
+        "App/Core/Localization/AppLanguage.swift",
+        "App/Core/Localization/LanguagePreferenceStore.swift",
+        "App/Core/Localization/LocalizationPolicy.swift",
+        "App/DesignSystem/DesignTokens.swift",
+        "App/Features/About/AboutViewController.swift",
+        "App/Features/Home/HomeViewController.swift",
+        "App/Features/Home/HomeViewModel.swift",
+        "App/Features/Language/LanguageViewController.swift",
+        "App/Features/Settings/SettingsViewController.swift",
+        "App/Resources/ar.lproj/Localizable.strings",
+        "App/Resources/de.lproj/Localizable.strings",
+        "App/Resources/en.lproj/Localizable.strings",
+        "App/Resources/es.lproj/Localizable.strings",
+        "App/Resources/fr.lproj/Localizable.strings",
+        "App/Resources/it.lproj/Localizable.strings",
+        "App/Resources/ja.lproj/Localizable.strings",
+        "App/Resources/ko.lproj/Localizable.strings",
+        "App/Resources/pt-BR.lproj/Localizable.strings",
+        "App/Resources/ru.lproj/Localizable.strings",
+        "App/Resources/zh-Hans.lproj/Localizable.strings",
+        "App/Resources/zh-Hant.lproj/Localizable.strings",
+        "App/SceneDelegate.swift"
+      ],
+      "evidence": [
+        {
+          "path": ".ios-workflow/tests/home-storefront.md",
+          "sha256": "cd4db7ed91dbf1c1be6607ab9b2acd5cdfe8dfa4978ba32ed7d9a43e86dd79df",
+          "inputs": [
+            {
+              "path": "App/AppDelegate.swift",
+              "sha256": "b647a374b04d6247134570b98e9632f99c6ebfb62c4d87330474179c38e710b3"
+            },
+            {
+              "path": "App/Core/Localization/AppLanguage.swift",
+              "sha256": "3a1f84d3f34ff4b0239c9a808e3df9c19c20cd10999f26739a5c059c9c1fe103"
+            },
+            {
+              "path": "App/Core/Localization/LanguagePreferenceStore.swift",
+              "sha256": "9441c99db42119f425133b6b07fd6711c65c313a65e855a8fe4afa56a8ae6426"
+            },
+            {
+              "path": "App/Core/Localization/LocalizationPolicy.swift",
+              "sha256": "526955b9e32fb0d39fad31337c9960b981e9559b4823f9954512bd59befd7cc7"
+            },
+            {
+              "path": "App/DesignSystem/DesignTokens.swift",
+              "sha256": "c8e943aa749d76d25b5d427c1ba9ea5d150ff3b28f2bc04ea9bd3666f1273374"
+            },
+            {
+              "path": "App/Features/About/AboutViewController.swift",
+              "sha256": "43c677d0349cb0b35cf990adcc86c4e780c75e9e3b84e04cd383f2fa4bb986d1"
+            },
+            {
+              "path": "App/Features/Home/HomeViewController.swift",
+              "sha256": "9fd98d5058acbe6ebb4fcff239533a065f7cd6face424323321c27ceba49c63d"
+            },
+            {
+              "path": "App/Features/Home/HomeViewModel.swift",
+              "sha256": "32dfa1b6cd838d32ae4d9d040820860ca44bc3491b405ee42dea6ca3c127f3c9"
+            },
+            {
+              "path": "App/Features/Language/LanguageViewController.swift",
+              "sha256": "5e281bc7b266f41c00a58ec437e45b06f989fbb2b49dc64065a9c3e1ef8747c7"
+            },
+            {
+              "path": "App/Features/Settings/SettingsViewController.swift",
+              "sha256": "28913bc0afebb58c4265800e7c2d539b3f643791ead7b17bbb71b38d00e6a74b"
+            },
+            {
+              "path": "App/Resources/ar.lproj/Localizable.strings",
+              "sha256": "f8320341e7409190287969656c580f4b0126bd82438088b963128bedd41c6b11"
+            },
+            {
+              "path": "App/Resources/de.lproj/Localizable.strings",
+              "sha256": "ab27b5b9ebaa9891bed2e83c220c8bfc39e02f90547fd6a4f7b4dc57d6663896"
+            },
+            {
+              "path": "App/Resources/en.lproj/Localizable.strings",
+              "sha256": "57c3c75bd497ce5608ed808e4d211b2fd9e5b3329e0d852ab775eb4f151dbbcd"
+            },
+            {
+              "path": "App/Resources/es.lproj/Localizable.strings",
+              "sha256": "24986e0f62030110cf608cc36d2480e00ff9478df45101a9945ca90ecca6bdac"
+            },
+            {
+              "path": "App/Resources/fr.lproj/Localizable.strings",
+              "sha256": "f39c53c66268b49d0cd2002c5055fb41b921ddfd9601d3663311ddcf5c62833e"
+            },
+            {
+              "path": "App/Resources/it.lproj/Localizable.strings",
+              "sha256": "4a98470e9d26c47435be0544bd2c14ec164c8c3d57d7f5957ae74f7568722bed"
+            },
+            {
+              "path": "App/Resources/ja.lproj/Localizable.strings",
+              "sha256": "3095b5467292039da8c7a3b7a77c47c6f0637bfffcfc123a0ca3cba7832c3805"
+            },
+            {
+              "path": "App/Resources/ko.lproj/Localizable.strings",
+              "sha256": "f7b48cac1d29af1b58c257ff94840433dde21d058c84d1b093d57881b7821bc7"
+            },
+            {
+              "path": "App/Resources/pt-BR.lproj/Localizable.strings",
+              "sha256": "d84f60cfaef00691e084d1f58b835a3183ca496b2924549eaa42598c5450b1ea"
+            },
+            {
+              "path": "App/Resources/ru.lproj/Localizable.strings",
+              "sha256": "c5cbedcf3818e55e4087a2f9b8600f8808f05f84bb437491d0a46493130e58de"
+            },
+            {
+              "path": "App/Resources/zh-Hans.lproj/Localizable.strings",
+              "sha256": "290de65164f78cdfbd16037766786118bdd626ee1fe72659e499139239b90bc7"
+            },
+            {
+              "path": "App/Resources/zh-Hant.lproj/Localizable.strings",
+              "sha256": "b6a078825218f24dd24e57f5b0e07a2f9fc77c109f52bcc649bdff95ddcfd392"
+            },
+            {
+              "path": "App/SceneDelegate.swift",
+              "sha256": "14f084d3ecb42a89fcffbd7b51a9efcf28d79f78b3a3b2bc598360018adc1eb9"
+            },
+            {
+              "path": "Tests/WorkflowDemoTests.swift",
+              "sha256": "493af311a3bb2acd08080d6632000e2d78b23085160c9d5bd4a34ed576981fee"
+            },
+            {
+              "path": "UITests/WorkflowDemoUITests.swift",
+              "sha256": "5f88db85abf2af601c607078c6daba96d1214c007393791ab0afee85f44d2398"
+            },
+            {
+              "path": "WorkflowDemo.xcodeproj/project.pbxproj",
+              "sha256": "dafa7772caa8505b443b4ead7a18c5efa401325a0623fa32ae541676aea494fe"
+            },
+            {
+              "path": ".ios-workflow/sources/home-storefront.md",
+              "sha256": "54a3b2fe4916fcf1b5d24ea849df4f21a3d6e37b93e53ad9408c365511bbc868"
+            }
+          ],
+          "environment": "Xcode 26.6 (17F113); iPhone 17 Pro / iOS 26.5; WorkflowDemo Debug; 11 unit + 5 UI tests; resource lint and documented screenshot review",
+          "result": "passed",
+          "recorded_at": "2026-09-11T09:38:53+08:00",
+          "executed_at": "2026-09-11T09:25:11+08:00",
+          "retrospective": true
+        }
+      ]
+    },
+    {
+      "id": "REQ-20260911-002-1f4d57d2-AC-003",
+      "requirement_id": "REQ-20260911-002-1f4d57d2",
+      "criterion": "切换生活分类后仅显示该分类商品，返回全部后恢复完整列表。",
+      "source": {
+        "path": ".ios-workflow/sources/home-storefront.md",
+        "section": "可核对验收"
+      },
+      "status": "verified",
+      "implementation": [
+        "App/AppDelegate.swift",
+        "App/Core/Localization/AppLanguage.swift",
+        "App/Core/Localization/LanguagePreferenceStore.swift",
+        "App/Core/Localization/LocalizationPolicy.swift",
+        "App/DesignSystem/DesignTokens.swift",
+        "App/Features/About/AboutViewController.swift",
+        "App/Features/Home/HomeViewController.swift",
+        "App/Features/Home/HomeViewModel.swift",
+        "App/Features/Language/LanguageViewController.swift",
+        "App/Features/Settings/SettingsViewController.swift",
+        "App/Resources/ar.lproj/Localizable.strings",
+        "App/Resources/de.lproj/Localizable.strings",
+        "App/Resources/en.lproj/Localizable.strings",
+        "App/Resources/es.lproj/Localizable.strings",
+        "App/Resources/fr.lproj/Localizable.strings",
+        "App/Resources/it.lproj/Localizable.strings",
+        "App/Resources/ja.lproj/Localizable.strings",
+        "App/Resources/ko.lproj/Localizable.strings",
+        "App/Resources/pt-BR.lproj/Localizable.strings",
+        "App/Resources/ru.lproj/Localizable.strings",
+        "App/Resources/zh-Hans.lproj/Localizable.strings",
+        "App/Resources/zh-Hant.lproj/Localizable.strings",
+        "App/SceneDelegate.swift"
+      ],
+      "evidence": [
+        {
+          "path": ".ios-workflow/tests/home-storefront.md",
+          "sha256": "cd4db7ed91dbf1c1be6607ab9b2acd5cdfe8dfa4978ba32ed7d9a43e86dd79df",
+          "inputs": [
+            {
+              "path": "App/AppDelegate.swift",
+              "sha256": "b647a374b04d6247134570b98e9632f99c6ebfb62c4d87330474179c38e710b3"
+            },
+            {
+              "path": "App/Core/Localization/AppLanguage.swift",
+              "sha256": "3a1f84d3f34ff4b0239c9a808e3df9c19c20cd10999f26739a5c059c9c1fe103"
+            },
+            {
+              "path": "App/Core/Localization/LanguagePreferenceStore.swift",
+              "sha256": "9441c99db42119f425133b6b07fd6711c65c313a65e855a8fe4afa56a8ae6426"
+            },
+            {
+              "path": "App/Core/Localization/LocalizationPolicy.swift",
+              "sha256": "526955b9e32fb0d39fad31337c9960b981e9559b4823f9954512bd59befd7cc7"
+            },
+            {
+              "path": "App/DesignSystem/DesignTokens.swift",
+              "sha256": "c8e943aa749d76d25b5d427c1ba9ea5d150ff3b28f2bc04ea9bd3666f1273374"
+            },
+            {
+              "path": "App/Features/About/AboutViewController.swift",
+              "sha256": "43c677d0349cb0b35cf990adcc86c4e780c75e9e3b84e04cd383f2fa4bb986d1"
+            },
+            {
+              "path": "App/Features/Home/HomeViewController.swift",
+              "sha256": "9fd98d5058acbe6ebb4fcff239533a065f7cd6face424323321c27ceba49c63d"
+            },
+            {
+              "path": "App/Features/Home/HomeViewModel.swift",
+              "sha256": "32dfa1b6cd838d32ae4d9d040820860ca44bc3491b405ee42dea6ca3c127f3c9"
+            },
+            {
+              "path": "App/Features/Language/LanguageViewController.swift",
+              "sha256": "5e281bc7b266f41c00a58ec437e45b06f989fbb2b49dc64065a9c3e1ef8747c7"
+            },
+            {
+              "path": "App/Features/Settings/SettingsViewController.swift",
+              "sha256": "28913bc0afebb58c4265800e7c2d539b3f643791ead7b17bbb71b38d00e6a74b"
+            },
+            {
+              "path": "App/Resources/ar.lproj/Localizable.strings",
+              "sha256": "f8320341e7409190287969656c580f4b0126bd82438088b963128bedd41c6b11"
+            },
+            {
+              "path": "App/Resources/de.lproj/Localizable.strings",
+              "sha256": "ab27b5b9ebaa9891bed2e83c220c8bfc39e02f90547fd6a4f7b4dc57d6663896"
+            },
+            {
+              "path": "App/Resources/en.lproj/Localizable.strings",
+              "sha256": "57c3c75bd497ce5608ed808e4d211b2fd9e5b3329e0d852ab775eb4f151dbbcd"
+            },
+            {
+              "path": "App/Resources/es.lproj/Localizable.strings",
+              "sha256": "24986e0f62030110cf608cc36d2480e00ff9478df45101a9945ca90ecca6bdac"
+            },
+            {
+              "path": "App/Resources/fr.lproj/Localizable.strings",
+              "sha256": "f39c53c66268b49d0cd2002c5055fb41b921ddfd9601d3663311ddcf5c62833e"
+            },
+            {
+              "path": "App/Resources/it.lproj/Localizable.strings",
+              "sha256": "4a98470e9d26c47435be0544bd2c14ec164c8c3d57d7f5957ae74f7568722bed"
+            },
+            {
+              "path": "App/Resources/ja.lproj/Localizable.strings",
+              "sha256": "3095b5467292039da8c7a3b7a77c47c6f0637bfffcfc123a0ca3cba7832c3805"
+            },
+            {
+              "path": "App/Resources/ko.lproj/Localizable.strings",
+              "sha256": "f7b48cac1d29af1b58c257ff94840433dde21d058c84d1b093d57881b7821bc7"
+            },
+            {
+              "path": "App/Resources/pt-BR.lproj/Localizable.strings",
+              "sha256": "d84f60cfaef00691e084d1f58b835a3183ca496b2924549eaa42598c5450b1ea"
+            },
+            {
+              "path": "App/Resources/ru.lproj/Localizable.strings",
+              "sha256": "c5cbedcf3818e55e4087a2f9b8600f8808f05f84bb437491d0a46493130e58de"
+            },
+            {
+              "path": "App/Resources/zh-Hans.lproj/Localizable.strings",
+              "sha256": "290de65164f78cdfbd16037766786118bdd626ee1fe72659e499139239b90bc7"
+            },
+            {
+              "path": "App/Resources/zh-Hant.lproj/Localizable.strings",
+              "sha256": "b6a078825218f24dd24e57f5b0e07a2f9fc77c109f52bcc649bdff95ddcfd392"
+            },
+            {
+              "path": "App/SceneDelegate.swift",
+              "sha256": "14f084d3ecb42a89fcffbd7b51a9efcf28d79f78b3a3b2bc598360018adc1eb9"
+            },
+            {
+              "path": "Tests/WorkflowDemoTests.swift",
+              "sha256": "493af311a3bb2acd08080d6632000e2d78b23085160c9d5bd4a34ed576981fee"
+            },
+            {
+              "path": "UITests/WorkflowDemoUITests.swift",
+              "sha256": "5f88db85abf2af601c607078c6daba96d1214c007393791ab0afee85f44d2398"
+            },
+            {
+              "path": "WorkflowDemo.xcodeproj/project.pbxproj",
+              "sha256": "dafa7772caa8505b443b4ead7a18c5efa401325a0623fa32ae541676aea494fe"
+            },
+            {
+              "path": ".ios-workflow/sources/home-storefront.md",
+              "sha256": "54a3b2fe4916fcf1b5d24ea849df4f21a3d6e37b93e53ad9408c365511bbc868"
+            }
+          ],
+          "environment": "Xcode 26.6 (17F113); iPhone 17 Pro / iOS 26.5; WorkflowDemo Debug; 11 unit + 5 UI tests; resource lint and documented screenshot review",
+          "result": "passed",
+          "recorded_at": "2026-09-11T09:38:53+08:00",
+          "executed_at": "2026-09-11T09:25:11+08:00",
+          "retrospective": true
+        }
+      ]
+    },
+    {
+      "id": "REQ-20260911-002-1f4d57d2-AC-004",
+      "requirement_id": "REQ-20260911-002-1f4d57d2",
+      "criterion": "原有计数增加、重置、设置、语言切换和关于页面仍可使用。",
+      "source": {
+        "path": ".ios-workflow/sources/home-storefront.md",
+        "section": "可核对验收"
+      },
+      "status": "verified",
+      "implementation": [
+        "App/AppDelegate.swift",
+        "App/Core/Localization/AppLanguage.swift",
+        "App/Core/Localization/LanguagePreferenceStore.swift",
+        "App/Core/Localization/LocalizationPolicy.swift",
+        "App/DesignSystem/DesignTokens.swift",
+        "App/Features/About/AboutViewController.swift",
+        "App/Features/Home/HomeViewController.swift",
+        "App/Features/Home/HomeViewModel.swift",
+        "App/Features/Language/LanguageViewController.swift",
+        "App/Features/Settings/SettingsViewController.swift",
+        "App/Resources/ar.lproj/Localizable.strings",
+        "App/Resources/de.lproj/Localizable.strings",
+        "App/Resources/en.lproj/Localizable.strings",
+        "App/Resources/es.lproj/Localizable.strings",
+        "App/Resources/fr.lproj/Localizable.strings",
+        "App/Resources/it.lproj/Localizable.strings",
+        "App/Resources/ja.lproj/Localizable.strings",
+        "App/Resources/ko.lproj/Localizable.strings",
+        "App/Resources/pt-BR.lproj/Localizable.strings",
+        "App/Resources/ru.lproj/Localizable.strings",
+        "App/Resources/zh-Hans.lproj/Localizable.strings",
+        "App/Resources/zh-Hant.lproj/Localizable.strings",
+        "App/SceneDelegate.swift"
+      ],
+      "evidence": [
+        {
+          "path": ".ios-workflow/tests/home-storefront.md",
+          "sha256": "cd4db7ed91dbf1c1be6607ab9b2acd5cdfe8dfa4978ba32ed7d9a43e86dd79df",
+          "inputs": [
+            {
+              "path": "App/AppDelegate.swift",
+              "sha256": "b647a374b04d6247134570b98e9632f99c6ebfb62c4d87330474179c38e710b3"
+            },
+            {
+              "path": "App/Core/Localization/AppLanguage.swift",
+              "sha256": "3a1f84d3f34ff4b0239c9a808e3df9c19c20cd10999f26739a5c059c9c1fe103"
+            },
+            {
+              "path": "App/Core/Localization/LanguagePreferenceStore.swift",
+              "sha256": "9441c99db42119f425133b6b07fd6711c65c313a65e855a8fe4afa56a8ae6426"
+            },
+            {
+              "path": "App/Core/Localization/LocalizationPolicy.swift",
+              "sha256": "526955b9e32fb0d39fad31337c9960b981e9559b4823f9954512bd59befd7cc7"
+            },
+            {
+              "path": "App/DesignSystem/DesignTokens.swift",
+              "sha256": "c8e943aa749d76d25b5d427c1ba9ea5d150ff3b28f2bc04ea9bd3666f1273374"
+            },
+            {
+              "path": "App/Features/About/AboutViewController.swift",
+              "sha256": "43c677d0349cb0b35cf990adcc86c4e780c75e9e3b84e04cd383f2fa4bb986d1"
+            },
+            {
+              "path": "App/Features/Home/HomeViewController.swift",
+              "sha256": "9fd98d5058acbe6ebb4fcff239533a065f7cd6face424323321c27ceba49c63d"
+            },
+            {
+              "path": "App/Features/Home/HomeViewModel.swift",
+              "sha256": "32dfa1b6cd838d32ae4d9d040820860ca44bc3491b405ee42dea6ca3c127f3c9"
+            },
+            {
+              "path": "App/Features/Language/LanguageViewController.swift",
+              "sha256": "5e281bc7b266f41c00a58ec437e45b06f989fbb2b49dc64065a9c3e1ef8747c7"
+            },
+            {
+              "path": "App/Features/Settings/SettingsViewController.swift",
+              "sha256": "28913bc0afebb58c4265800e7c2d539b3f643791ead7b17bbb71b38d00e6a74b"
+            },
+            {
+              "path": "App/Resources/ar.lproj/Localizable.strings",
+              "sha256": "f8320341e7409190287969656c580f4b0126bd82438088b963128bedd41c6b11"
+            },
+            {
+              "path": "App/Resources/de.lproj/Localizable.strings",
+              "sha256": "ab27b5b9ebaa9891bed2e83c220c8bfc39e02f90547fd6a4f7b4dc57d6663896"
+            },
+            {
+              "path": "App/Resources/en.lproj/Localizable.strings",
+              "sha256": "57c3c75bd497ce5608ed808e4d211b2fd9e5b3329e0d852ab775eb4f151dbbcd"
+            },
+            {
+              "path": "App/Resources/es.lproj/Localizable.strings",
+              "sha256": "24986e0f62030110cf608cc36d2480e00ff9478df45101a9945ca90ecca6bdac"
+            },
+            {
+              "path": "App/Resources/fr.lproj/Localizable.strings",
+              "sha256": "f39c53c66268b49d0cd2002c5055fb41b921ddfd9601d3663311ddcf5c62833e"
+            },
+            {
+              "path": "App/Resources/it.lproj/Localizable.strings",
+              "sha256": "4a98470e9d26c47435be0544bd2c14ec164c8c3d57d7f5957ae74f7568722bed"
+            },
+            {
+              "path": "App/Resources/ja.lproj/Localizable.strings",
+              "sha256": "3095b5467292039da8c7a3b7a77c47c6f0637bfffcfc123a0ca3cba7832c3805"
+            },
+            {
+              "path": "App/Resources/ko.lproj/Localizable.strings",
+              "sha256": "f7b48cac1d29af1b58c257ff94840433dde21d058c84d1b093d57881b7821bc7"
+            },
+            {
+              "path": "App/Resources/pt-BR.lproj/Localizable.strings",
+              "sha256": "d84f60cfaef00691e084d1f58b835a3183ca496b2924549eaa42598c5450b1ea"
+            },
+            {
+              "path": "App/Resources/ru.lproj/Localizable.strings",
+              "sha256": "c5cbedcf3818e55e4087a2f9b8600f8808f05f84bb437491d0a46493130e58de"
+            },
+            {
+              "path": "App/Resources/zh-Hans.lproj/Localizable.strings",
+              "sha256": "290de65164f78cdfbd16037766786118bdd626ee1fe72659e499139239b90bc7"
+            },
+            {
+              "path": "App/Resources/zh-Hant.lproj/Localizable.strings",
+              "sha256": "b6a078825218f24dd24e57f5b0e07a2f9fc77c109f52bcc649bdff95ddcfd392"
+            },
+            {
+              "path": "App/SceneDelegate.swift",
+              "sha256": "14f084d3ecb42a89fcffbd7b51a9efcf28d79f78b3a3b2bc598360018adc1eb9"
+            },
+            {
+              "path": "Tests/WorkflowDemoTests.swift",
+              "sha256": "493af311a3bb2acd08080d6632000e2d78b23085160c9d5bd4a34ed576981fee"
+            },
+            {
+              "path": "UITests/WorkflowDemoUITests.swift",
+              "sha256": "5f88db85abf2af601c607078c6daba96d1214c007393791ab0afee85f44d2398"
+            },
+            {
+              "path": "WorkflowDemo.xcodeproj/project.pbxproj",
+              "sha256": "dafa7772caa8505b443b4ead7a18c5efa401325a0623fa32ae541676aea494fe"
+            },
+            {
+              "path": ".ios-workflow/sources/home-storefront.md",
+              "sha256": "54a3b2fe4916fcf1b5d24ea849df4f21a3d6e37b93e53ad9408c365511bbc868"
+            }
+          ],
+          "environment": "Xcode 26.6 (17F113); iPhone 17 Pro / iOS 26.5; WorkflowDemo Debug; 11 unit + 5 UI tests; resource lint and documented screenshot review",
+          "result": "passed",
+          "recorded_at": "2026-09-11T09:38:53+08:00",
+          "executed_at": "2026-09-11T09:25:11+08:00",
+          "retrospective": true
+        }
+      ]
+    },
+    {
+      "id": "REQ-20260911-002-1f4d57d2-AC-005",
+      "requirement_id": "REQ-20260911-002-1f4d57d2",
+      "criterion": "新文案覆盖现有 12 种语言；中文浅色、深色最大辅助字号首屏与阿拉伯语 RTL 首屏有实际检查记录。",
+      "source": {
+        "path": ".ios-workflow/sources/home-storefront.md",
+        "section": "可核对验收"
+      },
+      "status": "verified",
+      "implementation": [
+        "App/AppDelegate.swift",
+        "App/Core/Localization/AppLanguage.swift",
+        "App/Core/Localization/LanguagePreferenceStore.swift",
+        "App/Core/Localization/LocalizationPolicy.swift",
+        "App/DesignSystem/DesignTokens.swift",
+        "App/Features/About/AboutViewController.swift",
+        "App/Features/Home/HomeViewController.swift",
+        "App/Features/Home/HomeViewModel.swift",
+        "App/Features/Language/LanguageViewController.swift",
+        "App/Features/Settings/SettingsViewController.swift",
+        "App/Resources/ar.lproj/Localizable.strings",
+        "App/Resources/de.lproj/Localizable.strings",
+        "App/Resources/en.lproj/Localizable.strings",
+        "App/Resources/es.lproj/Localizable.strings",
+        "App/Resources/fr.lproj/Localizable.strings",
+        "App/Resources/it.lproj/Localizable.strings",
+        "App/Resources/ja.lproj/Localizable.strings",
+        "App/Resources/ko.lproj/Localizable.strings",
+        "App/Resources/pt-BR.lproj/Localizable.strings",
+        "App/Resources/ru.lproj/Localizable.strings",
+        "App/Resources/zh-Hans.lproj/Localizable.strings",
+        "App/Resources/zh-Hant.lproj/Localizable.strings",
+        "App/SceneDelegate.swift"
+      ],
+      "evidence": [
+        {
+          "path": ".ios-workflow/tests/home-storefront.md",
+          "sha256": "cd4db7ed91dbf1c1be6607ab9b2acd5cdfe8dfa4978ba32ed7d9a43e86dd79df",
+          "inputs": [
+            {
+              "path": "App/AppDelegate.swift",
+              "sha256": "b647a374b04d6247134570b98e9632f99c6ebfb62c4d87330474179c38e710b3"
+            },
+            {
+              "path": "App/Core/Localization/AppLanguage.swift",
+              "sha256": "3a1f84d3f34ff4b0239c9a808e3df9c19c20cd10999f26739a5c059c9c1fe103"
+            },
+            {
+              "path": "App/Core/Localization/LanguagePreferenceStore.swift",
+              "sha256": "9441c99db42119f425133b6b07fd6711c65c313a65e855a8fe4afa56a8ae6426"
+            },
+            {
+              "path": "App/Core/Localization/LocalizationPolicy.swift",
+              "sha256": "526955b9e32fb0d39fad31337c9960b981e9559b4823f9954512bd59befd7cc7"
+            },
+            {
+              "path": "App/DesignSystem/DesignTokens.swift",
+              "sha256": "c8e943aa749d76d25b5d427c1ba9ea5d150ff3b28f2bc04ea9bd3666f1273374"
+            },
+            {
+              "path": "App/Features/About/AboutViewController.swift",
+              "sha256": "43c677d0349cb0b35cf990adcc86c4e780c75e9e3b84e04cd383f2fa4bb986d1"
+            },
+            {
+              "path": "App/Features/Home/HomeViewController.swift",
+              "sha256": "9fd98d5058acbe6ebb4fcff239533a065f7cd6face424323321c27ceba49c63d"
+            },
+            {
+              "path": "App/Features/Home/HomeViewModel.swift",
+              "sha256": "32dfa1b6cd838d32ae4d9d040820860ca44bc3491b405ee42dea6ca3c127f3c9"
+            },
+            {
+              "path": "App/Features/Language/LanguageViewController.swift",
+              "sha256": "5e281bc7b266f41c00a58ec437e45b06f989fbb2b49dc64065a9c3e1ef8747c7"
+            },
+            {
+              "path": "App/Features/Settings/SettingsViewController.swift",
+              "sha256": "28913bc0afebb58c4265800e7c2d539b3f643791ead7b17bbb71b38d00e6a74b"
+            },
+            {
+              "path": "App/Resources/ar.lproj/Localizable.strings",
+              "sha256": "f8320341e7409190287969656c580f4b0126bd82438088b963128bedd41c6b11"
+            },
+            {
+              "path": "App/Resources/de.lproj/Localizable.strings",
+              "sha256": "ab27b5b9ebaa9891bed2e83c220c8bfc39e02f90547fd6a4f7b4dc57d6663896"
+            },
+            {
+              "path": "App/Resources/en.lproj/Localizable.strings",
+              "sha256": "57c3c75bd497ce5608ed808e4d211b2fd9e5b3329e0d852ab775eb4f151dbbcd"
+            },
+            {
+              "path": "App/Resources/es.lproj/Localizable.strings",
+              "sha256": "24986e0f62030110cf608cc36d2480e00ff9478df45101a9945ca90ecca6bdac"
+            },
+            {
+              "path": "App/Resources/fr.lproj/Localizable.strings",
+              "sha256": "f39c53c66268b49d0cd2002c5055fb41b921ddfd9601d3663311ddcf5c62833e"
+            },
+            {
+              "path": "App/Resources/it.lproj/Localizable.strings",
+              "sha256": "4a98470e9d26c47435be0544bd2c14ec164c8c3d57d7f5957ae74f7568722bed"
+            },
+            {
+              "path": "App/Resources/ja.lproj/Localizable.strings",
+              "sha256": "3095b5467292039da8c7a3b7a77c47c6f0637bfffcfc123a0ca3cba7832c3805"
+            },
+            {
+              "path": "App/Resources/ko.lproj/Localizable.strings",
+              "sha256": "f7b48cac1d29af1b58c257ff94840433dde21d058c84d1b093d57881b7821bc7"
+            },
+            {
+              "path": "App/Resources/pt-BR.lproj/Localizable.strings",
+              "sha256": "d84f60cfaef00691e084d1f58b835a3183ca496b2924549eaa42598c5450b1ea"
+            },
+            {
+              "path": "App/Resources/ru.lproj/Localizable.strings",
+              "sha256": "c5cbedcf3818e55e4087a2f9b8600f8808f05f84bb437491d0a46493130e58de"
+            },
+            {
+              "path": "App/Resources/zh-Hans.lproj/Localizable.strings",
+              "sha256": "290de65164f78cdfbd16037766786118bdd626ee1fe72659e499139239b90bc7"
+            },
+            {
+              "path": "App/Resources/zh-Hant.lproj/Localizable.strings",
+              "sha256": "b6a078825218f24dd24e57f5b0e07a2f9fc77c109f52bcc649bdff95ddcfd392"
+            },
+            {
+              "path": "App/SceneDelegate.swift",
+              "sha256": "14f084d3ecb42a89fcffbd7b51a9efcf28d79f78b3a3b2bc598360018adc1eb9"
+            },
+            {
+              "path": "Tests/WorkflowDemoTests.swift",
+              "sha256": "493af311a3bb2acd08080d6632000e2d78b23085160c9d5bd4a34ed576981fee"
+            },
+            {
+              "path": "UITests/WorkflowDemoUITests.swift",
+              "sha256": "5f88db85abf2af601c607078c6daba96d1214c007393791ab0afee85f44d2398"
+            },
+            {
+              "path": "WorkflowDemo.xcodeproj/project.pbxproj",
+              "sha256": "dafa7772caa8505b443b4ead7a18c5efa401325a0623fa32ae541676aea494fe"
+            },
+            {
+              "path": ".ios-workflow/sources/home-storefront.md",
+              "sha256": "54a3b2fe4916fcf1b5d24ea849df4f21a3d6e37b93e53ad9408c365511bbc868"
+            }
+          ],
+          "environment": "Xcode 26.6 (17F113); iPhone 17 Pro / iOS 26.5; WorkflowDemo Debug; 11 unit + 5 UI tests; resource lint and documented screenshot review",
+          "result": "passed",
+          "recorded_at": "2026-09-11T09:38:53+08:00",
+          "executed_at": "2026-09-11T09:25:11+08:00",
+          "retrospective": true
+        }
+      ]
+    }
+  ]
+}

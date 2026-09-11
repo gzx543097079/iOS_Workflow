@@ -24,3 +24,35 @@ struct HomeViewModel {
         count = 0
     }
 }
+
+// 本地样品只用于展示商城交互，价格不代表真实销售报价。
+struct StoreProduct {
+    let id: String
+    let category: String
+    let symbol: String
+    let price: Decimal
+
+    var titleKey: String { "shop.product.\(id)" }
+}
+
+// 搜索与分类共同筛选商品，界面语言由调用方提供以支持即时切换。
+struct StorefrontViewModel {
+    var category = "all"
+    var query = ""
+    let categories = ["all", "digital", "living"]
+    let products = [
+        StoreProduct(id: "headphones", category: "digital", symbol: "headphones", price: 299),
+        StoreProduct(id: "lamp", category: "living", symbol: "lightbulb", price: 129),
+        StoreProduct(id: "speaker", category: "digital", symbol: "hifispeaker", price: 199),
+        StoreProduct(id: "mug", category: "living", symbol: "cup.and.saucer", price: 59)
+    ]
+
+    // 组合条件筛选，空白搜索等同于显示当前分类的全部商品。
+    func filteredProducts(localize: (String) -> String) -> [StoreProduct] {
+        let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        return products.filter {
+            (category == "all" || $0.category == category) &&
+                (term.isEmpty || localize($0.titleKey).localizedCaseInsensitiveContains(term))
+        }
+    }
+}

@@ -71,3 +71,33 @@ final class LanguagePreferenceStoreTests: XCTestCase {
         XCTAssertEqual(store.selectedLanguage, .system)
     }
 }
+
+final class StorefrontViewModelTests: XCTestCase {
+    func test_searchAndCategory_applyTogether() {
+        var model = StorefrontViewModel()
+        model.category = "digital"
+        model.query = "lamp"
+        XCTAssertTrue(model.filteredProducts(localize: { $0 }).isEmpty)
+        model.category = "living"
+        XCTAssertEqual(model.filteredProducts(localize: { $0 }).map(\.id), ["lamp"])
+    }
+
+    func test_search_trimsWhitespaceAndIgnoresCase() {
+        var model = StorefrontViewModel()
+        model.query = "  HEADPHONES\n"
+        XCTAssertEqual(model.filteredProducts(localize: { $0 }).map(\.id), ["headphones"])
+    }
+
+    func test_search_usesLocalizedProductName() {
+        var model = StorefrontViewModel()
+        model.query = "耳机"
+        XCTAssertEqual(model.filteredProducts(localize: { $0 == "shop.product.headphones" ? "无线耳机" : "其他" }).map(\.id), ["headphones"])
+    }
+
+    func test_whitespaceQuery_keepsSelectedCategory() {
+        var model = StorefrontViewModel()
+        model.category = "living"
+        model.query = " \n"
+        XCTAssertEqual(model.filteredProducts(localize: { $0 }).map(\.id), ["lamp", "mug"])
+    }
+}

@@ -13,3 +13,18 @@
 "about.title" = "من نحن";
 "about.description" = "عرض عدّاد محلي للتحقق من سير عمل iOS.";
 "about.version" = "الإصدار %@";
+
+"shop.search" = "البحث عن منتجات";
+"shop.hero" = "أشياء جميلة،\nكل يوم.";
+"shop.subtitle" = "اختيارات مدروسة لحياتك اليومية.";
+"shop.featured" = "مختارات لك";
+"shop.demo" = "المنتجات والأسعار أمثلة توضيحية. الشراء غير متاح.";
+"shop.category.all" = "الكل";
+"shop.category.digital" = "تقنية";
+"shop.category.living" = "المنزل";
+"shop.product.headphones" = "سماعات رأس لاسلكية";
+"shop.product.lamp" = "مصباح بجانب السرير";
+"shop.product.speaker" = "مكبر صوت محمول";
+"shop.product.mug" = "كوب خزفي";
+"shop.empty" = "لا توجد منتجات مطابقة. جرّب بحثًا أو فئة أخرى.";
+"shop.close" = "إغلاق";

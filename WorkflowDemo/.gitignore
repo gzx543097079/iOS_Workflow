@@ -3,3 +3,5 @@ build/
 *.xcresult
 xcuserdata/
 .DS_Store
+.ios-workflow/artifacts/
+.ios-workflow/transactions/.lock

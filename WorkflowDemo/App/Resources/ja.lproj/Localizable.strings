@@ -13,3 +13,18 @@
 "about.title" = "このアプリについて";
 "about.description" = "iOS ワークフローを検証するためのローカルカウンターデモです。";
 "about.version" = "バージョン %@";
+
+"shop.search" = "商品を検索";
+"shop.hero" = "毎日に、\nちょっといいもの。";
+"shop.subtitle" = "日々の暮らしに寄り添う、こだわりのアイテム。";
+"shop.featured" = "あなたへのおすすめ";
+"shop.demo" = "商品と価格はサンプルです。購入はできません。";
+"shop.category.all" = "すべて";
+"shop.category.digital" = "デジタル";
+"shop.category.living" = "暮らし";
+"shop.product.headphones" = "ワイヤレスヘッドホン";
+"shop.product.lamp" = "ベッドサイドランプ";
+"shop.product.speaker" = "ポータブルスピーカー";
+"shop.product.mug" = "陶器のマグカップ";
+"shop.empty" = "該当する商品がありません。検索語やカテゴリーを変えてください。";
+"shop.close" = "閉じる";

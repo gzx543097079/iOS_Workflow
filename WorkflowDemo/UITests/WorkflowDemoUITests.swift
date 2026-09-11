@@ -15,6 +15,8 @@ final class WorkflowDemoUITests: XCTestCase {
         let incrementButton = app.buttons["counter.increment"]
         let resetButton = app.buttons["counter.reset"]
 
+        for _ in 0..<4 where !incrementButton.isHittable { app.swipeUp() }
+
         XCTAssertEqual(counter.label, "Count: 0")
         XCTAssertFalse(resetButton.isEnabled)
 
@@ -27,6 +29,29 @@ final class WorkflowDemoUITests: XCTestCase {
 
         XCTAssertEqual(counter.label, "Count: 0")
         XCTAssertFalse(resetButton.isEnabled)
+    }
+
+    func test_storefrontCategoryAndProductDetails() {
+        XCTAssertTrue(app.buttons["shop.product.headphones"].exists)
+        app.buttons["shop.category.living"].tap()
+        XCTAssertFalse(app.buttons["shop.product.headphones"].exists)
+        let lamp = app.buttons["shop.product.lamp"]
+        XCTAssertTrue(lamp.exists)
+        lamp.tap()
+        XCTAssertTrue(app.alerts["Bedside lamp"].waitForExistence(timeout: 3))
+        app.alerts.buttons["Close"].tap()
+        app.buttons["shop.category.all"].tap()
+        XCTAssertTrue(app.buttons["shop.product.headphones"].exists)
+    }
+
+    func test_storefrontSearchShowsEmptyAndMatchingResults() {
+        let search = app.searchFields.firstMatch
+        search.tap()
+        search.typeText("zzzz")
+        XCTAssertTrue(app.staticTexts["shop.empty"].exists)
+        search.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 4) + "lamp")
+        XCTAssertTrue(app.buttons["shop.product.lamp"].exists)
+        XCTAssertFalse(app.buttons["shop.product.headphones"].exists)
     }
 
     func test_changeLanguage_updatesVisibleInterface() {

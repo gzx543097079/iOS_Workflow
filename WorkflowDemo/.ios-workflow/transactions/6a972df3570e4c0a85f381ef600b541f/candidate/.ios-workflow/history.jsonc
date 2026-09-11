@@ -1,0 +1,24 @@
+{
+  "version": 3,
+  "project": ".",
+  "next_sequence": 3,
+  "execution_order": [
+    {
+      "id": "REQ-20260903-006",
+      "sequence": 1,
+      "status": "done",
+      "title": "创建真实 Demo 验证 iOS 工作流",
+      "file": ".ios-workflow/requirements/REQ-20260903-006.md",
+      "legacy_source": ".ios-workflow/sources/legacy-history.jsonc"
+    },
+    {
+      "id": "REQ-20260911-002-1f4d57d2",
+      "sequence": 2,
+      "status": "done",
+      "file": ".ios-workflow/requirements/REQ-20260911-002-1f4d57d2.md",
+      "title": "在现有首页提供商城风格浏览界面",
+      "recorded_at": "2026-09-11T09:38:53+08:00",
+      "retrospective": true
+    }
+  ]
+}

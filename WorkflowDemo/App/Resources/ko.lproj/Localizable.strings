@@ -13,3 +13,18 @@
 "about.title" = "앱 정보";
 "about.description" = "iOS 워크플로를 검증하기 위한 로컬 카운터 데모입니다.";
 "about.version" = "버전 %@";
+
+"shop.search" = "상품 검색";
+"shop.hero" = "매일 만나는\n좋은 물건.";
+"shop.subtitle" = "일상을 위해 정성껏 고른 아이템.";
+"shop.featured" = "추천 상품";
+"shop.demo" = "상품과 가격은 예시이며 구매할 수 없습니다.";
+"shop.category.all" = "전체";
+"shop.category.digital" = "디지털";
+"shop.category.living" = "생활";
+"shop.product.headphones" = "무선 헤드폰";
+"shop.product.lamp" = "침대 옆 조명";
+"shop.product.speaker" = "휴대용 스피커";
+"shop.product.mug" = "도자기 머그잔";
+"shop.empty" = "일치하는 상품이 없습니다. 검색어나 카테고리를 바꿔 보세요.";
+"shop.close" = "닫기";

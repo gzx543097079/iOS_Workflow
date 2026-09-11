@@ -13,3 +13,18 @@
 "about.title" = "關於我們";
 "about.description" = "一個用於驗證 iOS 工作流程的本機計數示範。";
 "about.version" = "版本 %@";
+
+"shop.search" = "搜尋商品";
+"shop.hero" = "發現好物，\n點亮日常。";
+"shop.subtitle" = "為生活挑選一點恰到好處的美好。";
+"shop.featured" = "為你精選";
+"shop.demo" = "商品與價格僅為範例，暫不支援購買。";
+"shop.category.all" = "全部";
+"shop.category.digital" = "數位";
+"shop.category.living" = "生活";
+"shop.product.headphones" = "無線耳機";
+"shop.product.lamp" = "床頭檯燈";
+"shop.product.speaker" = "攜帶式喇叭";
+"shop.product.mug" = "陶瓷馬克杯";
+"shop.empty" = "找不到相關商品，試試其他關鍵字或分類。";
+"shop.close" = "關閉";

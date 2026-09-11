@@ -13,3 +13,18 @@
 "about.title" = "About Us";
 "about.description" = "A local counter demo for validating the iOS workflow.";
 "about.version" = "Version %@";
+
+"shop.search" = "Search products";
+"shop.hero" = "Good things,\nevery day.";
+"shop.subtitle" = "Thoughtful finds for your everyday life.";
+"shop.featured" = "Selected for you";
+"shop.demo" = "Sample products and prices. Purchases are not available.";
+"shop.category.all" = "All";
+"shop.category.digital" = "Tech";
+"shop.category.living" = "Living";
+"shop.product.headphones" = "Wireless headphones";
+"shop.product.lamp" = "Bedside lamp";
+"shop.product.speaker" = "Portable speaker";
+"shop.product.mug" = "Ceramic mug";
+"shop.empty" = "No matching products. Try another search or category.";
+"shop.close" = "Close";

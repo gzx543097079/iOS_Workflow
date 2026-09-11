@@ -13,3 +13,18 @@
 "about.title" = "关于我们";
 "about.description" = "一个用于验证 iOS 工作流的本地计数演示。";
 "about.version" = "版本 %@";
+
+"shop.search" = "搜索商品";
+"shop.hero" = "发现好物，\n点亮日常。";
+"shop.subtitle" = "为生活挑选一点恰到好处的美好。";
+"shop.featured" = "为你精选";
+"shop.demo" = "商品与价格仅为示例，暂不支持购买。";
+"shop.category.all" = "全部";
+"shop.category.digital" = "数码";
+"shop.category.living" = "生活";
+"shop.product.headphones" = "无线耳机";
+"shop.product.lamp" = "床头台灯";
+"shop.product.speaker" = "便携音箱";
+"shop.product.mug" = "陶瓷马克杯";
+"shop.empty" = "没有找到相关商品，试试其他关键词或分类。";
+"shop.close" = "关闭";

@@ -13,3 +13,18 @@
 "about.title" = "À propos";
 "about.description" = "Une démo de compteur local pour valider le flux de travail iOS.";
 "about.version" = "Version %@";
+
+"shop.search" = "Rechercher des produits";
+"shop.hero" = "De belles choses,\nchaque jour.";
+"shop.subtitle" = "Des trouvailles choisies pour votre quotidien.";
+"shop.featured" = "Notre sélection";
+"shop.demo" = "Produits et prix de démonstration. Les achats ne sont pas disponibles.";
+"shop.category.all" = "Tout";
+"shop.category.digital" = "Tech";
+"shop.category.living" = "Maison";
+"shop.product.headphones" = "Casque sans fil";
+"shop.product.lamp" = "Lampe de chevet";
+"shop.product.speaker" = "Enceinte portable";
+"shop.product.mug" = "Mug en céramique";
+"shop.empty" = "Aucun produit trouvé. Essayez une autre recherche ou catégorie.";
+"shop.close" = "Fermer";
